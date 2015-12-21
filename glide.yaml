@@ -1,0 +1,5 @@
+package: github.com/bmatsuo/lark
+import:
+    - package: github.com/bmatsuo/lmdb-go
+      subpackages: [lmdb]
+      tag: v1.4.0
