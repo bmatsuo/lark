@@ -3,3 +3,5 @@ import:
     - package: github.com/bmatsuo/lmdb-go
       subpackages: [lmdb]
       tag: v1.4.0
+    - package: github.com/codegangsta/cli
+      tag: v1.2.0

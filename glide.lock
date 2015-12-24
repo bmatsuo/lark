@@ -1,8 +1,10 @@
 hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-updated: 2015-12-21T04:32:10.060176514-08:00
+updated: 2015-12-21T06:57:41.770143021-08:00
 imports:
 - name: github.com/bmatsuo/lmdb-go
   version: fa26b45b56345e5ea2967ffe4df32cf7318af168
   subpackages:
   - lmdb
+- name: github.com/codegangsta/cli
+  version: b5232bb2934f606f9f27a1305f1eea224e8e8b88
 devImports: []
