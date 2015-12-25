@@ -5,3 +5,6 @@ import:
       tag: v1.4.0
     - package: github.com/codegangsta/cli
       tag: v1.2.0
+    - package: github.com/fatih/color
+    - package: github.com/yuin/gopher-lua
+      subpackages: [ast, parse, pm]

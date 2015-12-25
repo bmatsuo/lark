@@ -1,10 +1,22 @@
 hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-updated: 2015-12-21T06:57:41.770143021-08:00
+updated: 2015-12-25T09:25:39.807095685-08:00
 imports:
 - name: github.com/bmatsuo/lmdb-go
   version: fa26b45b56345e5ea2967ffe4df32cf7318af168
   subpackages:
   - lmdb
 - name: github.com/codegangsta/cli
-  version: b5232bb2934f606f9f27a1305f1eea224e8e8b88
+  version: c31a7975863e7810c92e2e288a9ab074f9a88f29
+- name: github.com/fatih/color
+  version: 9aae6aaa22315390f03959adca2c4d395b02fcef
+- name: github.com/mattn/go-colorable
+  version: 3dac7b4f76f6e17fb39b768b89e3783d16e237fe
+- name: github.com/mattn/go-isatty
+  version: 56b76bdf51f7708750eac80fa38b952bb9f32639
+- name: github.com/yuin/gopher-lua
+  version: f918613776713b6f81c708f3a2126b542c3efdd4
+  subpackages:
+  - ast
+  - parse
+  - pm
 devImports: []
