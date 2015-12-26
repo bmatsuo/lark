@@ -72,6 +72,10 @@ lark.shell_quote = function (args)
     return str
 end
 
+lark.start = function (args)
+    lark.exec(args)
+end
+
 lark.exec = function (args)
     local cmd_str = lark.shell_quote(args)
     lark.log{cmd_str, color='green'}
