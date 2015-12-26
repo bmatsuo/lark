@@ -9,6 +9,8 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
+//go:generate ./build_lib.sh
+
 // FindTaskFiles locates task scripts in the project dir.
 func FindTaskFiles(dir string) ([]string, error) {
 	var luaFiles []string
@@ -46,7 +48,12 @@ func LoadVM(conf *LuaConfig) (s *lua.LState, err error) {
 
 // InitLark initializes the lark library and loads files.
 func InitLark(c *Context, files []string) error {
-	// BUG: This needs to come after LoadLarkLibs but can't because the primary
+	err := LoadLarkLib(c)
+	if err != nil {
+		return err
+	}
+
+	// This needs to come after LoadLarkLib but can't because the primary
 	// library is a file.
 	if len(files) > 0 {
 		log.Printf("loading files: %v", files)
@@ -56,11 +63,6 @@ func InitLark(c *Context, files []string) error {
 		if err != nil {
 			return err
 		}
-	}
-
-	err := LoadLarkLib(c)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -79,6 +81,11 @@ func LoadFiles(state *lua.LState, files []string) error {
 
 // LoadLarkLib loads the default lark module.
 func LoadLarkLib(c *Context) error {
+	err := c.Lua.DoString(LarkLib)
+	if err != nil {
+		return nil
+	}
+
 	lark := c.Lua.GetGlobal("lark")
 	c.Lua.SetField(lark, "log", c.Lua.NewFunction(LuaLog))
 	c.Lua.SetField(lark, "verbose", lua.LBool(c.Verbose))
