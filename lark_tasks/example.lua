@@ -1,6 +1,6 @@
 --require 'lark'
 
-local cmd_reusable = {'python', '-c', 'exit( 1)'}
+local cmd_reusable = {'python', '-c', 'exit(1)'}
 
 -- When `lark run` is not given any arguments lark.default_task will be
 -- executed with the default parameter values.  When lark.default_task is not

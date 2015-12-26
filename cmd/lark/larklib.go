@@ -85,19 +85,15 @@ lark.exec = function (args)
 
     -- This is weird... The docs online do not indicate that os.execute should
     -- return three arguments.
-    local ok, exit, rc = os.execute(cmd_str)
-    if rc == nil then
-        rc = ok
-    end
+    local result = lark.exec_raw(args)
 
-    if args.ignore and rc ~= 0 then
+    if args.ignore and result.error then
 		if lark.verbose then 
-		msg = string.format('exit status %d (ignored)', rc)
+            local msg = string.format('%s (ignored)', result.error)
 			lark.log{msg, color='yellow'}
 		end
-	elseif rc ~= 0 then
-		msg = string.format('exit status %d', rc)
-		error(msg)
+	elseif result.error then
+		error(result.error)
     end
 end
 
