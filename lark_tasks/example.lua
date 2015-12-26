@@ -1,5 +1,7 @@
 --require 'lark'
 
+local path = require("path")
+
 local cmd_reusable = {'python', '-c', 'exit(1)'}
 
 -- When `lark run` is not given any arguments lark.default_task will be

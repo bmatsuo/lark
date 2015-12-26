@@ -13,11 +13,11 @@ Lark is a modern extensible build system scripted using Lua.
 
 ##MVP
 
-- Run lua a named task in `lark.lua` or `lark_tasks/*.lua`.
-- Execute a default task that is specified by the user, otherwise the first
+- [x] Run lua a named task in `lark.lua` or `lark_tasks/*.lua`.
+- [x] Execute a default task that is specified by the user, otherwise the first
   task encountered.
-- Define multiple tasks in a lua script.
-- A task can easily and safely spawn processes and glob files.  The default
+- [x] Define multiple tasks in a lua script.
+- [ ]  A task can easily and safely spawn processes and glob files.  The default
   behavior should terminate the task and exit non-zero if spawned processes
   exit non-zero.  There should be a way to ignore the exit code of a
   process.
