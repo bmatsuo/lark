@@ -55,7 +55,7 @@ func InitLark(c *Context, files []string) error {
 
 	// This needs to come after LoadLarkLib but can't because the primary
 	// library is a file.
-	if len(files) > 0 {
+	if c.Verbose && len(files) > 0 {
 		log.Printf("loading files: %v", files)
 	}
 	for _, file := range files {
