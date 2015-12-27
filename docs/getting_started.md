@@ -12,6 +12,10 @@ Install Lark by downloading one of the precompiled executable binaries.
 Unarchive the binary and install it under a directory listed in your PATH
 environment variable.
 
+This will give you everything you need to run tasks with Lark.  The Lua
+interpreter is included in the Lark binary and does not need to be installed
+separately.
+
 ##Creating tasks 
 
 Most simple projects will just need to create a Lua file named `lark.lua` at
@@ -33,9 +37,11 @@ The above `lark.lua` file defines a task called 'generate' that runs code
 generation and a task called 'build', that depends on code generation, that
 builds executables.  Tasks can be run using the `lark run` command.
 
+```sh
     lark run generate
     lark run build
     lark run           # runs the default task for the build.
+```
 
 The last line above executes the project's default task, the first task
 defined.  The default task can also be set explicitly in the `lark.lua` file if
@@ -44,3 +50,15 @@ desired.
 ```lua
 lark.default_task = 'build'
 ```
+
+##More complex projects
+
+For projects with more tasks or more complex task structure putting everything
+in `lark.lua` can become hard to manage.  Additional task scripts can be put in
+the `lark_tasks/` directory to modularize tasks and any custom functions they
+need.  These task scripts are loaded in alphabetical order following `lark.lua`
+(if it exists).
+
+As tasks become more complex users will want to make greater use of the modules
+provided by Lark.  Keep the scripting [reference](lua.md) on hand for
+documention of all Lark programming APIs.
