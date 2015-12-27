@@ -317,6 +317,7 @@ var PathLibExports = map[string]lua.LGFunction{
 	"base": LuaBase,
 	"dir":  LuaDir,
 	"ext":  LuaDir,
+	"join": LuaJoin,
 }
 
 // LuaGlob executes a file glob.
@@ -360,6 +361,22 @@ func LuaExt(state *lua.LState) int {
 
 	ext := filepath.Ext(path)
 	state.Push(lua.LString(ext))
+
+	return 1
+}
+
+// LuaJoin joins the provided path segments.
+func LuaJoin(state *lua.LState) int {
+	var segs []string
+
+	n := state.GetTop()
+	for i := 1; i <= n; i++ {
+		str := state.CheckString(i)
+		segs = append(segs, str)
+	}
+	path := filepath.Join(segs...)
+
+	state.Push(lua.LString(path))
 
 	return 1
 }

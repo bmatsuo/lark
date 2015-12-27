@@ -20,6 +20,9 @@ lark.task{'demo', function ()
     lark.start{'echo', 'an independent task'}
     lark.start{'echo', 'X', group='setup'}
 
+	local file = path.join('abc', 'def')
+	lark.log{file, color='blue'}
+
     -- Create a group for parallel execution that cannot execute programs until
     -- after  all processes in the 'setup' group have terminated.
     build = lark.group{'build', after='setup'}
