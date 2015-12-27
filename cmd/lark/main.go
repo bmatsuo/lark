@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/codegangsta/cli"
+	"github.com/yuin/gopher-lua"
 )
 
 // MainHelp is the top-level hop documentation.
@@ -17,13 +18,18 @@ var MainHelp = `
 `
 
 func main() {
+	// Set search path for lua modules.  The search path must be completely
+	// contained by the working directory to help ensure repeatable builds
+	// across machines.
+	lua.LuaPathDefault = "./lark_modules/?.lua;./lark_modules/?/init.lua"
+	os.Setenv(lua.LuaPath, "")
+
 	cli.VersionFlag.Name = "version"
 
 	app := cli.NewApp()
 	app.Name = "lark"
 	app.Usage = "Run repeated project tasks"
 	app.ArgsUsage = MainHelp
-
 	app.Action = func(c *cli.Context) {
 		args := []string{os.Args[0], "run"}
 		args = append(args, c.Args()...)
