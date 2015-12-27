@@ -6,6 +6,8 @@ Lark is a modern extensible build system scripted using Lua.
 
 - A simple to install, self-contained system.
 - Builtin modules to simplify shell-style scripting.
+- The `LUA_PATH` environment variable is ignored. The module search directory
+  is rooted under the project root for repeatable builds.
 - Optional dependency checking through external tools.
 
 ##Roadmap features
