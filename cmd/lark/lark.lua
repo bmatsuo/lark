@@ -1,6 +1,8 @@
 require 'string'
 require 'os'
 
+local core = require('lark.core')
+
 lark = {}
 
 lark.default_task = nil
@@ -72,9 +74,7 @@ lark.shell_quote = function (args)
     return str
 end
 
-lark.start = function (args)
-    lark.exec(args)
-end
+lark.log = core.log
 
 lark.exec = function (args)
     local cmd_str = lark.shell_quote(args)
@@ -82,7 +82,7 @@ lark.exec = function (args)
 
     -- This is weird... The docs online do not indicate that os.execute should
     -- return three arguments.
-    local result = lark.exec_raw(args)
+    local result = core.exec(args)
 
     if args.ignore and result.error then
 		if lark.verbose then 
@@ -93,6 +93,8 @@ lark.exec = function (args)
 		error(result.error)
     end
 end
+
+lark.start = lark.exec
 
 lark.group = function (args)
     print('created group ' .. args[1])

@@ -52,6 +52,7 @@ func LoadVM(conf *LuaConfig) (s *lua.LState, err error) {
 // InitLark initializes the lark library and loads files.
 func InitLark(c *Context, files []string) error {
 	c.Lua.PreloadModule("path", PathLibLoader)
+	c.Lua.PreloadModule("lark.core", LarkCoreLoader)
 
 	err := LoadLarkLib(c)
 	if err != nil {
@@ -84,6 +85,20 @@ func LoadFiles(state *lua.LState, files []string) error {
 	return nil
 }
 
+// LarkCoreLoader loads the lark.core module.
+func LarkCoreLoader(l *lua.LState) int {
+	t := l.NewTable()
+	mod := l.SetFuncs(t, LarkCoreExports)
+	l.Push(mod)
+	return 1
+}
+
+// LarkCoreExports contains the API for the lark.core lua module.
+var LarkCoreExports = map[string]lua.LGFunction{
+	"log":  LuaLog,
+	"exec": LuaExecRaw,
+}
+
 // LoadLarkLib loads the default lark module.
 func LoadLarkLib(c *Context) error {
 	err := c.Lua.DoString(LarkLib)
@@ -92,9 +107,11 @@ func LoadLarkLib(c *Context) error {
 	}
 
 	lark := c.Lua.GetGlobal("lark")
+
 	c.Lua.SetField(lark, "log", c.Lua.NewFunction(LuaLog))
 	c.Lua.SetField(lark, "exec_raw", c.Lua.NewFunction(LuaExecRaw))
 	c.Lua.SetField(lark, "verbose", lua.LBool(c.Verbose))
+
 	return nil
 }
 
