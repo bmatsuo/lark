@@ -17,7 +17,7 @@ Lark is a modern extensible build system scripted using Lua.
 - [x] Execute a default task that is specified by the user, otherwise the first
   task encountered.
 - [x] Define multiple tasks in a lua script.
-- [x]  A task can easily and safely spawn processes and glob files.  The default
+- [x] A task can easily and safely spawn processes and glob files.  The default
   behavior should terminate the task and exit non-zero if spawned processes
   exit non-zero.  There should be a way to ignore the exit code of a
   process.
@@ -35,9 +35,20 @@ To disambiguate parameter values from tasks '--' may be used to separate task
 invocations.
 
 ```
-lark build -O2
-lark build install
-lark build test --full -- release
+lark run build -O2
+lark run build install
+lark run build test --full -- release
+```
+
+##Dependency checking using fabricate or memoize
+
+The python projects [fabricate.py](https://github.com/SimonAlfie/fabricate) or
+[memoize.py](https://github.com/kgaughan/memoize.py) can be used as programs to
+check the dependencies of commands.
+
+```lua
+lark.exec{'fabricate.py', 'cc', CC_OPTS, '-o', BIN, OBJECTS}
+lark.exec{'memoize.py', 'cc', CC_OPTS, '-o', BIN, OBJECTS}
 ```
 
 ##Dependency checking using strace

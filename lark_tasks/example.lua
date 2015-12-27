@@ -29,14 +29,14 @@ lark.task{'demo', function ()
     lark.start{'cc', '--version', group=build}
 
     -- Wait for all processes in the build group to terminate.
-    lark.join{build}
+    lark.wait{build}
 
     -- If a command may terminate with a non-zero exit code the 'ignore' named
     -- argument will ensure that it does not cause the lark task to terminate.
     lark.exec{cmd_reusable, ignore=true}
 
     -- Wait for all outstanding execution groups.
-    lark.join()
+    lark.wait()
 
     -- Simple logging is provided with terminal colorization.  TTY devices are
     -- detected and color is ignored when output is written to a file.

@@ -101,7 +101,7 @@ lark.group = function (args)
     print('created group ' .. args[1])
 end
 
-lark.join = function (args)
+lark.wait = function (args)
     local group_name = args
     if type(args) == 'table' then
         group_name = args[1]
