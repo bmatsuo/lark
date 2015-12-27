@@ -5,6 +5,9 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
+// Verbose causes verbose error logging when set to true.
+var Verbose = new(bool)
+
 // Commands contains the list of commands available in lark.
 var Commands = []cli.Command{
 	CommandRun,
@@ -13,7 +16,7 @@ var Commands = []cli.Command{
 // Command is a helper for creating a cli.Command that relies on a Context for
 // setup.
 func Command(fn func(lark *Context, cmd *cli.Command)) cli.Command {
-	lark := new(Context)
+	lark := NewContext(nil)
 	cmd := new(cli.Command)
 	fn(lark, cmd)
 	return *cmd
@@ -23,7 +26,12 @@ func Command(fn func(lark *Context, cmd *cli.Command)) cli.Command {
 type Context struct {
 	*cli.Context
 	Lua     *lua.LState
-	Verbose bool
+	verbose *bool
+}
+
+// Verbose returns true if verbose output has been enabled.
+func (c *Context) Verbose() bool {
+	return c.verbose != nil && *c.verbose
 }
 
 // Action returns a function usable as the action for a cli.Command.
@@ -38,5 +46,6 @@ func (c *Context) Action(fn func(*Context)) func(*cli.Context) {
 func NewContext(c *cli.Context) *Context {
 	return &Context{
 		Context: c,
+		verbose: Verbose,
 	}
 }

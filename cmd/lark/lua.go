@@ -61,7 +61,7 @@ func InitLark(c *Context, files []string) error {
 
 	// This needs to come after LoadLarkLib but can't because the primary
 	// library is a file.
-	if c.Verbose && len(files) > 0 {
+	if c.Verbose() && len(files) > 0 {
 		log.Printf("loading files: %v", files)
 	}
 	for _, file := range files {
@@ -110,7 +110,7 @@ func LoadLarkLib(c *Context) error {
 
 	c.Lua.SetField(lark, "log", c.Lua.NewFunction(LuaLog))
 	c.Lua.SetField(lark, "exec_raw", c.Lua.NewFunction(LuaExecRaw))
-	c.Lua.SetField(lark, "verbose", lua.LBool(c.Verbose))
+	c.Lua.SetField(lark, "verbose", lua.LBool(c.Verbose()))
 
 	return nil
 }

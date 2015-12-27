@@ -14,13 +14,16 @@ import (
 // CommandRun implements the "run" action (the default action)
 var CommandRun = Command(func(lark *Context, cmd *cli.Command) {
 	cmd.Name = "run"
-	cmd.Usage = "run lark project task(s)"
+	cmd.Usage = "Run lark project task(s)"
+	cmd.ArgsUsage = `task ...
+
+    The arguments are the names of tasks from lark.lua.`
 	cmd.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:        "v",
 			Usage:       "Enable verbose reporting of errors.",
-			EnvVar:      "LARK_RUN_VERBOSE",
-			Destination: &lark.Verbose,
+			EnvVar:      "LARK_VERBOSE",
+			Destination: Verbose,
 		},
 	}
 	cmd.Action = lark.Action(Run)
@@ -80,7 +83,7 @@ func RunTask(c *Context, task string) error {
 	err := c.Lua.DoString(script)
 	if err != nil {
 		var x interface{}
-		if c.Verbose {
+		if c.Verbose() {
 			x = err
 		} else if e, ok := err.(*lua.ApiError); ok {
 			if e.Type == lua.ApiErrorRun {
