@@ -5,44 +5,33 @@ Lark is a modern extensible build system scripted using Lua.
 ##Core Features
 
 - A simple to install, self-contained system.
-- Dependency checking.
-- Tool for managing vendored third-party modules.
-- Users opt out of repeatable builds by explicitly ignoring the module
-  directory in their VCS. 
+- Builtin modules to simplify shell-style scripting.
+- Optional dependency checking through external tools.
+
+##Roadmap features
+- More idiomatic Lua API.
+- Parameterized tasks.
+- Pattern matching tasks (a la make).
+- System for vendored third-party modules.  Users opt out of repeatable builds
+  by explicitly ignoring the module directory in their VCS. 
 - Parallel processing (aspirations for builtin race detection).
+- Integrated dependency checking in the same spirit of the fabricate and
+  memoize.py projects.
 
-##MVP
+##Documentation
 
-- [x] Run lua a named task in `lark.lua` or `lark_tasks/*.lua`.
-- [x] Execute a default task that is specified by the user, otherwise the first
-  task encountered.
-- [x] Define multiple tasks in a lua script.
-- [x] A task can easily and safely spawn processes and glob files.  The default
-  behavior should terminate the task and exit non-zero if spawned processes
-  exit non-zero.  There should be a way to ignore the exit code of a
-  process.
+New users should read the guide to [Getting Started](docs/getting_started.md).
+After getting comfortable with the basics, users should consult the [Lua
+Scripting Reference](docs/lua.md) to familiarize themselves with the facilities
+provided in a lark task.
 
-##Tasks
+To fully leverage Lua in Lark tasks it is recommended users unfamiliar with the
+language read relevant sections of the free book [Programming in
+Lua](http://www.lua.org/pil/contents.html).
 
-The user can define an arbitrary number of named tasks.  Tasks have parameters
-which are provided as unordered name-value pairs.  Parameters may have a
-default value, otherwise the value for the task parameter will be nil.
+##Dependency checking using fabricate or memoize.py
 
-Tasks are invoked from the `lark` command line tool using their name followed
-by explicit values for any desired parameters using command line flag syntax.
-Multiple tasks can be specified, in which case they will be excuted in serial.
-To disambiguate parameter values from tasks '--' may be used to separate task
-invocations.
-
-```
-lark run build -O2
-lark run build install
-lark run build test --full -- release
-```
-
-##Dependency checking using fabricate or memoize
-
-The python projects [fabricate.py](https://github.com/SimonAlfie/fabricate) or
+The python projects [fabricate](https://github.com/SimonAlfie/fabricate) or
 [memoize.py](https://github.com/kgaughan/memoize.py) can be used as programs to
 check the dependencies of commands.
 
@@ -50,13 +39,3 @@ check the dependencies of commands.
 lark.exec{'fabricate.py', 'cc', CC_OPTS, '-o', BIN, OBJECTS}
 lark.exec{'memoize.py', 'cc', CC_OPTS, '-o', BIN, OBJECTS}
 ```
-
-##Dependency checking using strace
-
-**NOT IMPLEMENTED**
-
-Systems that have the `strace` command will use it by default to check the
-dependencies of commands before spawning their processes.  This follows the
-general idea that a program's output is dependent only on its input.  There are
-exceptions to this rule.  Programs that do not take any input are expected to
-be run every time.
