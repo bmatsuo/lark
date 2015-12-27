@@ -24,7 +24,7 @@ lark.task = function (name, fn)
 	lark.tasks[name] = fn
 end
 
-lark.run_task = function (name)
+lark.run = function (name)
 	local t = name
 	if type(t) == 'table' then
 		name = t[1]

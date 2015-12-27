@@ -70,13 +70,13 @@ func normTasks(args []string) ([]string, error) {
 	return args, nil
 }
 
-// RunTask calls lark.run_task in state to execute task.
+// RunTask calls lark.run in state to execute task.
 func RunTask(c *Context, task string) error {
 	taskLit := "nil"
 	if task != "" {
 		taskLit = fmt.Sprintf("%q", task)
 	}
-	script := fmt.Sprintf("lark.run_task(%s)", taskLit)
+	script := fmt.Sprintf("lark.run(%s)", taskLit)
 	err := c.Lua.DoString(script)
 	if err != nil {
 		var x interface{}

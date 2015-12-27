@@ -4,11 +4,11 @@ end}
 
 
 lark.task{'build', function ()
-    lark.run_task{'generate'}
+    lark.run{'generate'}
     lark.exec{'go', 'build', './cmd/...'}
 end}
 
 lark.task{'install', function ()
-    lark.run_task{'generate'}
+    lark.run{'generate'}
     lark.exec{'go', 'install', './cmd/...'}
 end}
