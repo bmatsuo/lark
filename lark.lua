@@ -15,6 +15,10 @@ go.default_sources = {
 
 lark.default_task = 'build'
 
+lark.task{'clean', function()
+    lark.exec{'rm', '-f', 'lark'}
+end}
+
 lark.task{'gen', function ()
     go.gen()
 end}
