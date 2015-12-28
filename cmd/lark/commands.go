@@ -11,6 +11,7 @@ var Verbose = new(bool)
 // Commands contains the list of commands available in lark.
 var Commands = []cli.Command{
 	CommandRun,
+	CommandList,
 }
 
 // Command is a helper for creating a cli.Command that relies on a Context for
