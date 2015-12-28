@@ -3,9 +3,6 @@
 Here is a simple guide that will get you up and running using Lark.  Lark uses
 Lua for scripting but typical uses require minimal knowledge of the language.
 
-If you do want to learn more about Lua scripting the best first step is the
-free book [Programming in Lua](http://www.lua.org/pil/contents.html)
-
 ##Installing Lark
 
 Install Lark by downloading one of the precompiled executable binaries.
@@ -51,14 +48,38 @@ desired.
 lark.default_task = 'build'
 ```
 
-##More complex projects
+A user can query the list of available tasks at any time using the `lark list`
+command.
 
-For projects with more tasks or more complex task structure putting everything
-in `lark.lua` can become hard to manage.  Additional task scripts can be put in
-the `lark_tasks/` directory to modularize tasks and any custom functions they
-need.  These task scripts are loaded in alphabetical order following `lark.lua`
-(if it exists).
+```
+$ lark list
+  build (default)
+  generate
+```
+
+##Learning more about Lua
+
+Depending on the use case, a lark script may not need to become any more
+complex than this.  To learn more about Lua scripting a good first step is the
+free book [Programming in Lua](http://www.lua.org/pil/contents.html).
+
+##Bultin modules
 
 As tasks become more complex users will want to make greater use of the modules
 provided by Lark.  Keep the scripting [reference](lua.md) on hand for
 documention of all Lark programming APIs.
+
+##Large projects
+
+For projects with more tasks or making use of complex structures putting
+everything in `lark.lua` can become hard to manage.  Additional task scripts
+can be put in the `lark_tasks/` directory to modularize tasks and any custom
+functions they need.  These task scripts are loaded in alphabetical order
+following `lark.lua` (if it exists).
+
+##Custom modules
+
+When scripting requirements grow beyond the Lua standard library and the
+builtin Lark modules it may be desirable to look for third-party modules or to
+write custom modules to reuse within an organization.  See the reference
+[documentation](modules.md) for more information about modules.
