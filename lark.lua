@@ -3,7 +3,10 @@ local go = require('go')
 local import = 'github.com/bmatsuo/lark'
 local version = '0.1.0-dev'
 
-local ldflags = string.format('-X %s/larkmeta.Version=%s', import, version)
+local _ldflags = {
+    string.format('-X %s/larkmeta.Version=%s', import, version),
+}
+local ldflags = table.concat(_ldflags, ' ')
 
 go.default_sources = {
     './cmd/...',
