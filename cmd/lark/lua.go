@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bmatsuo/lark/luamodules/path"
 	"github.com/fatih/color"
 	"github.com/yuin/gopher-lua"
 )
@@ -51,7 +52,7 @@ func LoadVM(conf *LuaConfig) (s *lua.LState, err error) {
 
 // InitLark initializes the lark library and loads files.
 func InitLark(c *Context, files []string) error {
-	c.Lua.PreloadModule("path", PathLibLoader)
+	c.Lua.PreloadModule("path", path.ModuleLoader)
 	c.Lua.PreloadModule("lark.core", LarkCoreLoader)
 
 	err := LoadLarkLib(c)
@@ -318,82 +319,4 @@ var colorMap = map[string]func(format string, v ...interface{}) string{
 	"red":     color.RedString,
 	"white":   color.WhiteString,
 	"yellow":  color.YellowString,
-}
-
-// PathLibLoader defines the path module so that it can be required.
-func PathLibLoader(l *lua.LState) int {
-	t := l.NewTable()
-	mod := l.SetFuncs(t, PathLibExports)
-	l.Push(mod)
-	return 1
-}
-
-// PathLibExports defines the exported functions in the path module.
-var PathLibExports = map[string]lua.LGFunction{
-	"glob": LuaGlob,
-	"base": LuaBase,
-	"dir":  LuaDir,
-	"ext":  LuaDir,
-	"join": LuaJoin,
-}
-
-// LuaGlob executes a file glob.
-func LuaGlob(state *lua.LState) int {
-	pattern := state.CheckString(1)
-
-	files, err := filepath.Glob(pattern)
-	if err != nil {
-		state.RaiseError("%s", err.Error())
-		return 0
-	}
-	t := state.NewTable()
-	for i, file := range files {
-		state.SetTable(t, lua.LNumber(i+1), lua.LString(file))
-	}
-	state.Push(t)
-	return 1
-}
-
-// LuaBase returns the basename of the path arguent provided.
-func LuaBase(state *lua.LState) int {
-	path := state.CheckString(1)
-
-	base := filepath.Base(path)
-	state.Push(lua.LString(base))
-	return 1
-}
-
-// LuaDir returns the parent directory of the path arguent provided.
-func LuaDir(state *lua.LState) int {
-	path := state.CheckString(1)
-
-	dir := filepath.Dir(path)
-	state.Push(lua.LString(dir))
-	return 1
-}
-
-// LuaExt returns the file extension of the path arguent provided.
-func LuaExt(state *lua.LState) int {
-	path := state.CheckString(1)
-
-	ext := filepath.Ext(path)
-	state.Push(lua.LString(ext))
-
-	return 1
-}
-
-// LuaJoin joins the provided path segments.
-func LuaJoin(state *lua.LState) int {
-	var segs []string
-
-	n := state.GetTop()
-	for i := 1; i <= n; i++ {
-		str := state.CheckString(i)
-		segs = append(segs, str)
-	}
-	path := filepath.Join(segs...)
-
-	state.Push(lua.LString(path))
-
-	return 1
 }

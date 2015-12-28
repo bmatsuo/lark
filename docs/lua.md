@@ -61,3 +61,11 @@ Return the basename for the filepath.
 ##path.dir(filepath)
 
 Return the parent directory for the filepath.
+
+##path.exists(filepath)
+
+Returns true if a file at filepath exists.
+
+##path.is_dir(filepath)
+
+Returns true if the file at filepath is a directory.
