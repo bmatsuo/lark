@@ -300,7 +300,7 @@ func logLark(msg string, opt *logOpt) {
 	}
 
 	var esc func(format string, v ...interface{}) string
-	if opt.Color != "" {
+	if opt.Color != "" && IsTTY {
 		esc = colorMap[opt.Color]
 	}
 
