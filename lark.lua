@@ -1,5 +1,10 @@
 local go = require('go')
 
+local import = 'github.com/bmatsuo/lark'
+local version = '0.1.0-dev'
+
+local ldflags = string.format('-X %s/larkmeta.Version=%s', import, version)
+
 go.default_sources = {
     './cmd/...',
     './luamodules/...',
@@ -13,7 +18,7 @@ end}
 
 lark.task{'build', function ()
     lark.run{'gen'}
-    go.build{'./cmd/...'}
+    go.build{'./cmd/...', ldflags=ldflags}
 end}
 
 lark.task{'install', function ()

@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/bmatsuo/lark/larkmeta"
 	"github.com/codegangsta/cli"
 	"github.com/yuin/gopher-lua"
 )
@@ -30,6 +31,13 @@ func main() {
 	app.Name = "lark"
 	app.Usage = "Run repeated project tasks"
 	app.ArgsUsage = MainHelp
+	app.Version = larkmeta.Version
+	app.Authors = []cli.Author{
+		{
+			Name:  "Bryan Matsuo",
+			Email: "bryan.matsuo@gmail.com",
+		},
+	}
 	app.Action = func(c *cli.Context) {
 		args := []string{os.Args[0], "run"}
 		args = append(args, c.Args()...)

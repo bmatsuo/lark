@@ -10,6 +10,17 @@ local function insert_args(tcmd, targs)
     end
 end
 
+-- this function has some serious problems. but whatever for now, it's local.
+local function opt_flag(tcmd, flag, val)
+    if val then insert_args(tcmd, {flag, val}) end
+end
+
+local function insert_common_build_flags(tcmd, opt)
+    opt_flag(tcmd, '-asmflags', opt.asmflags)
+    opt_flag(tcmd, '-gcflags', opt.gcflags)
+    opt_flag(tcmd, '-ldflags', opt.ldflags)
+end
+
 go.gen = function(opt)
     local cmd = {'go', 'generate'}
     if not opt then
@@ -35,6 +46,8 @@ go.install = function(opt)
         return
     end
 
+    insert_common_build_flags(cmd, opt)
+
     local args = opt
     if table.getn(args) == 0 then
         args = go.default_sources
@@ -52,6 +65,8 @@ go.build = function(opt)
         return
     end
 
+    insert_common_build_flags(cmd, opt)
+
     local args = opt
     if table.getn(args) == 0 then
         args = go.default_sources
@@ -68,6 +83,8 @@ go.test = function(opt)
         lark.exec{cmd}
         return
     end
+
+    insert_common_build_flags(cmd, opt)
 
     if opt.cover then
         if type(opt.cover) == 'string' then
