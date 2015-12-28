@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/bmatsuo/lark/luamodules/lark/core"
 	"github.com/codegangsta/cli"
 	"github.com/yuin/gopher-lua"
 )
@@ -97,7 +98,7 @@ func RunTask(c *Context, task string) error {
 				x = err
 			}
 		}
-		logLark(fmt.Sprint(x), &logOpt{
+		core.Log(fmt.Sprint(x), &core.LogOpt{
 			Color: "red",
 		})
 		return err
