@@ -1,5 +1,5 @@
 hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-updated: 2015-12-25T09:25:39.807095685-08:00
+updated: 2015-12-28T01:46:38.401045518-08:00
 imports:
 - name: github.com/bmatsuo/lmdb-go
   version: fa26b45b56345e5ea2967ffe4df32cf7318af168
@@ -14,7 +14,7 @@ imports:
 - name: github.com/mattn/go-isatty
   version: 56b76bdf51f7708750eac80fa38b952bb9f32639
 - name: github.com/yuin/gopher-lua
-  version: f918613776713b6f81c708f3a2126b542c3efdd4
+  version: 159f96c9c15cad62019d484f417818d824e657e9
   subpackages:
   - ast
   - parse
