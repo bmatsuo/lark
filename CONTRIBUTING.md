@@ -17,7 +17,9 @@ greatly appreciated.
 
 Pull requests must be related to an open issue.  If the issue is a feature
 request, it must marked as "Help Wanted" or otherwise be assigned to you or it
-will not be accepted.
+will not be accepted.  These rules may change as Lark matures but for the time
+being outside code contributions are limited to maintain the original focus of
+the project.
 
 A pull request must reference the issue by number in the description (e.g.
 "Relates to #XX").  If the pull request completely resolves the issue than it
