@@ -13,7 +13,7 @@ end}
 
 lark.task{'build', function ()
     lark.run{'gen'}
-    go.build()
+    go.build{'./cmd/...'}
 end}
 
 lark.task{'install', function ()
