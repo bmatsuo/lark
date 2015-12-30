@@ -1,4 +1,8 @@
 # the lark executable
 /lark
 
+# the release directory
+/release
+
+# vendored go libraries
 /vendor
