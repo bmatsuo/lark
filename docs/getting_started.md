@@ -5,9 +5,10 @@ Lua for scripting but typical uses require minimal knowledge of the language.
 
 ##Installing Lark
 
-Install Lark by downloading one of the precompiled executable binaries.
-Unarchive the binary and install it under a directory listed in your PATH
-environment variable.
+Install Lark by downloading one of the precompiled
+[executables](https://github.com/bmatsuo/lark/releases).  Unarchive the
+executable and install it under a directory listed in your PATH environment
+variable.
 
 This will give you everything you need to run tasks with Lark.  The Lua
 interpreter is included in the Lark binary and does not need to be installed
