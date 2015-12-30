@@ -56,7 +56,7 @@ lark.task{'release', function()
     dist_dirs = moses.reject(dist_dirs, function(_, dist) return ext_is(dist, '.zip') end)
     dist_dirs = moses.reject(dist_dirs, function(_, dist) return ext_is(dist, '.gz') end)
     for i, dist in pairs(dist_dirs) do
-        lark.exec{'cp', 'README.md', 'CHANGES.md', dist}
+        lark.exec{'cp', 'README.md', 'CHANGES.md', 'LICENSE', 'AUTHORS', dist}
         lark.exec{'cp', '-r', 'docs', dist}
 
         local name = path.base(dist)
