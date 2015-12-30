@@ -39,11 +39,29 @@ lark.task{'test', function()
 end}
 
 lark.task{'release', function()
-    local release_dir = 'release'
+    local release_root = 'release'
     local vx = version.get()
-    local release_name_template = 'lark_' .. vx .. '_{{.OS}}_{{.Arch}}'
-    local template = path.join(release_dir, release_name_template, '{{.Dir}}')
+    vx = string.gsub(vx, '%W', '_')
+    local name = 'lark-' .. vx
+    local dist_template = name .. '-{{.OS}}-{{.Arch}}'
+    local release_dir = path.join(release_root, name)
+    local path_template = path.join(release_dir, dist_template, '{{.Dir}}')
     lark.run{'gen', 'test'}
     lark.exec{'mkdir', '-p', 'release'}
-    lark.exec{'gox', '-output='..template, './cmd/...'}
+    lark.exec{'gox', '-output='..path_template, './cmd/...'}
+    local dist_pattern = path.join(release_dir, '*')
+    for i, dist in pairs(path.glob(dist_pattern)) do
+        local name = path.base(dist)
+        if string.find(name, 'darwin') or string.find(name, 'windows') then
+            local files = path.glob(path.join(dist, '*'))
+            for i, fp in pairs(files) do
+                files[i] = string.sub(fp, string.len(release_dir)+2)
+            end
+            lark.exec{'zip', '-o', name .. '.zip', files,
+                      dir=release_dir}
+        else
+            lark.exec{'tar', '-cvzf', name .. '.tar.gz', name,
+                      dir=release_dir}
+        end
+    end
 end}
