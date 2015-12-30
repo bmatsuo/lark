@@ -20,7 +20,7 @@ var Exports = map[string]lua.LGFunction{
 	"glob":   LuaGlob,
 	"base":   LuaBase,
 	"dir":    LuaDir,
-	"ext":    LuaDir,
+	"ext":    LuaExt,
 	"join":   LuaJoin,
 	"exists": LuaExists,
 	"is_dir": LuaIsDir,
