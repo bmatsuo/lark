@@ -1,6 +1,19 @@
 #Lark
 
-Lark is a modern extensible build system scripted using Lua.
+Lark is a modern extensible build system scripted using Lua.  Lark is inspired
+by `make` and several build systems written in Python.  The goal of Lark is to
+provide the ease and flexibility of a full scripting environment in a portable,
+self-contained, and easy to integrate package.
+
+Python tools are great but producing consistent python environments on
+different machines, or accounting for those differences conversely, causes
+overhead and headaches.
+
+Lark attempts to avoid the problems of using python by shipping a
+self-contained interpreter and isolating module repositories for each project.
+It doesn't matter what versions of the Lua interpreter are installed on
+developer machines (if any).  The interpreter used by Lark can be ensured to be
+consistent.
 
 ##Core Features
 
