@@ -23,7 +23,8 @@ module dependencies can be ensured to be consistent.
 - Builtin modules to simplify shell-style scripting.
 - The `LUA_PATH` environment variable is ignored. The module search directory
   is rooted under the project root for repeatable builds.
-- Optional dependency checking through [external tools](docs/memoize.md).
+- Optional command dependency checking and memoization through [external
+  tools](docs/memoize.md).
 
 ##Roadmap features
 
