@@ -47,3 +47,11 @@ provided in a lark task.
 To fully leverage Lua in Lark tasks it is recommended users unfamiliar with the
 language read relevant sections of the free book [Programming in
 Lua](http://www.lua.org/pil/contents.html).
+
+
+##Development
+
+For developers interested in contributing to the project see the
+[docs](docs/development.md) for information about setting up a development
+environment.  Also make sure to review the project contribution
+[guidelines](CONTRIBUTING.md) before opening any pull requests.
