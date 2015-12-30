@@ -7,9 +7,9 @@ self-contained, and easy to integrate package.
 
 Python tools are great but producing consistent Python environments on
 different machines, or accounting for those differences conversely, causes
-overhead and headaches.  Using virtualenv can help with this, but the Python 2
-vs Python 3 incompatibilities can still complicate things when using these
-systems.
+overhead and headaches.  Use of Virtualenv can help with this, but
+incompatibilities between Python 2 and Python 3 can still complicate things
+when using these systems.
 
 Lark attempts to avoid the problems of using Python by shipping a
 self-contained interpreter and isolating module repositories for each project.
