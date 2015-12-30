@@ -26,25 +26,29 @@ lark.task = function (name, fn)
 	lark.tasks[name] = fn
 end
 
-lark.run = function (name)
-	local t = name
-	if type(t) == 'table' then
-		name = t[1]
-	end
-	if not name then
-		name = lark.default_task
-	end
-	if not name then
-		error('no tasks to run')
-	end
 
+local function run (name)
 	local fn = lark.tasks[name]
 	if not fn then
 		error('no task named ' .. name)
 	end
+	fn()
+end
 
-	-- print('running task: ' .. name)
-	return lark.tasks[name]()
+lark.run = function (name)
+	local t = name
+    if not name then
+        t = {lark.default_task}
+    elseif type(t) ~= 'table' then
+        t = {t}
+	end
+    if table.getn(t) == 0 then
+        error('no tasks to run')
+    end
+
+    for i, name in pairs(t) do
+        run(name)
+    end
 end
 
 lark.shell_quote = function (args)
