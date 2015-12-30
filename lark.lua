@@ -1,6 +1,7 @@
 local path = require('path')
 local go = require('go')
 local version = require('version')
+local moses = require('moses')
 
 local import = 'github.com/bmatsuo/lark'
 
@@ -50,7 +51,11 @@ lark.task{'release', function()
     lark.exec{'mkdir', '-p', 'release'}
     lark.exec{'gox', '-output='..path_template, './cmd/...'}
     local dist_pattern = path.join(release_dir, '*')
-    for i, dist in pairs(path.glob(dist_pattern)) do
+    local dist_dirs = path.glob(dist_pattern)
+    local ext_is = function(fp, ext) return path.ext(fp) == ext end
+    dist_dirs = moses.reject(dist_dirs, function(_, dist) return ext_is(dist, '.zip') end)
+    dist_dirs = moses.reject(dist_dirs, function(_, dist) return ext_is(dist, '.gz') end)
+    for i, dist in pairs(dist_dirs) do
         local name = path.base(dist)
         if string.find(name, 'darwin') or string.find(name, 'windows') then
             local files = path.glob(path.join(dist, '*'))
@@ -63,5 +68,6 @@ lark.task{'release', function()
             lark.exec{'tar', '-cvzf', name .. '.tar.gz', name,
                       dir=release_dir}
         end
+        lark.exec{'rm', '-r', dist}
     end
 end}
