@@ -3,6 +3,20 @@ require 'os'
 
 local core = require('lark.core')
 
+local function flatten(...)
+    local flat = {}
+    for i, v in pairs(arg) do
+        if type(v) == 'table' then
+            for i, v in pairs(flatten(v)) do
+                table.insert(flat, v)
+            end
+        else
+            table.insert(flat, v)
+        end
+    end
+    return flat
+end
+
 lark = {}
 
 lark.default_task = nil
@@ -32,17 +46,11 @@ local function run (name)
 	fn()
 end
 
-lark.run = function (name)
-	local t = name
-    if not name then
+lark.run = function (...)
+    local tasks = flatten(...)
+    if table.getn(tasks) == 0 then
         t = {lark.default_task}
-    elseif type(t) ~= 'table' then
-        t = {t}
 	end
-    if table.getn(t) == 0 then
-        error('no tasks to run')
-    end
-
     for i, name in pairs(t) do
         run(name)
     end

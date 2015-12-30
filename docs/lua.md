@@ -25,9 +25,9 @@ Execute a command asynchronously and return its execution group.
 - **group** -- Start the process in a specific group that can be recalled
   later.
 
-###lark.run{task}
+###lark.run{...}
 
-Run a given task.
+Run given tasks.  All arguments given are flattened and each task named run.
 
 ###lark.group{name}
 
