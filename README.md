@@ -5,15 +5,17 @@ by `make` and several build systems written in Python.  The goal of Lark is to
 provide the ease and flexibility of a full scripting environment in a portable,
 self-contained, and easy to integrate package.
 
-Python tools are great but producing consistent python environments on
+Python tools are great but producing consistent Python environments on
 different machines, or accounting for those differences conversely, causes
-overhead and headaches.
+overhead and headaches.  Using virtualenv can help with this, but the Python 2
+vs Python 3 incompatibilities can still complicate things when using these
+systems.
 
-Lark attempts to avoid the problems of using python by shipping a
+Lark attempts to avoid the problems of using Python by shipping a
 self-contained interpreter and isolating module repositories for each project.
 It doesn't matter what versions of the Lua interpreter are installed on
-developer machines (if any).  The interpreter used by Lark can be ensured to be
-consistent.
+developer machines (if any).  The interpreter used by Lark and the third-party
+module dependencies can be ensured to be consistent.
 
 ##Core Features
 
