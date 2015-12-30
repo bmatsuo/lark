@@ -1,10 +1,10 @@
 local go = require('go')
+local version = require('version')
 
 local import = 'github.com/bmatsuo/lark'
-local version = '0.1.0-dev'
 
 local _ldflags = {
-    string.format('-X %s/larkmeta.Version=%s', import, version),
+    string.format('-X %s/larkmeta.Version=%s', import, version.get()),
 }
 local ldflags = table.concat(_ldflags, ' ')
 
@@ -30,7 +30,7 @@ end}
 
 lark.task{'install', function ()
     lark.run{'gen'}
-    go.install()
+    go.install{ldflags=ldflags}
 end}
 
 -- BUG: We don't want to test the vendored packages.  But we want to run the
