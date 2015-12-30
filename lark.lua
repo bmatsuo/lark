@@ -17,6 +17,10 @@ go.default_sources = {
 
 lark.default_task = 'build'
 
+lark.task{'init', function()
+    lark.exec{'glide', 'install'}
+end}
+
 lark.task{'clean', function()
     lark.exec{'rm', '-f', 'lark'}
 end}

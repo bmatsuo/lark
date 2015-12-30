@@ -9,9 +9,11 @@ local core = require('lark.core')
 local function flatten(...)
     local flat = {}
     for i, v in pairs(arg) do
-        if type(v) == 'table' then
-            for i, v in pairs(flatten(v)) do
-                table.insert(flat, v)
+        if i == 'n' then
+            -- noop
+        elseif type(v) == 'table' then
+            for j, v_inner in pairs(flatten(v)) do
+                table.insert(flat, v_inner)
             end
         else
             table.insert(flat, v)
@@ -52,9 +54,9 @@ end
 lark.run = function (...)
     local tasks = flatten(...)
     if table.getn(tasks) == 0 then
-        t = {lark.default_task}
+        tasks = {lark.default_task}
 	end
-    for i, name in pairs(t) do
+    for i, name in pairs(tasks) do
         run(name)
     end
 end
