@@ -15,6 +15,7 @@ import (
 // CommandRun implements the "run" action (the default action)
 var CommandRun = Command(func(lark *Context, cmd *cli.Command) {
 	cmd.Name = "run"
+	cmd.Aliases = []string{"make"}
 	cmd.Usage = "Run lark project task(s)"
 	cmd.ArgsUsage = `task ...
 
