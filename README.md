@@ -8,7 +8,7 @@ Lark is a modern extensible build system scripted using Lua.
 - Builtin modules to simplify shell-style scripting.
 - The `LUA_PATH` environment variable is ignored. The module search directory
   is rooted under the project root for repeatable builds.
-- Optional dependency checking through external tools.
+- Optional dependency checking through [external tools](docs/memoize.md).
 
 ##Roadmap features
 
@@ -31,14 +31,3 @@ provided in a lark task.
 To fully leverage Lua in Lark tasks it is recommended users unfamiliar with the
 language read relevant sections of the free book [Programming in
 Lua](http://www.lua.org/pil/contents.html).
-
-##Dependency checking using fabricate or memoize.py
-
-The python projects [fabricate](https://github.com/SimonAlfie/fabricate) or
-[memoize.py](https://github.com/kgaughan/memoize.py) can be used as programs to
-check the dependencies of commands.
-
-```lua
-lark.exec{'fabricate.py', 'cc', CC_OPTS, '-o', BIN, OBJECTS}
-lark.exec{'memoize.py', 'cc', CC_OPTS, '-o', BIN, OBJECTS}
-```
