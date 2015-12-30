@@ -120,6 +120,17 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 
 	opt := &ExecRawOpt{}
 
+	ldir := state.GetField(v1, "dir")
+	if ldir != lua.LNil {
+		dir, ok := ldir.(lua.LString)
+		if !ok {
+			msg := fmt.Sprintf("named value 'dir' is not a string: %s", ldir.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		opt.Dir = string(dir)
+	}
+
 	result := c.execRaw(args[0], args[1:], opt)
 	rt := state.NewTable()
 	if result.Err != nil {
