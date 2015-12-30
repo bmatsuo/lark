@@ -15,7 +15,11 @@ go.default_sources = {
     './luamodules/...',
 }
 
-lark.default_task = 'build'
+lark.default_task = 'all'
+
+lark.task{'all', function()
+    lark.run{'gen', 'test', 'build'}
+end}
 
 lark.task{'init', function()
     lark.exec{'glide', 'install'}
@@ -44,6 +48,8 @@ lark.task{'test', function()
 end}
 
 lark.task{'release', function()
+    lark.run{'gen', 'test'}
+
     local release_root = 'release'
     local vx = version.get()
     vx = string.gsub(vx, '%W', '_')

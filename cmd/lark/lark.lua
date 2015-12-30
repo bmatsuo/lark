@@ -9,7 +9,7 @@ local function flatten(...)
         if i == 'n' then
             -- noop
         elseif type(v) == 'table' then
-            for j, v_inner in pairs(flatten(v)) do
+            for j, v_inner in pairs(flatten(unpack(v))) do
                 table.insert(flat, v_inner)
             end
         else
