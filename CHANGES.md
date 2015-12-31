@@ -1,5 +1,12 @@
 #Change log
 
+##v0.2.0-dev
+
+- The `lark.run` function can accept variable arguments without wrapping them
+  in a table.  This makes `lark.run(...)` equivalent to `lark.run{...}`.
+- Added subcommand "make" as an alias of "run" to make invocations more
+  idiomatic (e.g. `lark make release`).
+
 ##v0.1.0
 
 This is the first release (MVP) of Lark. Basic scripting functionality is
