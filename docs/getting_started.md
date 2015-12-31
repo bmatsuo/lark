@@ -17,8 +17,8 @@ separately.
 ##Creating tasks 
 
 Most simple projects will just need to create a Lua file named `lark.lua` at
-their project's root.  When this file is executed a module named "lark" is
-accessible and allows users to define tasks.
+the project root.  When this file is executed with the `lark` command a module
+named "lark" is accessible and allows users to define tasks.
 
 ```lua
 lark.task{'build', function()
