@@ -14,8 +14,8 @@ when using these systems.
 Lark attempts to avoid the problems of using Python by shipping a
 self-contained interpreter and isolating module repositories for each project.
 It doesn't matter what versions of the Lua interpreter are installed on
-developer machines (if any).  The interpreter used by Lark and the third-party
-module dependencies can be ensured to be consistent.
+developer machines (if any).  The interpreter used by Lark can be ensured to be
+consistent without interferring with normal project development.
 
 ##Core Features
 
