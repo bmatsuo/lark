@@ -11,7 +11,9 @@ feedback.  Feel free to open a new issue if you experience trouble that isn't
 already addressed by an existing issue.
 
 Bug reports or requests for documentation fixes and clarification are always
-greatly appreciated. 
+greatly appreciated.  Feature requests are also welcome but may not be
+accepted.  Consider as well whether an external module can accomplish the
+behavior desired in a feature request.
 
 ##Pull Requests
 
