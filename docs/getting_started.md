@@ -64,7 +64,7 @@ Depending on the use case, a lark script may not need to become any more
 complex than this.  To learn more about Lua scripting a good first step is the
 free book [Programming in Lua](http://www.lua.org/pil/contents.html).
 
-##Bultin modules
+##Builtin modules
 
 As tasks become more complex users will want to make greater use of the modules
 provided by Lark.  Keep the scripting [reference](lua.md) on hand for
