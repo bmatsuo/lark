@@ -59,7 +59,7 @@ lark.task{'release', function()
     local path_template = path.join(release_dir, dist_template, '{{.Dir}}')
     lark.run{'gen', 'test'}
     lark.exec{'mkdir', '-p', 'release'}
-    lark.exec{'gox', '-os=!plan9', '-output='..path_template, './cmd/...'}
+    lark.exec{'gox', '-os=!plan9', '-output='..path_template, '-ldflags='..ldflags, './cmd/...'}
     local dist_pattern = path.join(release_dir, '*')
     local dist_dirs = path.glob(dist_pattern)
     local ext_is = function(fp, ext) return path.ext(fp) == ext end
