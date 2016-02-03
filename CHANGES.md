@@ -1,6 +1,6 @@
 #Change log
 
-##v0.2.0-dev
+##v0.2.0
 
 - The `lark.run` function can accept variable arguments without wrapping them
   in a table.  This makes `lark.run(...)` equivalent to `lark.run{...}`.
