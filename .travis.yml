@@ -4,8 +4,8 @@ go:
   - tip
 
 env:
-  - GO15VENDOREXPERIMENT=1
-  - PATH="$PATH:$HOME/bin"
+  GO15VENDOREXPERIMENT=1
+  PATH="$PATH:$HOME/bin"
 
 before_install:
   - go get -u golang.org/x/tools/cmd/goimports
