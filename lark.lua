@@ -57,7 +57,6 @@ lark.task{'release', function()
     local dist_template = name .. '-{{.OS}}-{{.Arch}}'
     local release_dir = path.join(release_root, name)
     local path_template = path.join(release_dir, dist_template, '{{.Dir}}')
-    lark.run{'gen', 'test'}
     lark.exec{'mkdir', '-p', 'release'}
     lark.exec{'gox', '-os=!plan9', '-output='..path_template, '-ldflags='..ldflags, './cmd/...'}
     local dist_pattern = path.join(release_dir, '*')
