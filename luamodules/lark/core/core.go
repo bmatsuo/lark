@@ -47,7 +47,7 @@ func newCore(logfile io.Writer) *core {
 	return c
 }
 
-// Loader loads the lark.core module.
+// Loader preloads the lark.core module so it may be required in lua scripts.
 func Loader(l *lua.LState) int {
 	t := l.NewTable()
 	mod := l.SetFuncs(t, Exports)

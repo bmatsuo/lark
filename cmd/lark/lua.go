@@ -18,7 +18,7 @@ var PreloadModules = []struct {
 	name   string
 	loader lua.LGFunction
 }{
-	{"path", path.ModuleLoader},
+	{"path", path.Loader},
 	{"lark.core", core.Loader},
 }
 

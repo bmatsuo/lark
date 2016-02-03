@@ -7,8 +7,8 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
-// ModuleLoader defines the path module so that it can be required.
-func ModuleLoader(l *lua.LState) int {
+// Loader preloads the path module so that it can be required in lua scripts.
+func Loader(l *lua.LState) int {
 	t := l.NewTable()
 	mod := l.SetFuncs(t, Exports)
 	l.Push(mod)
