@@ -22,7 +22,7 @@ before_install:
   - cp ~/linux-amd64/glide ~/bin
 
 install:
-  - glide install
+  - lark init
 
 script:
   - lark run all
