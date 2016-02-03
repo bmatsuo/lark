@@ -58,6 +58,34 @@ $ lark list
   generate
 ```
 
+##Separating tasks
+
+As a project grows the `lark.lua` file may grow large with a substantial amount
+of space dedicated to configuring modules and variables.  If this becomes a
+burden then code from `lark.lua` can be moved to a new file in the
+`lark_tasks/` directory.
+
+Files in `lark_tasks/` are evaluated after `lark.lua` and cannot see any of its
+local variables.  However global variables and package variables can be shared
+between `lark.lua` and other task files.
+
+**lark.lua**
+```
+local x = 1
+global y = 2
+```
+
+**lark_tasks/mytask.lua**
+```
+function mytask()
+    print(x)
+    print(y)
+end
+```
+
+In the above example the command `lark run mytask` will print "nil" followed by
+"2" because `mytask.lua` cannot see the local variables from `lark.lua`.
+
 ##Learning more about Lua
 
 Depending on the use case, a lark script may not need to become any more
