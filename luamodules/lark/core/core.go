@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -150,6 +151,67 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 		opt.Dir = string(dir)
 	}
 
+	lstdin := state.GetField(v1, "stdin")
+	if lstdin != lua.LNil {
+		stdin, ok := lstdin.(lua.LString)
+		if !ok {
+			msg := fmt.Sprintf("named value 'stdin' is not a string: %s", lstdin.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		opt.StdinFile = string(stdin)
+	}
+
+	linput := state.GetField(v1, "input")
+	if linput != lua.LNil {
+		input, ok := linput.(lua.LString)
+		if !ok {
+			msg := fmt.Sprintf("named value 'input' is not a string: %s", linput.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		if opt.StdinFile != "" {
+			msg := fmt.Sprintf("conflicting named values 'stdin' and 'input' both provided")
+			state.ArgError(1, msg)
+			return 0
+		}
+		opt.Input = []byte(input)
+	}
+
+	lstdout := state.GetField(v1, "stdout")
+	if lstdout != lua.LNil {
+		stdout, ok := lstdout.(lua.LString)
+		if !ok {
+			msg := fmt.Sprintf("named value 'stdout' is not a string: %s", lstdout.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		mappend := false
+		if strings.HasPrefix(string(stdout), "+") {
+			mappend = true
+			stdout = stdout[1:]
+		}
+		opt.StdoutFile = string(stdout)
+		opt.StdoutAppend = mappend
+	}
+
+	lstderr := state.GetField(v1, "stderr")
+	if lstderr != lua.LNil {
+		stderr, ok := lstderr.(lua.LString)
+		if !ok {
+			msg := fmt.Sprintf("named value 'stderr' is not a string: %s", lstderr.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		mappend := false
+		if strings.HasPrefix(string(stderr), "+") {
+			mappend = true
+			stderr = stderr[1:]
+		}
+		opt.StderrFile = string(stderr)
+		opt.StderrAppend = mappend
+	}
+
 	var env []string
 	lenv := state.GetField(v1, "env")
 	if lenv != lua.LNil {
@@ -220,6 +282,7 @@ type ExecRawOpt struct {
 	Env []string
 	Dir string
 
+	Input        []byte
 	StdinFile    string
 	StdoutFile   string
 	StdoutAppend bool
@@ -251,7 +314,9 @@ func (c *core) execRaw(name string, args []string, opt *ExecRawOpt) *ExecRawResu
 	cmd.Env = opt.Env
 	cmd.Dir = opt.Dir
 
-	if opt.StdinFile != "" {
+	if len(opt.Input) != 0 {
+		cmd.Stdin = bytes.NewReader(opt.Input)
+	} else if opt.StdinFile != "" {
 		f, err := os.Open(opt.StdinFile)
 		if err != nil {
 			return &ExecRawResult{Err: err}
