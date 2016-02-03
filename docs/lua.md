@@ -23,6 +23,18 @@ Execute the named command with any arguments given.
 
 - **env** -- A table containing all environment variables for the command.
 
+- **input** -- A raw string to pass into the process standand input
+  stream.
+
+- **stdin** -- A source filename to redirect into the process standard
+  input stream.
+
+- **stdout** -- A destination filename to redirect output from the
+  process standard output stream.
+
+- **stderr** -- A destination filename to redirect output from the
+  process standard error stream.
+
 - **ignore** -- Do not terminate the task if the command exits with an error.
 
 ###lark.start{command, ..., [ignore=bool], [group=obj]}
@@ -31,12 +43,6 @@ Execute the named command with any arguments given.
 processes concurrently.
 
 Execute a command asynchronously and return its execution group.
-
-- **dir** -- The directory from which to execute the command.
-
-- **env** -- A table containing all environment variables for the command.
-
-- **ignore** -- Do not terminate the task if the command exits with an error.
 
 - **group** -- Start the process in a specific group that can be recalled
   later.
