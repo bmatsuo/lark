@@ -20,6 +20,7 @@ Most simple projects will just need to create a Lua file named `lark.lua` at
 the project root.  When this file is executed with the `lark` command a module
 named "lark" is accessible and allows users to define tasks.
 
+**lark.lua**
 ```lua
 lark.task{'build', function()
     lark.run('generate')
@@ -83,13 +84,13 @@ However global variables and package variables can be shared between `lark.lua`
 and other task files.
 
 **lark.lua**
-```
+```lua
 local x = 1
 global y = 2
 ```
 
 **lark_tasks/mytask.lua**
-```
+```lua
 function mytask()
     print(x)
     print(y)
