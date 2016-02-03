@@ -88,6 +88,8 @@ lark.shell_quote = function (args)
     return str
 end
 
+lark.environ = core.environ
+
 lark.log = core.log
 
 lark.exec = function (args)

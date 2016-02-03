@@ -56,8 +56,9 @@ func Loader(l *lua.LState) int {
 
 // Exports contains the API for the lark.core lua module.
 var Exports = map[string]lua.LGFunction{
-	"log":  defaultCore.LuaLog,
-	"exec": defaultCore.LuaExecRaw,
+	"log":     defaultCore.LuaLog,
+	"environ": defaultCore.LuaEnviron,
+	"exec":    defaultCore.LuaExecRaw,
 }
 
 // LuaLog logs a message from lua.
@@ -82,6 +83,23 @@ func (c *core) LuaLog(state *lua.LState) int {
 	c.log(msg, opt)
 
 	return 0
+}
+
+func (c *core) LuaEnviron(state *lua.LState) int {
+	rt := state.NewTable()
+
+	for _, env := range os.Environ() {
+		pieces := strings.SplitN(env, "=", 2)
+		if len(pieces) == 2 {
+			state.SetField(rt, pieces[0], lua.LString(pieces[1]))
+		} else {
+			state.SetField(rt, pieces[0], lua.LString(""))
+		}
+	}
+
+	state.Push(rt)
+
+	return 1
 }
 
 func luaTableArray(state *lua.LState, t *lua.LTable, vals []lua.LValue) []lua.LValue {

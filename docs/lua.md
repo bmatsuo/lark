@@ -10,15 +10,24 @@ The lark module is available as `lark`.
 
 The task run when no name is given on the command line.
 
+###lark.environ()
+
+Return a table containing a copy of all environment variables for the process.
+The table may be altered and passed to future calls to `lark.exec{}`.
+
 ###lark.exec{command, ..., [ignore=bool]}
 
 Execute the named command with any arguments given.
+
+- **dir** -- The directory from which to execute the command.
 
 - **ignore** -- Do not terminate the task if the command exits with an error.
 
 ###lark.start{command, ..., [ignore=bool], [group=obj]}
 
 Execute a command asynchronously and return its execution group.
+
+- **dir** -- The directory from which to execute the command.
 
 - **ignore** -- Do not terminate the task if the command exits with an error.
 
