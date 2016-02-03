@@ -6,6 +6,9 @@
   in a table.  This makes `lark.run(...)` equivalent to `lark.run{...}`.
 - Added subcommand "make" as an alias of "run" to make invocations more
   idiomatic (e.g. `lark make release`).
+- Added optional parameters to `lark.exec{}`: **dir**, and **env**
+- Builtin lua modules now have nominal tests in place with a test framework for
+  future modules.
 
 ##v0.1.0
 
