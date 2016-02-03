@@ -4,6 +4,7 @@ go:
   - tip
 
 env:
+  - GO15VENDOREXPERIMENT=1
   - PATH="$PATH:$HOME/bin"
 
 before_install:
