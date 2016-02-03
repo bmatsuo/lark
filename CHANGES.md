@@ -9,6 +9,8 @@
 - Added optional parameters to `lark.exec{}`: **dir**, and **env**
 - Builtin lua modules now have nominal tests in place with a test framework for
   future modules.
+- Dependencies have been updated.  See the [glide.lock](glide.lock) file for
+  exact version information.
 
 ##v0.1.0
 
