@@ -86,7 +86,7 @@ and other task files.
 **lark.lua**
 ```lua
 local x = 1
-global y = 2
+y = 2
 ```
 
 **lark_tasks/mytask.lua**
@@ -98,7 +98,8 @@ end
 ```
 
 In the above example the command `lark run mytask` will print "nil" followed by
-"2" because `mytask.lua` cannot see the local variables from `lark.lua`.
+"2" because `mytask.lua` cannot see the local variables from `lark.lua` and
+only `y` is global.
 
 ##Custom modules
 
