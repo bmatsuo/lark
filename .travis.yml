@@ -1,0 +1,24 @@
+language: go
+go:
+  - 1.5
+  - tip
+
+env:
+  - PATH="$PATH:$HOME/bin"
+
+before_install:
+  - mkdir -p ~/bin
+
+  - wget -o ~/lark-0_2_0-linux-amd64.tar.gz https://github.com/bmatsuo/lark/releases/download/v0.2.0/lark-0_2_0-linux-amd64.tar.gz
+  - tar -C ~ -xvzf ~/lark-0_2_0-linux-amd64.tar.gz
+  - cp ~/lark-0_2_0-linux-amd64/lark ~/bin
+
+  - wget -o ~/glide-0.8.3-linux-amd64.tar.gz https://github.com/Masterminds/glide/releases/download/0.8.3/glide-0.8.3-linux-amd64.tar.gz
+  - tar -C ~ -xvzf ~/glide-0.8.3-linux-amd64.tar.gz
+  - cp ~/linux-amd64/glide ~/bin
+
+install:
+  - glide install
+
+script:
+  - lark run all
