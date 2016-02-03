@@ -7,7 +7,7 @@ env:
   - PATH="$PATH:$HOME/bin"
 
 before_install:
-  - go get -u golang.org/x/tools/goimports
+  - go get -u golang.org/x/tools/cmd/goimports
   - go get -u github.com/golang/lint/golint
 
   - mkdir -p ~/bin
