@@ -21,6 +21,8 @@ Execute the named command with any arguments given.
 
 - **dir** -- The directory from which to execute the command.
 
+- **env** -- A table containing all environment variables for the command.
+
 - **ignore** -- Do not terminate the task if the command exits with an error.
 
 ###lark.start{command, ..., [ignore=bool], [group=obj]}
@@ -28,6 +30,8 @@ Execute the named command with any arguments given.
 Execute a command asynchronously and return its execution group.
 
 - **dir** -- The directory from which to execute the command.
+
+- **env** -- A table containing all environment variables for the command.
 
 - **ignore** -- Do not terminate the task if the command exits with an error.
 

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -149,6 +150,24 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 		opt.Dir = string(dir)
 	}
 
+	var env []string
+	lenv := state.GetField(v1, "env")
+	if lenv != lua.LNil {
+		t, ok := lenv.(*lua.LTable)
+		if !ok {
+			msg := fmt.Sprintf("env is not a table: %s", lenv.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		var err error
+		env, err = tableEnv(t)
+		if err != nil {
+			state.ArgError(1, err.Error())
+			return 0
+		}
+	}
+	opt.Env = env
+
 	result := c.execRaw(args[0], args[1:], opt)
 	rt := state.NewTable()
 	if result.Err != nil {
@@ -157,6 +176,23 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 	state.Push(rt)
 
 	return 1
+}
+
+func tableEnv(t *lua.LTable) ([]string, error) {
+	var env []string
+	msg := ""
+	t.ForEach(func(kv, vv lua.LValue) {
+		if kv.Type() == lua.LTString && vv.Type() == lua.LTString {
+			defn := fmt.Sprintf("%s=%s", kv.(lua.LString), vv.(lua.LString))
+			env = append(env, defn)
+		} else if msg == "" {
+			msg = fmt.Sprintf("invalid %s-%s environment variable pair", kv.Type(), vv.Type())
+		}
+	})
+	if msg != "" {
+		return nil, errors.New(msg)
+	}
+	return env, nil
 }
 
 func flattenTable(state *lua.LState, val *lua.LTable) []lua.LValue {
