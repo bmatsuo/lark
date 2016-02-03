@@ -1,5 +1,7 @@
 #Change log
 
+##v0.3.0-dev
+
 ##v0.2.0
 
 - The `lark.run` function can accept variable arguments without wrapping them
