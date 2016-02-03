@@ -20,7 +20,11 @@ consistent without interferring with normal project development.
 ##Core Features
 
 - A simple to install, self-contained system.
+- Agnostic to target programing languages.  It doesn't matter if you are
+  writing Rust, Python, or Lua.
 - Builtin modules to simplify shell-style scripting.
+- Extensible module system allows sharing sophisticated scripting logic
+  targeted at a specific use case.
 - The `LUA_PATH` environment variable is ignored. The module search directory
   is rooted under the project root for repeatable builds.
 - Optional command dependency checking and memoization through [external
