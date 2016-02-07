@@ -29,6 +29,7 @@ consistent without interferring with normal project development.
   is rooted under the project root for repeatable builds.
 - Optional command dependency checking and memoization through [external
   tools](docs/memoize.md).
+- Explicit parallel processing with execution groups for synchronization.
 
 ##Roadmap features
 
@@ -37,7 +38,6 @@ consistent without interferring with normal project development.
 - Pattern matching tasks (a la make).
 - System for vendored third-party modules.  Users opt out of repeatable builds
   by explicitly ignoring the module directory in their VCS. 
-- Parallel processing (aspirations for builtin race detection).
 - Integrated dependency checking in the same spirit of the fabricate and
   memoize.py projects.
 
