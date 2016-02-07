@@ -110,7 +110,6 @@ end
 
 lark.start = function(args)
     args._str = lark.shell_quote(args) .. ' &'
-    print(args.group)
 
     core.start(args)
 end
