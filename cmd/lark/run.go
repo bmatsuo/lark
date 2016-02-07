@@ -21,6 +21,11 @@ var CommandRun = Command(func(lark *Context, cmd *cli.Command) {
 
     The arguments are the names of tasks from lark.lua.`
 	cmd.Flags = []cli.Flag{
+		cli.IntFlag{
+			Name:   "j",
+			Usage:  "Number of parallel processes.",
+			EnvVar: "LARK_RUN_PARALLEL",
+		},
 		cli.BoolFlag{
 			Name:        "v",
 			Usage:       "Enable verbose reporting of errors.",

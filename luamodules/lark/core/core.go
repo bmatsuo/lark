@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/bmatsuo/lark/execgroup"
@@ -16,12 +17,14 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
-var defaultCore = newCore(os.Stderr)
+var defaultCore = newCore(os.Stderr, 0)
 
 type core struct {
-	logger *log.Logger
-	isTTY  bool
-	groups map[string]*execgroup.Group
+	logger     *log.Logger
+	isTTY      bool
+	groups     map[string]*execgroup.Group
+	limit      chan struct{}
+	grouplimit map[string]chan struct{}
 }
 
 func istty(w io.Writer) bool {
@@ -37,10 +40,18 @@ func istty(w io.Writer) bool {
 	return false
 }
 
-func newCore(logfile io.Writer) *core {
+func newCore(logfile io.Writer, limit int) *core {
+	var limitchan chan struct{}
+	if limit == 0 {
+		limit = runtime.NumCPU()
+	}
+	if limit > 0 {
+		limitchan = make(chan struct{}, limit)
+	}
 	c := &core{
 		isTTY:  istty(logfile),
 		groups: make(map[string]*execgroup.Group),
+		limit:  limitchan,
 	}
 	flags := log.LstdFlags
 	if c.isTTY {
@@ -141,6 +152,18 @@ func (c *core) LuaMakeGroup(state *lua.LState) int {
 	}
 	groupname = string(lname.(lua.LString))
 
+	var limit int
+	llimit := state.GetField(v1, "limit")
+	if llimit != lua.LNil {
+		_limit, ok := llimit.(lua.LNumber)
+		if !ok {
+			msg := fmt.Sprintf("named value 'limit' is not a number: %s", llimit.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		limit = int(_limit)
+	}
+
 	var follows []string
 	lfollows := state.GetField(v1, "follows")
 	if lfollows != lua.LNil {
@@ -183,6 +206,12 @@ func (c *core) LuaMakeGroup(state *lua.LState) int {
 	}
 
 	c.groups[groupname] = execgroup.NewGroup(gfollows)
+	if limit < 0 {
+		c.grouplimit[groupname] = nil
+	} else if limit > 0 {
+		c.grouplimit[groupname] = make(chan struct{}, limit)
+	}
+
 	return 0
 }
 
@@ -369,7 +398,22 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 		c.groups[groupname] = group
 	}
 
+	limit := c.limit
+	glimit, ok := c.grouplimit[groupname]
+	if !ok && glimit == nil {
+		// if the group has specifically been unilimited then remove the global
+		// limit as well.
+		limit = nil
+	}
 	err := group.Exec(func() error {
+		if glimit != nil {
+			glimit <- struct{}{}
+			defer func() { <-glimit }()
+		}
+		if limit != nil {
+			limit <- struct{}{}
+			defer func() { <-limit }()
+		}
 		if str != "" {
 			opt := &LogOpt{Color: "green"}
 			c.log(string(str), opt)
