@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/bmatsuo/lark/execgroup"
 	"github.com/fatih/color"
 	"github.com/mattn/go-isatty"
 	"github.com/yuin/gopher-lua"
@@ -20,6 +21,7 @@ var defaultCore = newCore(os.Stderr)
 type core struct {
 	logger *log.Logger
 	isTTY  bool
+	groups map[string]*execgroup.Group
 }
 
 func istty(w io.Writer) bool {
@@ -37,7 +39,8 @@ func istty(w io.Writer) bool {
 
 func newCore(logfile io.Writer) *core {
 	c := &core{
-		isTTY: istty(logfile),
+		isTTY:  istty(logfile),
+		groups: make(map[string]*execgroup.Group),
 	}
 	flags := log.LstdFlags
 	if c.isTTY {
@@ -61,6 +64,8 @@ var Exports = map[string]lua.LGFunction{
 	"log":     defaultCore.LuaLog,
 	"environ": defaultCore.LuaEnviron,
 	"exec":    defaultCore.LuaExecRaw,
+	"start":   defaultCore.LuaStartRaw,
+	"wait":    defaultCore.LuaWait,
 }
 
 // LuaLog logs a message from lua.
@@ -111,6 +116,205 @@ func luaTableArray(state *lua.LState, t *lua.LTable, vals []lua.LValue) []lua.LV
 		}
 	})
 	return vals
+}
+
+func (c *core) LuaWait(state *lua.LState) int {
+	var names []string
+	n := state.GetTop()
+	if n == 0 {
+		for name := range c.groups {
+			names = append(names, name)
+		}
+	} else {
+		for i := 1; i <= n; i++ {
+			names = append(names, state.CheckString(1))
+		}
+	}
+
+	rt := state.NewTable()
+
+	var err error
+	for _, name := range names {
+		group := c.groups[name]
+		if group != nil {
+			err = group.Wait()
+			break
+		}
+	}
+
+	if err != nil {
+		msg := fmt.Sprintf("asynchronous error: %v", err)
+		state.SetField(rt, "error", lua.LString(msg))
+	}
+	state.Push(rt)
+
+	return 1
+}
+
+// LuaStartRaw makes executes a program.  LuaStartRaw expects one table
+// argument and returns one table.
+func (c *core) LuaStartRaw(state *lua.LState) int {
+	v1 := state.Get(1)
+	if v1.Type() != lua.LTTable {
+		state.ArgError(1, "first argument must be a table")
+		return 0
+	}
+
+	largs := flattenTable(state, v1.(*lua.LTable))
+	if len(largs) == 0 {
+		state.ArgError(1, "missing positional values")
+		return 0
+	}
+	args := make([]string, len(largs))
+	for i, larg := range largs {
+		arg, ok := larg.(lua.LString)
+		if !ok {
+			msg := fmt.Sprintf("positional values are not strings: %s", larg.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		args[i] = string(arg)
+	}
+
+	opt := &ExecRawOpt{}
+
+	ignore := false
+	lignore := state.GetField(v1, "ignore")
+	if lignore != lua.LNil {
+		_ignore, ok := lignore.(lua.LBool)
+		if !ok {
+			msg := fmt.Sprintf("named value 'ignore' is not boolean: %s", lignore.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		ignore = bool(_ignore)
+	}
+
+	var groupname string
+	lgroup := state.GetField(v1, "group")
+	if lgroup != lua.LNil {
+		group, ok := lgroup.(lua.LString)
+		if !ok {
+			msg := fmt.Sprintf("named value 'group' is not a string: %s", lgroup.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		groupname = string(group)
+	}
+
+	ldir := state.GetField(v1, "dir")
+	if ldir != lua.LNil {
+		dir, ok := ldir.(lua.LString)
+		if !ok {
+			msg := fmt.Sprintf("named value 'dir' is not a string: %s", ldir.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		opt.Dir = string(dir)
+	}
+
+	lstdin := state.GetField(v1, "stdin")
+	if lstdin != lua.LNil {
+		stdin, ok := lstdin.(lua.LString)
+		if !ok {
+			msg := fmt.Sprintf("named value 'stdin' is not a string: %s", lstdin.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		opt.StdinFile = string(stdin)
+	}
+
+	linput := state.GetField(v1, "input")
+	if linput != lua.LNil {
+		input, ok := linput.(lua.LString)
+		if !ok {
+			msg := fmt.Sprintf("named value 'input' is not a string: %s", linput.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		if opt.StdinFile != "" {
+			msg := fmt.Sprintf("conflicting named values 'stdin' and 'input' both provided")
+			state.ArgError(1, msg)
+			return 0
+		}
+		opt.Input = []byte(input)
+	}
+
+	lstdout := state.GetField(v1, "stdout")
+	if lstdout != lua.LNil {
+		stdout, ok := lstdout.(lua.LString)
+		if !ok {
+			msg := fmt.Sprintf("named value 'stdout' is not a string: %s", lstdout.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		mappend := false
+		if strings.HasPrefix(string(stdout), "+") {
+			mappend = true
+			stdout = stdout[1:]
+		}
+		opt.StdoutFile = string(stdout)
+		opt.StdoutAppend = mappend
+	}
+
+	lstderr := state.GetField(v1, "stderr")
+	if lstderr != lua.LNil {
+		stderr, ok := lstderr.(lua.LString)
+		if !ok {
+			msg := fmt.Sprintf("named value 'stderr' is not a string: %s", lstderr.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		mappend := false
+		if strings.HasPrefix(string(stderr), "+") {
+			mappend = true
+			stderr = stderr[1:]
+		}
+		opt.StderrFile = string(stderr)
+		opt.StderrAppend = mappend
+	}
+
+	var env []string
+	lenv := state.GetField(v1, "env")
+	if lenv != lua.LNil {
+		t, ok := lenv.(*lua.LTable)
+		if !ok {
+			msg := fmt.Sprintf("env is not a table: %s", lenv.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+		var err error
+		env, err = tableEnv(t)
+		if err != nil {
+			state.ArgError(1, err.Error())
+			return 0
+		}
+	}
+	opt.Env = env
+
+	group, ok := c.groups[groupname]
+	if !ok {
+		group = execgroup.NewGroup()
+		c.groups[groupname] = group
+	}
+
+	err := group.Exec(func() error {
+		result := c.execRaw(args[0], args[1:], opt)
+		if ignore {
+			return nil
+		}
+		return result.Err
+	})
+
+	rt := state.NewTable()
+
+	if err != nil {
+		msg := fmt.Sprintf("asynchronous error: %v", err)
+		state.SetField(rt, "error", lua.LString(msg))
+	}
+	state.Push(rt)
+
+	return 1
 }
 
 // LuaExecRaw makes executes a program.  LuaExecRaw expects one table argument

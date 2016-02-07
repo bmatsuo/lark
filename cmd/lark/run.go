@@ -84,27 +84,41 @@ func RunTask(c *Context, task string) error {
 	script := fmt.Sprintf("lark.run(%s)", taskLit)
 	err := c.Lua.DoString(script)
 	if err != nil {
-		var x interface{}
-		if c.Verbose() {
-			x = err
-		} else if e, ok := err.(*lua.ApiError); ok {
-			if e.Type == lua.ApiErrorRun {
-				x = e.Object
-				lstr, _ := e.Object.(lua.LString)
-				str := string(lstr)
-				if strings.HasPrefix(str, "lark.lua:") {
-					x = trimLoc(str)
-				}
-			} else {
-				x = err
+		handleErr(c, err)
+	}
+	for {
+		errwait := c.Lua.DoString(`lark.wait()`)
+		if errwait == nil {
+			break
+		} else {
+			if err == nil {
+				handleErr(c, errwait)
+				err = errwait
 			}
 		}
-		core.Log(fmt.Sprint(x), &core.LogOpt{
-			Color: "red",
-		})
-		return err
 	}
-	return nil
+	return err
+}
+
+func handleErr(c *Context, err error) {
+	var x interface{}
+	if c.Verbose() {
+		x = err
+	} else if e, ok := err.(*lua.ApiError); ok {
+		if e.Type == lua.ApiErrorRun {
+			x = e.Object
+			lstr, _ := e.Object.(lua.LString)
+			str := string(lstr)
+			if strings.HasPrefix(str, "lark.lua:") {
+				x = trimLoc(str)
+			}
+		} else {
+			x = err
+		}
+	}
+	core.Log(fmt.Sprint(x), &core.LogOpt{
+		Color: "red",
+	})
 }
 
 var reLoc = regexp.MustCompile(`^[^:]+:\d+:\s*`)

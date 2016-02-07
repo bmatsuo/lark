@@ -99,8 +99,6 @@ lark.exec = function (args)
     local cmd_str = lark.shell_quote(args)
     lark.log{cmd_str, color='green'}
 
-    -- This is weird... The docs online do not indicate that os.execute should
-    -- return three arguments.
     local result = core.exec(args)
 
     if args.ignore and result.error then
@@ -113,21 +111,21 @@ lark.exec = function (args)
     end
 end
 
-lark.start = lark.exec
+lark.start = function(...)
+    local cmd_str = lark.shell_quote(...)
+    lark.log{cmd_str, color='green'}
+
+	core.start(...)
+end
 
 lark.group = function (args)
     print('created group ' .. args[1])
 end
 
-lark.wait = function (args)
-    local group_name = args
-    if type(args) == 'table' then
-        group_name = args[1]
-    end
-    if group_name then
-        print('joined group' .. group_name)
-    else
-        print('joined all outstanding groups')
+lark.wait = function (...)
+	local result = core.wait(...)
+	if result.error then
+		error(result.error)
     end
 end
 `
