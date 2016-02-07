@@ -2,6 +2,9 @@
 
 ##v0.3.0-dev
 
+- Added optional filename parameters to `lark.exec{}`: **stdin**, **stdout**,
+  and **stderr**.  See the [docs](docs/lua.md) for more information.
+
 ##v0.2.0
 
 - The `lark.run` function can accept variable arguments without wrapping them
