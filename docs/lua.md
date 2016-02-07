@@ -39,10 +39,7 @@ Execute the named command with any arguments given.
 
 ###lark.start{command, ..., [ignore=bool], [group=obj]}
 
-**NOTE**: `lark.start{}` is currently aliased to `lark.exec{}` and will not run
-processes concurrently.
-
-Execute a command asynchronously and return its execution group.
+Execute a command asynchronously.
 
 - **group** -- Start the process in a specific group that can be recalled
   later.
@@ -51,11 +48,11 @@ Execute a command asynchronously and return its execution group.
 
 Run given tasks.  All arguments given are flattened and each task named run.
 
-###lark.group{name}
+###lark.group{name, [follows={...}]}
 
 Get a handle on a named execution group, creating the group if necessary.
 
-###lark.wait{group}
+###lark.wait{[group, ...]}
 
 Wait for outstanding processing in the named group.
 
