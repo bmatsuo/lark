@@ -97,8 +97,8 @@ lark.log = core.log
 
 lark.exec = function (args)
     local cmd_str = lark.shell_quote(args)
-    lark.log{cmd_str, color='green'}
 
+	args._str = lark.shell_quote(args)
     local result = core.exec(args)
 
     if args.ignore and result.error then
@@ -111,11 +111,11 @@ lark.exec = function (args)
     end
 end
 
-lark.start = function(...)
-    local cmd_str = lark.shell_quote(...)
-    lark.log{cmd_str, color='green'}
+lark.start = function(args)
+	args._str = lark.shell_quote(args) .. ' &'
+    print(args.group)
 
-	core.start(...)
+	core.start(args)
 end
 
 lark.group = function (args)

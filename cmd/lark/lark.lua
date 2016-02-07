@@ -25,34 +25,34 @@ lark.default_task = nil
 lark.tasks = {}
 
 lark.task = function (name, fn)
-	local t = name
-	if type(t) == 'table' then
-		name = t[1]
-		fn = t[2]
-	end
+    local t = name
+    if type(t) == 'table' then
+        name = t[1]
+        fn = t[2]
+    end
 
     -- print('created task: ' .. name)
-	if not lark.default_task then
-		lark.default_task = name
-	end
+    if not lark.default_task then
+        lark.default_task = name
+    end
 
-	lark.tasks[name] = fn
+    lark.tasks[name] = fn
 end
 
 
 local function run (name)
-	local fn = lark.tasks[name]
-	if not fn then
-		error('no task named ' .. name)
-	end
-	fn()
+    local fn = lark.tasks[name]
+    if not fn then
+        error('no task named ' .. name)
+    end
+    fn()
 end
 
 lark.run = function (...)
     local tasks = flatten(...)
     if table.getn(tasks) == 0 then
         tasks = {lark.default_task}
-	end
+    end
     for i, name in pairs(tasks) do
         run(name)
     end
@@ -94,38 +94,38 @@ lark.log = core.log
 
 lark.exec = function (args)
     local cmd_str = lark.shell_quote(args)
-    lark.log{cmd_str, color='green'}
 
+    args._str = lark.shell_quote(args)
     local result = core.exec(args)
 
     if args.ignore and result.error then
-		if lark.verbose then 
+        if lark.verbose then 
             local msg = string.format('%s (ignored)', result.error)
-			lark.log{msg, color='yellow'}
-		end
-	elseif result.error then
-		error(result.error)
+            lark.log{msg, color='yellow'}
+        end
+    elseif result.error then
+        error(result.error)
     end
 end
 
-lark.start = function(...)
-    local cmd_str = lark.shell_quote(...)
-    lark.log{cmd_str, color='green'}
+lark.start = function(args)
+    args._str = lark.shell_quote(args) .. ' &'
+    print(args.group)
 
-	core.start(...)
+    core.start(args)
 end
 
 lark.group = function (args)
     if type(args) == 'string' then
-		return args
-	end
-	if table.getn(args) == 1 then
-		args.name = args[1]
-	end
-	if table.getn(args) > 1 then
-		error('too many positional arguments given')
-	end
-	core.make_group(args)
+        return args
+    end
+    if table.getn(args) == 1 then
+        args.name = args[1]
+    end
+    if table.getn(args) > 1 then
+        error('too many positional arguments given')
+    end
+    core.make_group(args)
     return args[1]
 end
 
@@ -134,8 +134,8 @@ lark.wait = function (...)
     if type(args) ~= 'table' then
         args = {arg}
     end
-	local result = core.wait(unpack(flatten(args)))
-	if result.error then
-		error(result.error)
+    local result = core.wait(unpack(flatten(args)))
+    if result.error then
+        error(result.error)
     end
 end

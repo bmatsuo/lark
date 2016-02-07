@@ -360,6 +360,9 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 	}
 	opt.Env = env
 
+	lstr := state.GetField(v1, "_str")
+	str, _ := lstr.(lua.LString)
+
 	group, ok := c.groups[groupname]
 	if !ok {
 		group = execgroup.NewGroup(nil)
@@ -367,6 +370,10 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 	}
 
 	err := group.Exec(func() error {
+		if str != "" {
+			opt := &LogOpt{Color: "green"}
+			c.log(string(str), opt)
+		}
 		result := c.execRaw(args[0], args[1:], opt)
 		if ignore {
 			return nil
@@ -502,6 +509,13 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 	}
 	opt.Env = env
 
+	lstr := state.GetField(v1, "_str")
+	str, _ := lstr.(lua.LString)
+
+	if str != "" {
+		opt := &LogOpt{Color: "green"}
+		c.log(string(str), opt)
+	}
 	result := c.execRaw(args[0], args[1:], opt)
 	rt := state.NewTable()
 	if result.Err != nil {
