@@ -4,6 +4,7 @@
 
 - Added optional filename parameters to `lark.exec{}`: **stdin**, **stdout**,
   and **stderr**.  See the [docs](docs/lua.md) for more information.
+- Added parallel processing, limited by the -j flag to `lark run`/`lark make`.
 
 ##v0.2.0
 
