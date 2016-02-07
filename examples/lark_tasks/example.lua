@@ -1,5 +1,3 @@
---require 'lark'
-
 local path = require("path")
 
 local cmd_reusable = {'python', '-c', 'exit(1)'}
@@ -14,19 +12,20 @@ lark.task{'fail', function ()
 end}
 
 lark.task{'demo', function ()
-    -- Start some parallel processes.  The first is independent of everything
-    -- and the second is assigned to a group for fine-grained control over the
-    -- execution of dependent processes.
-    lark.start{'echo', 'an independent task'}
-    lark.start{'echo', 'X', group='setup'}
-
 	local file = path.join('abc', 'def')
 	lark.log{file, color='blue'}
 
+    -- Start a processes in the 'setup' execution group.
+    lark.start{'sh', '-c', 'sleep 5', group='setup'}
+
     -- Create a group for parallel execution that cannot execute programs until
     -- after  all processes in the 'setup' group have terminated.
-    build = lark.group{'build', after='setup'}
+    build = lark.group{'build', follows='setup'}
     lark.start{'cc', '--version', group=build}
+
+    -- Start an independent process that can begin executing before the 'build'
+    -- (or 'setup') groups have completed.
+    lark.start{'echo', 'an independent task'}
 
     -- Wait for all processes in the build group to terminate.
     lark.wait{build}

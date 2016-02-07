@@ -5,14 +5,18 @@ import "sync"
 // Group synchronizes dependent concurrent execution.
 type Group struct {
 	cond  *sync.Cond
+	deps  []*Group
 	err   error
 	nexec int64
 }
 
 // NewGroup initializes and returns a new Group.
-func NewGroup() *Group {
+func NewGroup(deps []*Group) *Group {
 	cond := &sync.Cond{L: &sync.Mutex{}}
-	g := &Group{cond: cond}
+	g := &Group{
+		cond: cond,
+		deps: deps,
+	}
 	return g
 }
 
@@ -43,6 +47,13 @@ func (g *Group) exec(fn func() error) {
 		g.cond.Broadcast()
 		g.cond.L.Unlock()
 	}()
+
+	for _, dep := range g.deps {
+		err = dep.Wait()
+		if err != nil {
+			return
+		}
+	}
 
 	err = fn()
 }

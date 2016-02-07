@@ -119,11 +119,25 @@ lark.start = function(...)
 end
 
 lark.group = function (args)
-    print('created group ' .. args[1])
+    if type(args) == 'string' then
+		return args
+	end
+	if table.getn(args) == 1 then
+		args.name = args[1]
+	end
+	if table.getn(args) > 1 then
+		error('too many positional arguments given')
+	end
+	core.make_group(args)
+    return args[1]
 end
 
 lark.wait = function (...)
-	local result = core.wait(...)
+    local args = arg
+    if type(args) ~= 'table' then
+        args = {arg}
+    end
+	local result = core.wait(unpack(flatten(args)))
 	if result.error then
 		error(result.error)
     end

@@ -61,11 +61,12 @@ func Loader(l *lua.LState) int {
 
 // Exports contains the API for the lark.core lua module.
 var Exports = map[string]lua.LGFunction{
-	"log":     defaultCore.LuaLog,
-	"environ": defaultCore.LuaEnviron,
-	"exec":    defaultCore.LuaExecRaw,
-	"start":   defaultCore.LuaStartRaw,
-	"wait":    defaultCore.LuaWait,
+	"log":        defaultCore.LuaLog,
+	"environ":    defaultCore.LuaEnviron,
+	"exec":       defaultCore.LuaExecRaw,
+	"start":      defaultCore.LuaStartRaw,
+	"make_group": defaultCore.LuaMakeGroup,
+	"wait":       defaultCore.LuaWait,
 }
 
 // LuaLog logs a message from lua.
@@ -116,6 +117,73 @@ func luaTableArray(state *lua.LState, t *lua.LTable, vals []lua.LValue) []lua.LV
 		}
 	})
 	return vals
+}
+
+// LuaMakeGroup makes creates a group with dependencies.  LuaMakeGroup expects
+// one table argument.
+func (c *core) LuaMakeGroup(state *lua.LState) int {
+	v1 := state.Get(1)
+	if v1.Type() != lua.LTTable {
+		state.ArgError(1, "first argument must be a table")
+		return 0
+	}
+
+	var groupname string
+	var lname = state.GetField(v1, "name")
+	if lname == lua.LNil {
+		state.ArgError(1, "missing named value 'name'")
+		return 0
+	}
+	if lname.Type() != lua.LTString {
+		msg := fmt.Sprintf("named value 'name' is not a string: %s", lname.Type())
+		state.ArgError(1, msg)
+		return 0
+	}
+	groupname = string(lname.(lua.LString))
+
+	var follows []string
+	lfollows := state.GetField(v1, "follows")
+	if lfollows != lua.LNil {
+		switch val := lfollows.(type) {
+		case lua.LString:
+			follows = append(follows, string(val))
+		case *lua.LTable:
+			tvals := flattenTable(state, val)
+			for _, tv := range tvals {
+				s, ok := tv.(lua.LString)
+				if !ok {
+					msg := fmt.Sprintf("named value 'follows' may only contain strings: %s", tv.Type())
+					state.ArgError(1, msg)
+					return 0
+				}
+				follows = append(follows, string(s))
+			}
+		default:
+			msg := fmt.Sprintf("named value 'follows' is not a table: %s", lfollows.Type())
+			state.ArgError(1, msg)
+			return 0
+		}
+	}
+
+	var gfollows []*execgroup.Group
+	for _, name := range follows {
+		g, ok := c.groups[name]
+		if !ok {
+			g = execgroup.NewGroup(nil)
+			c.groups[name] = g
+		}
+		gfollows = append(gfollows, g)
+	}
+
+	_, ok := c.groups[groupname]
+	if ok {
+		msg := fmt.Sprintf("group already exists: %q", groupname)
+		state.ArgError(1, msg)
+		return 0
+	}
+
+	c.groups[groupname] = execgroup.NewGroup(gfollows)
+	return 0
 }
 
 func (c *core) LuaWait(state *lua.LState) int {
@@ -294,7 +362,7 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 
 	group, ok := c.groups[groupname]
 	if !ok {
-		group = execgroup.NewGroup()
+		group = execgroup.NewGroup(nil)
 		c.groups[groupname] = group
 	}
 
