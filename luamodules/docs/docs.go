@@ -21,13 +21,21 @@ func (d *Docs) Module() module.Module {
 	return &docs{}
 }
 
-type docs struct{}
+type docs struct {
+	desc   *lua.Table
+	params *lua.Table
+}
 
 // Loader implements module.Module.
 func (d *docs) Loader(l *lua.LState) int {
-	concat := l.NewFunction(mtconcat)
 	mt := l.NewTable()
-	l.SetField(mt, "__concat", concat)
+	l.SetField(mt, "__mode", "kv")
+
+	d.desc = l.NewTable()
+	l.SetMetatable(d.desc, mt)
+
+	d.params = l.NewTable()
+	l.SetMetatable(d.params, mt)
 
 	module := l.NewTable()
 	l.SetFuncs(module, d.Exports(mt))
@@ -35,19 +43,29 @@ func (d *docs) Loader(l *lua.LState) int {
 	return 1
 }
 
-func mtconcat(*lua.LState) int {
-
-}
-
 func (d *docs) Exports(l *lua.LState, mt *lua.LTable) map[string]lua.LGFunction {
 	return map[string]lua.LGFunction{
-		"name":    d.LuaName,
-		"param":   d.LuaParam,
-		"returns": d.LuaReturns,
+		"help":      d.LuaHelp,
+		"signature": d.LuaSig,
+		"param":     d.LuaParam,
 	}
 }
 
-func (d *docs) LuaName(mt *lua.LTable) lua.LGFunction {
+func (d *docs) LuaSig(mt *lua.LTable) lua.LGFunction {
+	return func(l *lua.LState) int {
+		name := l.CheckString(1)
+		l.SetField(mt)
+	}
+}
+
+func (d *docs) LuaParam(mt *lua.LTable) lua.LGFunction {
+	return func(l *lua.LState) int {
+		name := l.CheckString(1)
+		l.SetField(mt)
+	}
+}
+
+func (d *docs) LuaHelp(mt *lua.LTable) lua.LGFunction {
 	return func(l *lua.LState) int {
 		name := l.CheckString(1)
 		l.SetField(mt)
