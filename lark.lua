@@ -1,3 +1,4 @@
+--local doc = require('doc')
 local go = require('go')
 local version = require('version')
 
@@ -14,3 +15,5 @@ go.default_sources = {
 }
 
 lark.default_task = 'all'
+
+-- doc.help(doc.help)

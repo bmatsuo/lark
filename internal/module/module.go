@@ -24,7 +24,7 @@ type simpleModule struct {
 
 func (m *simpleModule) Loader(l *lua.LState) int {
 	t := l.NewTable()
-	mod := l.SetFuncs(t, m.exports.Export())
+	mod := l.SetFuncs(t, m.export.Export())
 	l.Push(mod)
 	return 1
 }
