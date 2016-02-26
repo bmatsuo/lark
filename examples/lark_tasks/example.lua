@@ -9,7 +9,7 @@ lark.default_task = 'demo'
 
 -- Patterns are defined using Lua's regular expression syntax.
 --
-lark.task{pattern="^(x)(.*)%.txt$", function(ctx)
+lark.task{pattern="^(.*)%.txt$", function(ctx)
     local name = lark.get_name(ctx)
     local patt = lark.get_pattern(ctx)
     print(name)
