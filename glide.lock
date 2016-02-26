@@ -1,10 +1,6 @@
 hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-updated: 2016-02-26T00:34:44.999992221-08:00
+updated: 2016-02-26T00:37:08.307417556-08:00
 imports:
-- name: github.com/bmatsuo/lmdb-go
-  version: fa26b45b56345e5ea2967ffe4df32cf7318af168
-  subpackages:
-  - lmdb
 - name: github.com/codegangsta/cli
   version: c31a7975863e7810c92e2e288a9ab074f9a88f29
 - name: github.com/fatih/color
