@@ -33,6 +33,12 @@ executed.
 Passed the first argument of a task function, return the pattern that matched
 the task name if any.
 
+###lark.get_param(ctx, param, [default])
+
+Passed the first argument of a task function and a parameter name, return the
+parameter value given when the task was invoked.  If no value was specified
+explicity with the invokation then default is returned.
+
 ###lark.environ()
 
 Return a table containing a copy of all environment variables for the process.

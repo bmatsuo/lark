@@ -15,6 +15,7 @@ lark.task{pattern="^(.*)%.txt$", function(ctx)
     print(name)
     local m = {string.match(name, patt)}
     print(table.concat(m, "\n"))
+    print(lark.get_param(ctx, "p"))
 end}
 
 lark.task{'fail', function ()

@@ -78,12 +78,20 @@ local function run (name, ctx)
 end
 
 lark.run = function (...)
-    local tasks = flatten(...)
+    local tasks = {...}
     if table.getn(tasks) == 0 then
         tasks = {lark.default_task}
     end
     for i, name in pairs(tasks) do
-        local ctx = {name = name}
+        local ctx = name
+        if not name then
+            name = lark.default_task
+        end
+        if type(name) == 'string' then
+            ctx = {name = name}
+        else
+            name = ctx.name
+        end
         run(name, ctx)
     end
 end
@@ -98,6 +106,13 @@ end
 lark.get_pattern = function(ctx)
     if ctx then
         return ctx.pattern
+    end
+    return nil
+end
+
+lark.get_param = function(ctx, name)
+    if ctx and ctx.params then
+        return ctx.params[name]
     end
     return nil
 end

@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"regexp"
 	"strings"
+	"unicode"
 
 	"github.com/bmatsuo/lark/luamodules/lark/core"
 	"github.com/codegangsta/cli"
@@ -38,9 +41,21 @@ var CommandRun = Command(func(lark *Context, cmd *cli.Command) {
 
 // Run loads a lua vm and runs tasks specified in the command line.
 func Run(c *Context) {
-	tasks, err := normTasks(c.Args())
-	if err != nil {
-		log.Fatal(err)
+	args := c.Args()
+	var tasks []*Task
+	for {
+		t, n, err := ParseTask(args)
+		if err != nil {
+			log.Fatalf("task %d: %v", len(tasks), err)
+		}
+		if n == 0 {
+			break
+		}
+		tasks = append(tasks, t)
+		args = args[n:]
+	}
+	if len(tasks) == 0 {
+		tasks = []*Task{{}}
 	}
 
 	luaFiles, err := FindTaskFiles("")
@@ -81,12 +96,8 @@ func normTasks(args []string) ([]string, error) {
 }
 
 // RunTask calls lark.run in state to execute task.
-func RunTask(c *Context, task string) error {
-	taskLit := "nil"
-	if task != "" {
-		taskLit = fmt.Sprintf("%q", task)
-	}
-	script := fmt.Sprintf("lark.run(%s)", taskLit)
+func RunTask(c *Context, task *Task) error {
+	script := fmt.Sprintf("lark.run(%s)", task.ToLuaString())
 	err := c.Lua.DoString(script)
 	if err != nil {
 		handleErr(c, err)
@@ -124,6 +135,78 @@ func handleErr(c *Context, err error) {
 	core.Log(fmt.Sprint(x), &core.LogOpt{
 		Color: "red",
 	})
+}
+
+// Task is a task invocation from the command line.
+type Task struct {
+	Name   string
+	Params map[string]string
+}
+
+// ToLuaString returns a string representing the task in lua table syntax.
+func (t *Task) ToLuaString() string {
+	name := t.Name
+	if name == "" {
+		name = "nil"
+	}
+	return fmt.Sprintf("{name=%q,params=%s}", t.Name, luamap(t.Params))
+}
+
+func luamap(m map[string]string) string {
+	buf := bytes.NewBuffer(nil)
+	io.WriteString(buf, "{")
+	for k, v := range m {
+		io.WriteString(buf, k)
+		io.WriteString(buf, "=")
+		fmt.Fprintf(buf, "%q", v)
+	}
+	io.WriteString(buf, "}")
+	return buf.String()
+}
+
+// ParseTask parses a task from command line arguments and returns it along
+// with the number of args consumed.
+func ParseTask(args []string) (*Task, int, error) {
+	t := &Task{}
+	if len(args) == 0 {
+		return t, 0, nil
+	}
+	if args[0] == "--" {
+		return t, 1, nil
+	}
+	if !strings.Contains(args[0], "=") {
+		t.Name = args[0]
+		args = args[1:]
+		if len(t.Name) == 0 {
+			return nil, 0, fmt.Errorf("missing name")
+		}
+	}
+	t.Params = make(map[string]string)
+	for _, p := range args {
+		pieces := strings.SplitN(p, "=", 2)
+		if len(pieces) == 1 {
+			break
+		}
+		err := sanitizeParam(pieces[0])
+		if err != nil {
+			return nil, 0, err
+		}
+		t.Params[pieces[0]] = pieces[1]
+	}
+	return t, 1 + len(t.Params), nil
+}
+
+func sanitizeParam(name string) error {
+	if len(name) == 0 {
+		return fmt.Errorf("missing param name")
+	}
+	badchars := strings.TrimFunc(name, func(c rune) bool {
+		return unicode.IsLetter(c) || unicode.IsNumber(c) || c == '_'
+	})
+	if len(badchars) > 0 {
+		return fmt.Errorf("invalid character in param: %q", badchars[0])
+	}
+	return nil
 }
 
 var reLoc = regexp.MustCompile(`^[^:]+:\d+:\s*`)
