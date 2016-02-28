@@ -110,11 +110,13 @@ lark.get_pattern = function(ctx)
     return nil
 end
 
-lark.get_param = function(ctx, name)
+-- BUG: ` + "`" + `or` + "`" + ` is not correct here if the parameter was given an empty string
+-- value
+lark.get_param = function(ctx, name, default)
     if ctx and ctx.params then
-        return ctx.params[name]
+        return ctx.params[name] or default
     end
-    return nil
+    return default
 end
 
 lark.shell_quote = function (args)
