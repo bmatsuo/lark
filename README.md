@@ -17,6 +17,44 @@ It doesn't matter what versions of the Lua interpreter are installed on
 developer machines (if any).  The interpreter used by Lark can be ensured to be
 consistent without interferring with normal project development.
 
+```lua
+-- global variables that can be used during project tasks
+name = 'foobaz'
+sources = {
+    'main',
+    'util',
+}
+
+-- define the "build" project task.
+-- build can be executed on the command line with `lark run build`.
+lark.task{'build', function()
+    -- build a list of objects.
+    local objs = {}
+    for i, src in pairs(sources) do
+        objs[i] = src .. '.o'
+    end
+
+    -- compile each object.
+    for _, obj in pairs(objs) do
+        lark.run(obj)
+    end
+
+    -- compile the application.
+    lark.exec{'gcc', '-o', name, objs}
+end}
+
+-- regular expressions can match sets of task names.
+-- captures can extract information from the name.
+lark.task{pattern='^(.*)%.o$', function(ctx)
+    -- extract the object name, construct the source path
+    local src = string.match(lark.name(ctx), lark.pattern(ctx))
+    local path = src .. '.c'
+
+    -- compile the object file.
+    lark.exec{'gcc', '-c', path}
+end}
+```
+
 ##Core Features
 
 - A simple to install, self-contained system.
