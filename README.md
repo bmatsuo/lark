@@ -58,6 +58,8 @@ end}
 ##Core Features
 
 - A simple to install, self-contained system.
+- Pattern matching tasks (a la make).
+- Parameterized tasks.
 - Agnostic to target programing languages.  It doesn't matter if you are
   writing Rust, Python, or Lua.
 - Builtin modules to simplify shell-style scripting.
@@ -72,8 +74,6 @@ end}
 ##Roadmap features
 
 - More idiomatic Lua API.
-- Parameterized tasks.
-- Pattern matching tasks (a la make).
 - System for vendored third-party modules.  Users opt out of repeatable builds
   by explicitly ignoring the module directory in their VCS. 
 - Integrated dependency checking in the same spirit of the fabricate and
