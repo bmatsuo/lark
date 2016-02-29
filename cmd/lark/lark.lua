@@ -81,14 +81,17 @@ lark.run = function (...)
     end
     for i, name in pairs(tasks) do
         local ctx = name
-        if not name then
-            name = lark.default_task
-        end
         if type(name) == 'string' then
             ctx = {name = name}
         else
             name = ctx.name
         end
+
+        if not name then
+            name = lark.default_task
+			ctx.name = name
+        end
+
         run(name, ctx)
     end
 end

@@ -97,7 +97,7 @@ func normTasks(args []string) ([]string, error) {
 
 // RunTask calls lark.run in state to execute task.
 func RunTask(c *Context, task *Task) error {
-	script := fmt.Sprintf("lark.run(%s)", task.ToLuaString())
+	script := fmt.Sprintf("lark.run(%s)", task.ToLua())
 	err := c.Lua.DoString(script)
 	if err != nil {
 		handleErr(c, err)
@@ -143,13 +143,15 @@ type Task struct {
 	Params map[string]string
 }
 
-// ToLuaString returns a string representing the task in lua table syntax.
-func (t *Task) ToLuaString() string {
-	name := t.Name
-	if name == "" {
+// ToLua returns a string representing the task in lua table syntax.
+func (t *Task) ToLua() string {
+	var name string
+	if t.Name == "" {
 		name = "nil"
+	} else {
+		name = fmt.Sprintf("%q", t.Name)
 	}
-	return fmt.Sprintf("{name=%q,params=%s}", t.Name, luamap(t.Params))
+	return fmt.Sprintf("{name=%s,params=%s}", name, luamap(t.Params))
 }
 
 func luamap(m map[string]string) string {
