@@ -78,13 +78,13 @@ local function run (name, ctx)
 end
 
 lark.run = function (...)
-    local tasks = {...}
-    if table.getn(tasks) == 0 then
+    local tasks = {unpack(arg)}
+    if #tasks == 0 then
         tasks = {lark.default_task}
     end
     for i, name in pairs(tasks) do
         local ctx = name
-        if type(name) == 'string' then
+        if type(name) ~= 'table' then
             ctx = {name = name}
         else
             name = ctx.name
@@ -113,8 +113,6 @@ lark.get_pattern = function(ctx)
     return nil
 end
 
--- BUG: ` + "`" + `or` + "`" + ` is not correct here if the parameter was given an empty string
--- value
 lark.get_param = function(ctx, name, default)
     if ctx and ctx.params then
         return ctx.params[name] or default

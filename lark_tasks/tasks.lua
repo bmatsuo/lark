@@ -4,7 +4,7 @@ local version = require('version')
 local moses = require('moses')
 
 lark.task{'all', function()
-    lark.run{'gen', 'test', 'build'}
+    lark.run('gen', 'test', 'build')
 end}
 
 lark.task{'init', function()
@@ -34,7 +34,7 @@ lark.task{'test', function()
 end}
 
 lark.task{'release', function()
-    lark.run{'gen', 'test'}
+    lark.run('gen', 'test')
 
     local release_root = 'release'
     local vx = version.get()
