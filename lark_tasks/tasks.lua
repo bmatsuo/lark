@@ -33,6 +33,10 @@ lark.task{'test', function()
     go.test{cover=true}
 end}
 
+lark.task{'test-race', function()
+    go.test{race=true}
+end}
+
 lark.task{'release', function()
     lark.run('gen', 'test')
 

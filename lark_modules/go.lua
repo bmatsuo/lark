@@ -12,13 +12,20 @@ end
 
 -- this function has some serious problems. but whatever for now, it's local.
 local function opt_flag(tcmd, flag, val)
-    if val then insert_args(tcmd, {flag, val}) end
+    if val then
+        if type(val) == 'boolean' then
+            insert_args(tcmd, {flag})
+        else
+            insert_args(tcmd, {flag, val})
+        end
+    end
 end
 
 local function insert_common_build_flags(tcmd, opt)
     opt_flag(tcmd, '-asmflags', opt.asmflags)
     opt_flag(tcmd, '-gcflags', opt.gcflags)
     opt_flag(tcmd, '-ldflags', opt.ldflags)
+    opt_flag(tcmd, '-race', opt.race)
 end
 
 go.gen = function(opt)

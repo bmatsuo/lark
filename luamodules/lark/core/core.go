@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/bmatsuo/lark/execgroup"
 	"github.com/fatih/color"
@@ -345,13 +346,25 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 			state.ArgError(1, msg)
 			return 0
 		}
-		mappend := false
-		if strings.HasPrefix(string(stdout), "+") {
-			mappend = true
-			stdout = stdout[1:]
+	stdoutsigloop:
+		for {
+			switch {
+			case strings.HasPrefix(string(stdout), "+"):
+				opt.StdoutAppend = true
+				stdout = stdout[1:]
+			case strings.HasPrefix(string(stdout), "&"):
+				opt.StdoutTee = true
+				stdout = stdout[1:]
+			case strings.HasPrefix(string(stdout), "$"):
+				state.RaiseError("output capture not allowed for 'start'")
+			default:
+				break stdoutsigloop
+			}
 		}
 		opt.StdoutFile = string(stdout)
-		opt.StdoutAppend = mappend
+		if !opt.StdoutCapture && stdout == "" {
+			opt.StdoutTee = false
+		}
 	}
 
 	lstderr := state.GetField(v1, "stderr")
@@ -362,13 +375,25 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 			state.ArgError(1, msg)
 			return 0
 		}
-		mappend := false
-		if strings.HasPrefix(string(stderr), "+") {
-			mappend = true
-			stderr = stderr[1:]
+	stderrsigloop:
+		for {
+			switch {
+			case strings.HasPrefix(string(stderr), "+"):
+				opt.StderrAppend = true
+				stderr = stderr[1:]
+			case strings.HasPrefix(string(stderr), "&"):
+				opt.StderrTee = true
+				stderr = stderr[1:]
+			case strings.HasPrefix(string(stderr), "$"):
+				state.RaiseError("output capture not allowed for 'start'")
+			default:
+				break stderrsigloop
+			}
 		}
 		opt.StderrFile = string(stderr)
-		opt.StderrAppend = mappend
+		if !opt.StderrCapture && stderr == "" {
+			opt.StderrTee = false
+		}
 	}
 
 	var env []string
@@ -400,7 +425,7 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 
 	limit := c.limit
 	glimit, ok := c.grouplimit[groupname]
-	if !ok && glimit == nil {
+	if ok && glimit == nil {
 		// if the group has specifically been unilimited then remove the global
 		// limit as well.
 		limit = nil
@@ -509,13 +534,26 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 			state.ArgError(1, msg)
 			return 0
 		}
-		mappend := false
-		if strings.HasPrefix(string(stdout), "+") {
-			mappend = true
-			stdout = stdout[1:]
+	stdoutsigloop:
+		for {
+			switch {
+			case strings.HasPrefix(string(stdout), "+"):
+				opt.StdoutAppend = true
+				stdout = stdout[1:]
+			case strings.HasPrefix(string(stdout), "&"):
+				opt.StdoutTee = true
+				stdout = stdout[1:]
+			case strings.HasPrefix(string(stdout), "$"):
+				opt.StdoutCapture = true
+				stdout = stdout[1:]
+			default:
+				break stdoutsigloop
+			}
 		}
 		opt.StdoutFile = string(stdout)
-		opt.StdoutAppend = mappend
+		if !opt.StdoutCapture && stdout == "" {
+			opt.StdoutTee = false
+		}
 	}
 
 	lstderr := state.GetField(v1, "stderr")
@@ -526,13 +564,26 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 			state.ArgError(1, msg)
 			return 0
 		}
-		mappend := false
-		if strings.HasPrefix(string(stderr), "+") {
-			mappend = true
-			stderr = stderr[1:]
+	stderrsigloop:
+		for {
+			switch {
+			case strings.HasPrefix(string(stderr), "+"):
+				opt.StderrAppend = true
+				stderr = stderr[1:]
+			case strings.HasPrefix(string(stderr), "&"):
+				opt.StderrTee = true
+				stderr = stderr[1:]
+			case strings.HasPrefix(string(stderr), "$"):
+				opt.StderrCapture = true
+				stderr = stderr[1:]
+			default:
+				break stderrsigloop
+			}
 		}
 		opt.StderrFile = string(stderr)
-		opt.StderrAppend = mappend
+		if !opt.StderrCapture && stderr == "" {
+			opt.StderrTee = false
+		}
 	}
 
 	var env []string
@@ -564,6 +615,9 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 	rt := state.NewTable()
 	if result.Err != nil {
 		state.SetField(rt, "error", lua.LString(result.Err.Error()))
+	}
+	if opt.StdoutCapture || opt.StderrCapture {
+		state.SetField(rt, "output", lua.LString(result.Output))
 	}
 	state.Push(rt)
 
@@ -603,8 +657,8 @@ func flattenTable(state *lua.LState, val *lua.LTable) []lua.LValue {
 
 // ExecRawResult is returned from ExecRaw
 type ExecRawResult struct {
-	Err error
-	// Output string
+	Err    error
+	Output string
 }
 
 // ExecRawOpt contains options for ExecRaw.
@@ -622,7 +676,11 @@ type ExecRawOpt struct {
 
 	// TODO: Output capture. This will interact interestingly with command
 	// result caching and file redirection.  It should be thought out more.
-	//CaptureOutput  bool
+	StdoutCapture bool
+	StderrCapture bool
+
+	StdoutTee bool
+	StderrTee bool
 }
 
 // ExecRaw executes the named command with the given arguments.
@@ -632,9 +690,14 @@ func ExecRaw(name string, args []string, opt *ExecRawOpt) *ExecRawResult {
 
 func (c *core) execRaw(name string, args []string, opt *ExecRawOpt) *ExecRawResult {
 	cmd := exec.Command(name, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
+
+	var buf io.Writer
+	if opt.StdoutCapture || opt.StderrCapture {
+		buf = &syncBuffer{}
+	}
+	var stdout io.Writer
+	var stderr io.Writer
 
 	if opt == nil {
 		err := cmd.Run()
@@ -661,22 +724,117 @@ func (c *core) execRaw(name string, args []string, opt *ExecRawOpt) *ExecRawResu
 			return &ExecRawResult{Err: err}
 		}
 		defer f.Close()
-		cmd.Stdout = f
+		stdout = f
+	} else if opt.StdoutCapture {
+		stdout = nil
 	}
 
 	if opt.StderrFile != "" && opt.StderrFile == opt.StdoutFile {
-		cmd.Stderr = cmd.Stdout
+		stderr = stdout
 	} else if opt.StderrFile != "" {
 		f, err := getOutFile(opt.StderrFile, opt.StderrAppend)
 		if err != nil {
 			return &ExecRawResult{Err: err}
 		}
 		defer f.Close()
-		cmd.Stderr = f
+		stderr = f
+	} else if opt.StderrCapture {
+		stderr = nil
+	}
+
+	if opt.StdoutCapture {
+		if stdout != nil {
+			stdout = io.MultiWriter(buf, stdout)
+		} else {
+			stdout = buf
+		}
+	}
+	if opt.StdoutTee && stdout != nil {
+		stdout = io.MultiWriter(stdout, os.Stdout)
+	}
+	if opt.StderrCapture {
+		if stderr != nil {
+			stderr = io.MultiWriter(buf, stderr)
+		} else {
+			stderr = buf
+		}
+	}
+	if opt.StderrTee && stderr != nil {
+		stderr = io.MultiWriter(stderr, os.Stderr)
+	}
+
+	ioerr := make(chan error, 2)
+	read := func(w io.Writer, r io.Reader, e chan<- error) {
+		_, err := io.Copy(w, r)
+		e <- err
+	}
+
+	var pout, perr io.ReadCloser
+	var closers []io.ReadCloser
+	doclose := func() {
+		for _, f := range closers {
+			f.Close()
+		}
+	}
+	if stdout != nil {
+		var err error
+		pout, err = cmd.StdoutPipe()
+		if err != nil {
+			return &ExecRawResult{Err: err}
+		}
+		closers = append(closers, pout)
+	} else {
+		cmd.Stdout = os.Stdout
+	}
+	if stderr != nil {
+		var err error
+		perr, err = cmd.StderrPipe()
+		if err != nil {
+			doclose()
+			return &ExecRawResult{Err: err}
+		}
+		closers = append(closers, perr)
+	} else {
+		cmd.Stderr = os.Stderr
 	}
 
 	result := &ExecRawResult{}
-	result.Err = cmd.Run()
+	result.Err = cmd.Start()
+	if result.Err != nil {
+		doclose()
+		return result
+	}
+
+	defer func() {
+		if buf != nil {
+			result.Output = string(buf.(*syncBuffer).Bytes())
+		}
+	}()
+
+	n := 0
+	if stdout != nil {
+		n++
+		read(stdout, pout, ioerr)
+	}
+	if stderr != nil {
+		n++
+		read(stderr, perr, ioerr)
+	}
+	for i := 0; i < n; i++ {
+		result.Err = <-ioerr
+		if result.Err != nil {
+			go func(k int) {
+				for j := 0; j < n; j++ {
+					<-ioerr
+				}
+				cmd.Wait()
+			}(n - i - 1)
+			return result
+		}
+	}
+
+	result.Err = cmd.Wait()
+
 	return result
 }
 
@@ -736,4 +894,51 @@ var colorMap = map[string]func(format string, v ...interface{}) string{
 	"red":     color.RedString,
 	"white":   color.WhiteString,
 	"yellow":  color.YellowString,
+}
+
+type syncBuffer struct {
+	mut sync.Mutex
+	buf bytes.Buffer
+}
+
+func (b *syncBuffer) Read(p []byte) (int, error) {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return b.buf.Read(p)
+}
+
+func (b *syncBuffer) Write(p []byte) (int, error) {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return b.buf.Write(p)
+}
+
+func (b *syncBuffer) WriteString(s string) (int, error) {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return b.buf.WriteString(s)
+}
+
+func (b *syncBuffer) ReadFrom(r io.Reader) (int64, error) {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return b.buf.ReadFrom(r)
+}
+
+func (b *syncBuffer) WriteTo(w io.Writer) (int64, error) {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return b.buf.WriteTo(w)
+}
+
+func (b *syncBuffer) Bytes() []byte {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return b.buf.Bytes()
+}
+
+func (b *syncBuffer) String() string {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return b.buf.String()
 }
