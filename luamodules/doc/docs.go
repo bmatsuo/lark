@@ -7,6 +7,68 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
+// GoDocs represents documentation for a Go object
+type GoDocs struct {
+	Sig    string
+	Desc   string
+	Params []string
+}
+
+// Go sets the description for obj to desc.
+func Go(l *lua.LState, obj lua.LValue, doc *GoDocs) {
+	require := l.GetGlobal("require")
+	l.Push(require)
+	l.Push(lua.LString("doc"))
+	err := l.PCall(1, 1, nil)
+	if err != nil {
+		l.RaiseError("%s", err)
+	}
+	mod := l.CheckTable(l.GetTop())
+	l.Pop(1)
+
+	ndec := 0
+	if doc.Sig != "" {
+		sig := l.GetField(mod, "sig")
+		l.Push(sig)
+		l.Push(lua.LString(doc.Sig))
+		err := l.PCall(1, 1, nil)
+		if err != nil {
+			l.RaiseError("%s", err)
+		}
+		ndec++
+	}
+
+	if doc.Desc != "" {
+		sig := l.GetField(mod, "desc")
+		l.Push(sig)
+		l.Push(lua.LString(doc.Desc))
+		err := l.PCall(1, 1, nil)
+		if err != nil {
+			l.RaiseError("%s", err)
+		}
+		ndec++
+	}
+	if len(doc.Params) > 0 {
+		param := l.GetField(mod, "param")
+		for _, p := range doc.Params {
+			l.Push(param)
+			l.Push(lua.LString(p))
+			err := l.PCall(1, 1, nil)
+			if err != nil {
+				l.RaiseError("%s", err)
+			}
+			ndec++
+		}
+	}
+	l.Push(obj)
+	for i := 0; i < ndec; i++ {
+		err := l.PCall(1, 1, nil)
+		if err != nil {
+			l.RaiseError("%s", err)
+		}
+	}
+}
+
 // Module returns an instance of a Lua module.
 func Module() module.Module {
 	return defaultDocs.Module()

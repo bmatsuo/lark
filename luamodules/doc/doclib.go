@@ -7,9 +7,15 @@ local parameters = setmetatable({}, {__mode = 'k'})
 
 local doc = {}
 
-local fnconcat = function(fn1, val) return fn1.fn(val) end
+local decconcat = function(fn1, val) return fn1.fn(val) end
+local deccall = function(fn, ...) return fn.fn(...) end
 local function decorator(fn)
-    return setmetatable({fn=fn}, {__concat = fnconcat})
+    local obj = {fn = fn}
+    local mt = {
+        __call = deccall,
+        __concat = decconcat,
+    }
+    return setmetatable(obj, mt)
 end
 
 local function split(s, sep, n)
@@ -76,28 +82,28 @@ end
 doc.sig =
     _sig[[s => fn => fn]] ..
     _desc[[A decorator that documents a function's signature.]] ..
-    _param[[s   A string containing the function signature]] ..
-    _param[[fn  The function being documented]] ..
+    _param[[s   String containing the function signature]] ..
+    _param[[fn  Function being documented]] ..
     _sig
 
 doc.desc =
     _sig[[d => fn => fn]] ..
     _desc[[A decorator that documents a function's description.]] ..
-    _param[[d   A string containing the function description]] ..
-    _param[[fn  The function being documented]] ..
+    _param[[d   String containing the function description]] ..
+    _param[[fn  Function being documented]] ..
     _desc
 
 doc.param =
     _sig[[p => fn => fn]] ..
     _desc[[A decorator that documents a function parameter.]] ..
-    _param[[p   A string with parameter and description separated by whitespace]] ..
-    _param[[fn  The function being documented]] ..
+    _param[[p   String with name and description separated by whitespace]] ..
+    _param[[fn  Function being documented]] ..
     _param
 
 doc.help =
     doc.sig[[val =>  ()]] ..
     doc.desc[[Display help for an object, writing it to standard output]] ..
-    doc.param[[val  Any object or function]] ..
+    doc.param[[val  Any table or function]] ..
     function(val)
         local d = load_docs(val)
         if d == nil then

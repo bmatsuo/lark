@@ -4,13 +4,87 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/bmatsuo/lark/luamodules/doc"
 	"github.com/yuin/gopher-lua"
 )
 
 // Loader preloads the path module so that it can be required in lua scripts.
 func Loader(l *lua.LState) int {
-	t := l.NewTable()
-	mod := l.SetFuncs(t, Exports)
+	l.Pop(1) // first argument is the module name
+
+	mod := l.NewTable()
+	l.SetFuncs(mod, Exports)
+
+	glob := l.NewClosure(LuaGlob)
+	doc.Go(l, glob, &doc.GoDocs{
+		Sig:  "patt => [string]",
+		Desc: "Returns an array of paths that match the given pattern.",
+		Params: []string{
+			"patt  Pattern using star '*' as a wildcard.",
+		},
+	})
+	l.SetField(mod, "glob", glob)
+
+	base := l.NewClosure(LuaBase)
+	doc.Go(l, base, &doc.GoDocs{
+		Sig:  "path => string",
+		Desc: "Returns the basename of the given path.",
+		Params: []string{
+			"path  A file path that may not exist",
+		},
+	})
+	l.SetField(mod, "base", base)
+
+	dir := l.NewClosure(LuaDir)
+	doc.Go(l, dir, &doc.GoDocs{
+		Sig:  "path => string",
+		Desc: "Returns the directory containing the given path.",
+		Params: []string{
+			"path  A file path that may not exist",
+		},
+	})
+	l.SetField(mod, "dir", dir)
+
+	ext := l.NewClosure(LuaExt)
+	doc.Go(l, ext, &doc.GoDocs{
+		Sig:  "path => string",
+		Desc: "Returns the file extension of the given path.",
+		Params: []string{
+			"path  A file path that may not exist",
+		},
+	})
+	l.SetField(mod, "ext", ext)
+
+	join := l.NewClosure(LuaJoin)
+	doc.Go(l, join, &doc.GoDocs{
+		Sig:  "[path] => string",
+		Desc: "Joins the given paths using the filesystem path separator and returns the result.",
+		Params: []string{
+			"path  A file path that may not exist",
+		},
+	})
+	l.SetField(mod, "join", join)
+
+	exists := l.NewClosure(LuaExists)
+	doc.Go(l, exists, &doc.GoDocs{
+		Sig:  "path => bool",
+		Desc: "Returns true if and only if path exists",
+		Params: []string{
+			"path  A file path that may not exist",
+		},
+	})
+	l.SetField(mod, "exists", exists)
+
+	isDir := l.NewClosure(LuaIsDir)
+	doc.Go(l, isDir, &doc.GoDocs{
+		Sig:  "path => bool",
+		Desc: "Returns true if and only if path exists and is a directory",
+		Params: []string{
+			"path  A file path that may not exist",
+		},
+	})
+	l.SetField(mod, "is_dir", isDir)
+
 	l.Push(mod)
 	return 1
 }
