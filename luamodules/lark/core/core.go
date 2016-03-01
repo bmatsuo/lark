@@ -346,11 +346,18 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 			state.ArgError(1, msg)
 			return 0
 		}
-		if strings.HasPrefix(string(stdout), "+") {
-			opt.StdoutAppend = true
-			stdout = stdout[1:]
+	stdoutsigloop:
+		for {
+			switch {
+			case strings.HasPrefix(string(stdout), "+"):
+				opt.StdoutAppend = true
+				stdout = stdout[1:]
+			case strings.HasPrefix(string(stdout), "$"):
+				state.RaiseError("output capture not allowed for 'start'")
+			default:
+				break stdoutsigloop
+			}
 		}
-		// output cannot be captured from asynchronous commands
 		opt.StdoutFile = string(stdout)
 	}
 
@@ -362,11 +369,18 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 			state.ArgError(1, msg)
 			return 0
 		}
-		if strings.HasPrefix(string(stderr), "+") {
-			opt.StderrAppend = true
-			stderr = stderr[1:]
+	stderrsigloop:
+		for {
+			switch {
+			case strings.HasPrefix(string(stderr), "+"):
+				opt.StderrAppend = true
+				stderr = stderr[1:]
+			case strings.HasPrefix(string(stderr), "$"):
+				state.RaiseError("output capture not allowed for 'start'")
+			default:
+				break stderrsigloop
+			}
 		}
-		// output cannot be captured from asynchronous commands
 		opt.StderrFile = string(stderr)
 	}
 
@@ -508,13 +522,18 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 			state.ArgError(1, msg)
 			return 0
 		}
-		if strings.HasPrefix(string(stdout), "+") {
-			opt.StdoutAppend = true
-			stdout = stdout[1:]
-		}
-		if strings.HasPrefix(string(stdout), "$") {
-			opt.StdoutCapture = true
-			stdout = stdout[1:]
+	stdoutsigloop:
+		for {
+			switch {
+			case strings.HasPrefix(string(stdout), "+"):
+				opt.StdoutAppend = true
+				stdout = stdout[1:]
+			case strings.HasPrefix(string(stdout), "$"):
+				opt.StdoutCapture = true
+				stdout = stdout[1:]
+			default:
+				break stdoutsigloop
+			}
 		}
 		opt.StdoutFile = string(stdout)
 	}
@@ -527,13 +546,18 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 			state.ArgError(1, msg)
 			return 0
 		}
-		if strings.HasPrefix(string(stderr), "+") {
-			opt.StderrAppend = true
-			stderr = stderr[1:]
-		}
-		if strings.HasPrefix(string(stderr), "$") {
-			opt.StderrCapture = true
-			stderr = stderr[1:]
+	stderrsigloop:
+		for {
+			switch {
+			case strings.HasPrefix(string(stderr), "+"):
+				opt.StderrAppend = true
+				stderr = stderr[1:]
+			case strings.HasPrefix(string(stderr), "$"):
+				opt.StderrCapture = true
+				stderr = stderr[1:]
+			default:
+				break stderrsigloop
+			}
 		}
 		opt.StderrFile = string(stderr)
 	}
