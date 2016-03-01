@@ -1,5 +1,9 @@
 #Lark [![Build Status](https://travis-ci.org/bmatsuo/lark.svg?branch=master)](https://travis-ci.org/bmatsuo/lark)
 
+**NOTE:  Until version 1 is release the Lark Lua API should be considered
+unstable.  As features are developed and practical experience has been gained
+the Lua API will change to better suit the needs of developers.**
+
 Lark is a modern extensible build system scripted using Lua.  Lark is inspired
 by `make` and several build systems written in Python.  The goal of Lark is to
 provide the ease and flexibility of a full scripting environment in a portable,
