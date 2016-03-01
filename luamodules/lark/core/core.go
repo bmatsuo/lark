@@ -696,8 +696,8 @@ func (c *core) execRaw(name string, args []string, opt *ExecRawOpt) *ExecRawResu
 	if opt.StdoutCapture || opt.StderrCapture {
 		buf = &syncBuffer{}
 	}
-	var stdout io.Writer = os.Stdout
-	var stderr io.Writer = os.Stderr
+	var stdout io.Writer
+	var stderr io.Writer
 
 	if opt == nil {
 		err := cmd.Run()
@@ -769,18 +769,39 @@ func (c *core) execRaw(name string, args []string, opt *ExecRawOpt) *ExecRawResu
 		e <- err
 	}
 
-	pout, err := cmd.StdoutPipe()
-	if err != nil {
-		return &ExecRawResult{Err: err}
+	var pout, perr io.ReadCloser
+	var closers []io.ReadCloser
+	doclose := func() {
+		for _, f := range closers {
+			f.Close()
+		}
 	}
-	perr, err := cmd.StderrPipe()
-	if err != nil {
-		return &ExecRawResult{Err: err}
+	if stdout != nil {
+		var err error
+		pout, err = cmd.StdoutPipe()
+		if err != nil {
+			return &ExecRawResult{Err: err}
+		}
+		closers = append(closers, pout)
+	} else {
+		cmd.Stdout = os.Stdout
+	}
+	if stderr != nil {
+		var err error
+		perr, err = cmd.StderrPipe()
+		if err != nil {
+			doclose()
+			return &ExecRawResult{Err: err}
+		}
+		closers = append(closers, perr)
+	} else {
+		cmd.Stderr = os.Stderr
 	}
 
 	result := &ExecRawResult{}
 	result.Err = cmd.Start()
-	if err != nil {
+	if result.Err != nil {
+		doclose()
 		return result
 	}
 
