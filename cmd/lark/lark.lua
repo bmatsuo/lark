@@ -110,8 +110,6 @@ lark.get_pattern = function(ctx)
     return nil
 end
 
--- BUG: `or` is not correct here if the parameter was given an empty string
--- value
 lark.get_param = function(ctx, name, default)
     if ctx and ctx.params then
         return ctx.params[name] or default
