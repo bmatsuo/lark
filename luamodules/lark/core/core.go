@@ -352,6 +352,9 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 			case strings.HasPrefix(string(stdout), "+"):
 				opt.StdoutAppend = true
 				stdout = stdout[1:]
+			case strings.HasPrefix(string(stdout), "&"):
+				opt.StdoutTee = true
+				stdout = stdout[1:]
 			case strings.HasPrefix(string(stdout), "$"):
 				state.RaiseError("output capture not allowed for 'start'")
 			default:
@@ -359,6 +362,9 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 			}
 		}
 		opt.StdoutFile = string(stdout)
+		if !opt.StdoutCapture && stdout == "" {
+			opt.StdoutTee = false
+		}
 	}
 
 	lstderr := state.GetField(v1, "stderr")
@@ -375,6 +381,9 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 			case strings.HasPrefix(string(stderr), "+"):
 				opt.StderrAppend = true
 				stderr = stderr[1:]
+			case strings.HasPrefix(string(stderr), "&"):
+				opt.StderrTee = true
+				stderr = stderr[1:]
 			case strings.HasPrefix(string(stderr), "$"):
 				state.RaiseError("output capture not allowed for 'start'")
 			default:
@@ -382,6 +391,9 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 			}
 		}
 		opt.StderrFile = string(stderr)
+		if !opt.StderrCapture && stderr == "" {
+			opt.StderrTee = false
+		}
 	}
 
 	var env []string
@@ -528,6 +540,9 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 			case strings.HasPrefix(string(stdout), "+"):
 				opt.StdoutAppend = true
 				stdout = stdout[1:]
+			case strings.HasPrefix(string(stdout), "&"):
+				opt.StdoutTee = true
+				stdout = stdout[1:]
 			case strings.HasPrefix(string(stdout), "$"):
 				opt.StdoutCapture = true
 				stdout = stdout[1:]
@@ -536,6 +551,9 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 			}
 		}
 		opt.StdoutFile = string(stdout)
+		if !opt.StdoutCapture && stdout == "" {
+			opt.StdoutTee = false
+		}
 	}
 
 	lstderr := state.GetField(v1, "stderr")
@@ -552,6 +570,9 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 			case strings.HasPrefix(string(stderr), "+"):
 				opt.StderrAppend = true
 				stderr = stderr[1:]
+			case strings.HasPrefix(string(stderr), "&"):
+				opt.StderrTee = true
+				stderr = stderr[1:]
 			case strings.HasPrefix(string(stderr), "$"):
 				opt.StderrCapture = true
 				stderr = stderr[1:]
@@ -560,6 +581,9 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 			}
 		}
 		opt.StderrFile = string(stderr)
+		if !opt.StderrCapture && stderr == "" {
+			opt.StderrTee = false
+		}
 	}
 
 	var env []string
@@ -654,6 +678,9 @@ type ExecRawOpt struct {
 	// result caching and file redirection.  It should be thought out more.
 	StdoutCapture bool
 	StderrCapture bool
+
+	StdoutTee bool
+	StderrTee bool
 }
 
 // ExecRaw executes the named command with the given arguments.
@@ -722,12 +749,18 @@ func (c *core) execRaw(name string, args []string, opt *ExecRawOpt) *ExecRawResu
 			stdout = buf
 		}
 	}
+	if opt.StdoutTee && stdout != nil {
+		stdout = io.MultiWriter(stdout, os.Stdout)
+	}
 	if opt.StderrCapture {
 		if stderr != nil {
 			stderr = io.MultiWriter(buf, stderr)
 		} else {
 			stderr = buf
 		}
+	}
+	if opt.StderrTee && stderr != nil {
+		stderr = io.MultiWriter(stderr, os.Stderr)
 	}
 
 	ioerr := make(chan error, 2)
@@ -854,7 +887,6 @@ func (b *syncBuffer) Read(p []byte) (int, error) {
 }
 
 func (b *syncBuffer) Write(p []byte) (int, error) {
-	log.Printf("WRITE %s", p)
 	b.mut.Lock()
 	defer b.mut.Unlock()
 	return b.buf.Write(p)
