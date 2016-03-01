@@ -58,11 +58,15 @@ Execute the named command with any arguments given.
 - **stdin** -- A source filename to redirect into the process standard
   input stream.
 
-- **stdout** -- A destination filename to redirect output from the
-  process standard output stream.
+- **stdout** -- A destination filename to redirect output from the process
+  standard output stream.  If '+' precedes a filename output will be appended
+  to the specified file.  If '$' precedes a filename, output will be buffered
+  and returned with the result.  If '&' precedes a filename output will be
+  written to standard output along with any specified destination.
 
-- **stderr** -- A destination filename to redirect output from the
-  process standard error stream.
+- **stderr** -- A destination filename to redirect output from the process
+  standard error stream.  See the documentation for stdout for information
+  about the destination filename format.
 
 - **ignore** -- Do not terminate the task if the command exits with an error.
 
