@@ -346,13 +346,12 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 			state.ArgError(1, msg)
 			return 0
 		}
-		mappend := false
 		if strings.HasPrefix(string(stdout), "+") {
-			mappend = true
+			opt.StdoutAppend = true
 			stdout = stdout[1:]
 		}
+		// output cannot be captured from asynchronous commands
 		opt.StdoutFile = string(stdout)
-		opt.StdoutAppend = mappend
 	}
 
 	lstderr := state.GetField(v1, "stderr")
@@ -363,13 +362,12 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 			state.ArgError(1, msg)
 			return 0
 		}
-		mappend := false
 		if strings.HasPrefix(string(stderr), "+") {
-			mappend = true
+			opt.StderrAppend = true
 			stderr = stderr[1:]
 		}
+		// output cannot be captured from asynchronous commands
 		opt.StderrFile = string(stderr)
-		opt.StderrAppend = mappend
 	}
 
 	var env []string
@@ -510,13 +508,15 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 			state.ArgError(1, msg)
 			return 0
 		}
-		mappend := false
 		if strings.HasPrefix(string(stdout), "+") {
-			mappend = true
+			opt.StdoutAppend = true
+			stdout = stdout[1:]
+		}
+		if strings.HasPrefix(string(stdout), "$") {
+			opt.StdoutCapture = true
 			stdout = stdout[1:]
 		}
 		opt.StdoutFile = string(stdout)
-		opt.StdoutAppend = mappend
 	}
 
 	lstderr := state.GetField(v1, "stderr")
@@ -527,13 +527,15 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 			state.ArgError(1, msg)
 			return 0
 		}
-		mappend := false
 		if strings.HasPrefix(string(stderr), "+") {
-			mappend = true
+			opt.StderrAppend = true
+			stderr = stderr[1:]
+		}
+		if strings.HasPrefix(string(stderr), "$") {
+			opt.StderrCapture = true
 			stderr = stderr[1:]
 		}
 		opt.StderrFile = string(stderr)
-		opt.StderrAppend = mappend
 	}
 
 	var env []string
@@ -565,6 +567,9 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 	rt := state.NewTable()
 	if result.Err != nil {
 		state.SetField(rt, "error", lua.LString(result.Err.Error()))
+	}
+	if opt.StdoutCapture || opt.StderrCapture {
+		state.SetField(rt, "output", lua.LString(result.Output))
 	}
 	state.Push(rt)
 
@@ -623,8 +628,8 @@ type ExecRawOpt struct {
 
 	// TODO: Output capture. This will interact interestingly with command
 	// result caching and file redirection.  It should be thought out more.
-	CaptureStdout bool
-	CaptureStderr bool
+	StdoutCapture bool
+	StderrCapture bool
 }
 
 // ExecRaw executes the named command with the given arguments.
@@ -636,7 +641,10 @@ func (c *core) execRaw(name string, args []string, opt *ExecRawOpt) *ExecRawResu
 	cmd := exec.Command(name, args...)
 	cmd.Stdin = os.Stdin
 
-	buf := &syncBuffer{}
+	var buf io.Writer
+	if opt.StdoutCapture || opt.StderrCapture {
+		buf = &syncBuffer{}
+	}
 	var stdout io.Writer = os.Stdout
 	var stderr io.Writer = os.Stderr
 
@@ -666,6 +674,8 @@ func (c *core) execRaw(name string, args []string, opt *ExecRawOpt) *ExecRawResu
 		}
 		defer f.Close()
 		stdout = f
+	} else if opt.StdoutCapture {
+		stdout = nil
 	}
 
 	if opt.StderrFile != "" && opt.StderrFile == opt.StdoutFile {
@@ -677,13 +687,23 @@ func (c *core) execRaw(name string, args []string, opt *ExecRawOpt) *ExecRawResu
 		}
 		defer f.Close()
 		stderr = f
+	} else if opt.StderrCapture {
+		stderr = nil
 	}
 
-	if opt.CaptureStdout {
-		stdout = io.MultiWriter(buf, stdout)
+	if opt.StdoutCapture {
+		if stdout != nil {
+			stdout = io.MultiWriter(buf, stdout)
+		} else {
+			stdout = buf
+		}
 	}
-	if opt.CaptureStderr {
-		stderr = io.MultiWriter(buf, stderr)
+	if opt.StderrCapture {
+		if stderr != nil {
+			stderr = io.MultiWriter(buf, stderr)
+		} else {
+			stderr = buf
+		}
 	}
 
 	ioerr := make(chan error, 2)
@@ -707,23 +727,36 @@ func (c *core) execRaw(name string, args []string, opt *ExecRawOpt) *ExecRawResu
 		return result
 	}
 
-	read(stdout, pout, ioerr)
-	read(stderr, perr, ioerr)
-	result.Err = <-ioerr
-	if result.Err != nil {
-		go func() {
-			<-ioerr
-			cmd.Wait()
-		}()
-		return result
+	defer func() {
+		if buf != nil {
+			result.Output = string(buf.(*syncBuffer).Bytes())
+		}
+	}()
+
+	n := 0
+	if stdout != nil {
+		n++
+		read(stdout, pout, ioerr)
 	}
-	result.Err = <-ioerr
-	if result.Err != nil {
-		go cmd.Wait()
-		return result
+	if stderr != nil {
+		n++
+		read(stderr, perr, ioerr)
+	}
+	for i := 0; i < n; i++ {
+		result.Err = <-ioerr
+		if result.Err != nil {
+			go func(k int) {
+				for j := 0; j < n; j++ {
+					<-ioerr
+				}
+				cmd.Wait()
+			}(n - i - 1)
+			return result
+		}
 	}
 
 	result.Err = cmd.Wait()
+
 	return result
 }
 
@@ -797,6 +830,7 @@ func (b *syncBuffer) Read(p []byte) (int, error) {
 }
 
 func (b *syncBuffer) Write(p []byte) (int, error) {
+	log.Printf("WRITE %s", p)
 	b.mut.Lock()
 	defer b.mut.Unlock()
 	return b.buf.Write(p)

@@ -23,3 +23,7 @@ func TestEnviron(t *testing.T) {
 func TestExec(t *testing.T) {
 	Module.Test(t, "test_exec")
 }
+
+func TestCapture(t *testing.T) {
+	Module.Test(t, "test_capture")
+}

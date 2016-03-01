@@ -15,3 +15,9 @@ function test_exec()
     result = core.exec{'true'}
     assert(not result.error)
 end
+
+function test_capture()
+    local result = core.exec{'echo', 'just a test', stdout="$"}
+    assert(not result.error)
+	assert(result.output == 'just a test\n')
+end
