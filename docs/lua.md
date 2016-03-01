@@ -73,11 +73,12 @@ Execute a command asynchronously.
 - **group** -- Start the process in a specific group that can be recalled
   later.
 
-###lark.run{...}
+###lark.run(...)
 
-Run given tasks.  All arguments given are flattened and each task named run.
-If no task with the exact name is defined then patterns are matched in the
-order they are defined.  The first task with matching pattern will be executed.
+Run given tasks.  A task may be a string or a table with params to be provided
+through the task's context argument.  If no task with the exact name is defined
+then patterns are matched in the order they are defined.  The first task with
+matching pattern will be executed.
 
 ###lark.group{name, [follows={...}]}
 
