@@ -29,13 +29,12 @@ end}
 
 -- BUG: We don't want to test the vendored packages.  But we want to run the
 -- tests for everything else.
-lark.task{'test', function(ctx)
-    local race = lark.get_param(ctx, 'race')
-    if race then
-        go.test{race=true}
-    else
-        go.test{cover=true}
-    end
+lark.task{'test', function()
+    go.test{cover=true}
+end}
+
+lark.task{'test-race', function()
+    go.test{race=true}
 end}
 
 lark.task{'release', function()
