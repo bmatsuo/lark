@@ -425,7 +425,7 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 
 	limit := c.limit
 	glimit, ok := c.grouplimit[groupname]
-	if !ok && glimit == nil {
+	if ok && glimit == nil {
 		// if the group has specifically been unilimited then remove the global
 		// limit as well.
 		limit = nil
