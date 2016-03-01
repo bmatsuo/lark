@@ -38,6 +38,17 @@ func REPL(c *Context) {
 		log.Fatal(err)
 	}
 
+	c.Lua.Push(c.Lua.GetGlobal("require"))
+	c.Lua.Push(lua.LString("doc"))
+	err = c.Lua.PCall(1, 1, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	docModule := c.Lua.Get(c.Lua.GetTop())
+	c.Lua.Pop(1)
+	helpFunc := c.Lua.GetField(docModule, "help")
+	c.Lua.SetGlobal("help", helpFunc)
+
 	err = RunREPL(c.Lua)
 	if err != nil {
 		log.Fatal(err)
