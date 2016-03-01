@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/bmatsuo/lark/execgroup"
 	"github.com/fatih/color"
@@ -603,8 +604,8 @@ func flattenTable(state *lua.LState, val *lua.LTable) []lua.LValue {
 
 // ExecRawResult is returned from ExecRaw
 type ExecRawResult struct {
-	Err error
-	// Output string
+	Err    error
+	Output string
 }
 
 // ExecRawOpt contains options for ExecRaw.
@@ -622,7 +623,8 @@ type ExecRawOpt struct {
 
 	// TODO: Output capture. This will interact interestingly with command
 	// result caching and file redirection.  It should be thought out more.
-	//CaptureOutput  bool
+	CaptureStdout bool
+	CaptureStderr bool
 }
 
 // ExecRaw executes the named command with the given arguments.
@@ -632,9 +634,11 @@ func ExecRaw(name string, args []string, opt *ExecRawOpt) *ExecRawResult {
 
 func (c *core) execRaw(name string, args []string, opt *ExecRawOpt) *ExecRawResult {
 	cmd := exec.Command(name, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
+
+	buf := &syncBuffer{}
+	var stdout io.Writer = os.Stdout
+	var stderr io.Writer = os.Stderr
 
 	if opt == nil {
 		err := cmd.Run()
@@ -661,22 +665,65 @@ func (c *core) execRaw(name string, args []string, opt *ExecRawOpt) *ExecRawResu
 			return &ExecRawResult{Err: err}
 		}
 		defer f.Close()
-		cmd.Stdout = f
+		stdout = f
 	}
 
 	if opt.StderrFile != "" && opt.StderrFile == opt.StdoutFile {
-		cmd.Stderr = cmd.Stdout
+		stderr = stdout
 	} else if opt.StderrFile != "" {
 		f, err := getOutFile(opt.StderrFile, opt.StderrAppend)
 		if err != nil {
 			return &ExecRawResult{Err: err}
 		}
 		defer f.Close()
-		cmd.Stderr = f
+		stderr = f
+	}
+
+	if opt.CaptureStdout {
+		stdout = io.MultiWriter(buf, stdout)
+	}
+	if opt.CaptureStderr {
+		stderr = io.MultiWriter(buf, stderr)
+	}
+
+	ioerr := make(chan error, 2)
+	read := func(w io.Writer, r io.Reader, e chan<- error) {
+		_, err := io.Copy(w, r)
+		e <- err
+	}
+
+	pout, err := cmd.StdoutPipe()
+	if err != nil {
+		return &ExecRawResult{Err: err}
+	}
+	perr, err := cmd.StderrPipe()
+	if err != nil {
+		return &ExecRawResult{Err: err}
 	}
 
 	result := &ExecRawResult{}
-	result.Err = cmd.Run()
+	result.Err = cmd.Start()
+	if err != nil {
+		return result
+	}
+
+	read(stdout, pout, ioerr)
+	read(stderr, perr, ioerr)
+	result.Err = <-ioerr
+	if result.Err != nil {
+		go func() {
+			<-ioerr
+			cmd.Wait()
+		}()
+		return result
+	}
+	result.Err = <-ioerr
+	if result.Err != nil {
+		go cmd.Wait()
+		return result
+	}
+
+	result.Err = cmd.Wait()
 	return result
 }
 
@@ -736,4 +783,51 @@ var colorMap = map[string]func(format string, v ...interface{}) string{
 	"red":     color.RedString,
 	"white":   color.WhiteString,
 	"yellow":  color.YellowString,
+}
+
+type syncBuffer struct {
+	mut sync.Mutex
+	buf bytes.Buffer
+}
+
+func (b *syncBuffer) Read(p []byte) (int, error) {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return b.buf.Read(p)
+}
+
+func (b *syncBuffer) Write(p []byte) (int, error) {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return b.buf.Write(p)
+}
+
+func (b *syncBuffer) WriteString(s string) (int, error) {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return b.buf.WriteString(s)
+}
+
+func (b *syncBuffer) ReadFrom(r io.Reader) (int64, error) {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return b.buf.ReadFrom(r)
+}
+
+func (b *syncBuffer) WriteTo(w io.Writer) (int64, error) {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return b.buf.WriteTo(w)
+}
+
+func (b *syncBuffer) Bytes() []byte {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return b.buf.Bytes()
+}
+
+func (b *syncBuffer) String() string {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return b.buf.String()
 }
