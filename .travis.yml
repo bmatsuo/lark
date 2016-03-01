@@ -25,4 +25,4 @@ install:
   - lark init
 
 script:
-  - lark run all
+  - lark run test test-race
