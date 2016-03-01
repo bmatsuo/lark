@@ -1,6 +1,6 @@
 #Lark [![Build Status](https://travis-ci.org/bmatsuo/lark.svg?branch=master)](https://travis-ci.org/bmatsuo/lark)
 
-**NOTE:  Until version 1 is release the Lark Lua API should be considered
+**NOTE:  Until version 1 is released the Lark Lua API should be considered
 unstable.  As features are developed and practical experience has been gained
 the Lua API will change to better suit the needs of developers.**
 
