@@ -2,6 +2,7 @@ package main
 
 // LarkLib contains Lua source code for the lark module.
 var LarkLib = `require 'string'
+require 'table'
 require 'os'
 
 local core = require('lark.core')
@@ -26,39 +27,99 @@ lark = {}
 
 lark.default_task = nil
 lark.tasks = {}
+lark.patterns = {}
 
 lark.task = function (name, fn)
+    local pattern = nil
     local t = name
     if type(t) == 'table' then
-        name = t[1]
-        fn = t[2]
+        pattern = t.pattern
+        if type(t[1]) == "string" then
+            name = t[1]
+        end
+        fn = t[table.getn(t)]
     end
 
-    -- print('created task: ' .. name)
     if not lark.default_task then
         lark.default_task = name
     end
 
-    lark.tasks[name] = fn
+    if name then
+        lark.tasks[name] = fn
+    end
+    if pattern then
+        print('pattern task: ' .. pattern)
+        for _, rec in pairs(lark.patterns) do
+            if rec[1] == pattern then
+                error("pattern already defined: " .. pattern)
+            end
+        end
+        local rec = { pattern, fn }
+        table.insert(lark.patterns, rec)
+    end
 end
 
 
-local function run (name)
+local function run (name, ctx)
     local fn = lark.tasks[name]
     if not fn then
-        error('no task named ' .. name)
+        for _, rec in pairs(lark.patterns) do
+            if string.find(name, rec[1]) then
+                ctx.pattern = rec[1]
+                fn = rec[2]
+                break
+            end
+        end
     end
-    fn()
+    if not fn then
+        error('no task matching ' .. name)
+    end
+    fn(ctx)
 end
 
 lark.run = function (...)
-    local tasks = flatten(...)
+    local tasks = {...}
     if table.getn(tasks) == 0 then
         tasks = {lark.default_task}
     end
     for i, name in pairs(tasks) do
-        run(name)
+        local ctx = name
+        if type(name) == 'string' then
+            ctx = {name = name}
+        else
+            name = ctx.name
+        end
+
+        if not name then
+            name = lark.default_task
+			ctx.name = name
+        end
+
+        run(name, ctx)
     end
+end
+
+lark.get_name = function(ctx)
+    if ctx then
+        return ctx.name
+    end
+    return nil
+end
+
+lark.get_pattern = function(ctx)
+    if ctx then
+        return ctx.pattern
+    end
+    return nil
+end
+
+-- BUG: ` + "`" + `or` + "`" + ` is not correct here if the parameter was given an empty string
+-- value
+lark.get_param = function(ctx, name, default)
+    if ctx and ctx.params then
+        return ctx.params[name] or default
+    end
+    return default
 end
 
 lark.shell_quote = function (args)

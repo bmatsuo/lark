@@ -10,6 +10,35 @@ The lark module is available as `lark`.
 
 The task run when no name is given on the command line.
 
+###lark.task{[name], fn, [pattern=string]}
+
+Define a task that can be executed using lark.run() function (and the `lark`
+command).
+
+- **name** -- An exact name that is given to lark.run().  The name may be
+  omitted if a **pattern** is defined.
+
+- **pattern** -- A regular expression matching strings given to lark.run().
+
+- **fn** -- The function to execute with lark.run() when the task is matched.
+  The function may take a _context_ argument.
+
+###lark.get_name(ctx)
+
+Passed the first argument of a task function, return the name of the task being
+executed.
+
+###lark.get_pattern(ctx)
+
+Passed the first argument of a task function, return the pattern that matched
+the task name if any.
+
+###lark.get_param(ctx, param, [default])
+
+Passed the first argument of a task function and a parameter name, return the
+parameter value given when the task was invoked.  If no value was specified
+explicity with the invokation then default is returned.
+
 ###lark.environ()
 
 Return a table containing a copy of all environment variables for the process.
@@ -47,6 +76,8 @@ Execute a command asynchronously.
 ###lark.run{...}
 
 Run given tasks.  All arguments given are flattened and each task named run.
+If no task with the exact name is defined then patterns are matched in the
+order they are defined.  The first task with matching pattern will be executed.
 
 ###lark.group{name, [follows={...}]}
 
