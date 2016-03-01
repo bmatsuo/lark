@@ -25,4 +25,4 @@ install:
   - lark init
 
 script:
-  - lark run test test-race
+  - lark run test test race=1
