@@ -12,6 +12,8 @@
 - Tasks can now define a regular expression pattern instead of a single name to
   match multiple values and behave dynamically according to the names they
   match.
+- Simple REPL for developers to experiment.  There are some quirks but it is
+  essentially the same as the lua5.1 interpreter.
   
 
 ##v0.2.0
