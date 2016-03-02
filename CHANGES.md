@@ -5,6 +5,14 @@
 - Added optional filename parameters to `lark.exec{}`: **stdin**, **stdout**,
   and **stderr**.  See the [docs](docs/lua.md) for more information.
 - Added parallel processing, limited by the -j flag to `lark run`/`lark make`.
+- Added the ability to capture exec output.  Additionally, exec output can tee
+  to standard streams and files/memory.
+- Tasks take an optional context parameter that allows access to task metadata
+  and parameters.
+- Tasks can now define a regular expression pattern instead of a single name to
+  match multiple values and behave dynamically according to the names they
+  match.
+  
 
 ##v0.2.0
 
