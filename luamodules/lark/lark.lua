@@ -186,7 +186,7 @@ lark.log =
     core.log
 
 lark.exec =
-    doc.sig[[cmd => result]] ..
+    doc.sig[[cmd => output]] ..
     doc.desc[[Execute a command]] ..
     doc.param[[cmd         array -- the command to run (e.g. {'gcc', '-c', 'foo.c'}]] ..
     doc.param[[cmd.dir     string (optional) -- the directory cmd should execute in]] ..
