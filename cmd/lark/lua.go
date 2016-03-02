@@ -6,12 +6,11 @@ import (
 	"path/filepath"
 
 	"github.com/bmatsuo/lark/luamodules/doc"
+	"github.com/bmatsuo/lark/luamodules/lark"
 	"github.com/bmatsuo/lark/luamodules/lark/core"
 	"github.com/bmatsuo/lark/luamodules/path"
 	"github.com/yuin/gopher-lua"
 )
-
-//go:generate ./build_lib.sh
 
 // PreloadModules defines the (ordered) set of modules to preload and their
 // loader functions.
@@ -22,6 +21,7 @@ var PreloadModules = []struct {
 	{"doc", doc.Module().Loader},
 	{"path", path.Loader},
 	{"lark.core", core.Loader},
+	{"lark", lark.Loader},
 }
 
 // FindTaskFiles locates task scripts in the project dir.
@@ -65,12 +65,17 @@ func InitLark(c *Context, files []string) error {
 		c.Lua.PreloadModule(mod.name, mod.loader)
 	}
 
-	err := LoadLarkLib(c)
+	c.Lua.Push(c.Lua.GetGlobal("require"))
+	c.Lua.Push(lua.LString("lark"))
+	err := c.Lua.PCall(1, 0, nil)
 	if err != nil {
 		return err
 	}
 
-	// This needs to come after LoadLarkLib.
+	lark := c.Lua.GetGlobal("lark")
+	c.Lua.SetField(lark, "verbose", lua.LBool(c.Verbose()))
+
+	// Load files after lark has been loaded with require().
 	if c.Verbose() && len(files) > 0 {
 		log.Printf("loading files: %v", files)
 	}
@@ -92,19 +97,5 @@ func LoadFiles(state *lua.LState, files []string) error {
 			return err
 		}
 	}
-	return nil
-}
-
-// LoadLarkLib loads the default lark module.
-func LoadLarkLib(c *Context) error {
-	err := c.Lua.DoString(LarkLib)
-	if err != nil {
-		return nil
-	}
-
-	lark := c.Lua.GetGlobal("lark")
-
-	c.Lua.SetField(lark, "verbose", lua.LBool(c.Verbose()))
-
 	return nil
 }
