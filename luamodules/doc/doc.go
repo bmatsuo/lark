@@ -4,7 +4,6 @@ package doc
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/bmatsuo/lark/internal/module"
 	"github.com/yuin/gopher-lua"
@@ -112,7 +111,6 @@ func (d *doc) LoaderNative(l *lua.LState) int {
 
 	mod := l.NewTable()
 
-	log.Print("CHECKPOINT 1")
 	sig := l.NewClosure(func(l *lua.LState) int {
 		s := l.CheckString(1)
 		l.SetTop(0)
@@ -164,11 +162,9 @@ func (d *doc) LoaderNative(l *lua.LState) int {
 		return 1
 	}, parameters, decorator)
 
-	log.Print("CHECKPOINT 2")
 	l.Push(sig)
 	l.Push(lua.LString("s => fn => fn"))
 	l.Call(1, 1)
-	log.Print(l.GetTop())
 	l.Push(desc)
 	l.Push(lua.LString("A decorator that documents a function's signature."))
 	l.Call(1, 1)
@@ -180,7 +176,6 @@ func (d *doc) LoaderNative(l *lua.LState) int {
 	l.Call(1, 1)
 	l.Call(1, 1)
 
-	log.Print("CHECKPOINT 3")
 	l.Push(sig)
 	l.Push(lua.LString("s => fn => fn"))
 	l.Call(1, 1)
@@ -195,7 +190,6 @@ func (d *doc) LoaderNative(l *lua.LState) int {
 	l.Call(1, 1)
 	l.Call(1, 1)
 
-	log.Print("CHECKPOINT 4")
 	l.Push(sig)
 	l.Push(lua.LString("s => fn => fn"))
 	l.Call(1, 1)
@@ -210,9 +204,7 @@ func (d *doc) LoaderNative(l *lua.LState) int {
 	l.Call(1, 1)
 	l.Call(1, 1)
 
-	log.Print("CHECKPOINT 5")
 	loadDocs := l.NewClosure(func(l *lua.LState) int {
-		log.Printf("GET 1")
 		val := l.Get(1)
 		l.SetTop(0)
 		sig := l.GetTable(signatures, val)
@@ -227,7 +219,6 @@ func (d *doc) LoaderNative(l *lua.LState) int {
 		l.SetField(t, "desc", desc)
 		l.SetField(t, "params", params)
 		l.Push(t)
-		log.Printf("GET 2")
 		return 1
 	}, signatures, descriptions, parameters)
 
@@ -378,7 +369,6 @@ func (d *doc) LoaderNative(l *lua.LState) int {
 	l.SetField(mod, "param", param)
 	l.SetField(mod, "help", help)
 	l.Push(mod)
-	log.Print("CHECKPOINT FIN")
 	return 1
 }
 
