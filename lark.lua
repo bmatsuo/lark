@@ -10,7 +10,8 @@ local _ldflags = {
 ldflags = table.concat(_ldflags, ' ')
 
 local sources = {}
-local novendor = lark.exec{'glide', 'novendor', stdout='$', stderr='/dev/null'}
+local novendor =
+    lark.exec{'glide', 'novendor', stdout='$', stderr='/dev/null', echo=false}
 string.gsub(novendor, '(%S+)', function(p) table.insert(sources, p) end)
 go.default_sources = sources
 
