@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/bmatsuo/lark/larkmeta"
 	"github.com/chzyer/readline"
 	"github.com/codegangsta/cli"
 	"github.com/yuin/gopher-lua"
@@ -49,11 +50,66 @@ func REPL(c *Context) {
 	helpFunc := c.Lua.GetField(docModule, "help")
 	c.Lua.SetGlobal("help", helpFunc)
 
+	c.Lua.SetField(docModule, "help_default", lua.LString(REPLHelpDefault))
+
+	log.Printf("Lark %-10s Copyright (C) 2016 The Lark authors", larkmeta.Version)
+	log.Println(lua.PackageCopyRight)
+	log.Println()
+	log.Printf("This environment simulates that of a lark task.")
+	log.Printf("For information about any object use the help() \n" +
+		"function.")
+
 	err = RunREPL(c.Lua)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
+
+// REPLHelpDefault describes the REPL environment and points the user at the
+// available modules for additional help.
+const REPLHelpDefault = `
+The REPL environment mimics a lark task runtime with the additional global
+function help().
+
+	> help(lark)
+
+Data in the REPL can be stored in global variables.  Local variables will be
+out of scope on subsequent lines of input.
+
+	> x = 1
+	> return x
+	1
+	> local y = 2
+	> return y
+	nil
+
+In order to print a value computed in the REPL it must be returned or otherwise
+printed explicitly using the print() builtin.
+
+	> function x() return "xyz" end
+	> x()
+	> return x()
+	xyz
+	> print(x())
+	xyz
+	>
+
+Builtin modules, and custom modules in the lark_modules/ directory can be
+imported using the require() function.  Modules can the be used or the
+documentation may be inspected
+
+	> path = require('path')
+	> help(path)
+	> help(path.exists)
+
+
+Available Modules
+
+	doc
+	lark (required by default)
+	lark.core
+	path
+`
 
 // RunREPL runs the main loop of the REPL command.
 func RunREPL(state *lua.LState) error {

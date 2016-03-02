@@ -97,11 +97,18 @@ doc.param =
     _param[[fn  Function being documented]] ..
     _param
 
+doc.help_default = nil
+
 doc.help =
     doc.sig[[val =>  ()]] ..
     doc.desc[[Display help for an object, writing it to standard output]] ..
     doc.param[[val  Any table or function]] ..
     function(val)
+        if val == nil then
+            print(doc.help_default)
+            return
+        end
+
         local d = load_docs(val)
         if d then
             if d.desc then
