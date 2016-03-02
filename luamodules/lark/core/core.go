@@ -416,6 +416,10 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 
 	lstr := state.GetField(v1, "_str")
 	str, _ := lstr.(lua.LString)
+	lecho, ok := state.GetField(v1, "echo").(lua.LBool)
+	if !ok {
+		lecho = true
+	}
 
 	group, ok := c.groups[groupname]
 	if !ok {
@@ -439,7 +443,7 @@ func (c *core) LuaStartRaw(state *lua.LState) int {
 			limit <- struct{}{}
 			defer func() { <-limit }()
 		}
-		if str != "" {
+		if str != "" && lecho {
 			opt := &LogOpt{Color: "green"}
 			c.log(string(str), opt)
 		}
@@ -604,10 +608,15 @@ func (c *core) LuaExecRaw(state *lua.LState) int {
 	}
 	opt.Env = env
 
+	lecho, ok := state.GetField(v1, "echo").(lua.LBool)
+	if !ok {
+		lecho = true
+	}
+
 	lstr := state.GetField(v1, "_str")
 	str, _ := lstr.(lua.LString)
 
-	if str != "" {
+	if str != "" && lecho {
 		opt := &LogOpt{Color: "green"}
 		c.log(string(str), opt)
 	}
