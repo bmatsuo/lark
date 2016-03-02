@@ -9,10 +9,10 @@ local _ldflags = {
 }
 ldflags = table.concat(_ldflags, ' ')
 
-go.default_sources = {
-    './cmd/...',
-    './luamodules/...',
-}
+local sources = {}
+local novendor = lark.exec{'glide', 'novendor', stdout='$', stderr='/dev/null'}
+string.gsub(novendor, '(%S+)', function(p) table.insert(sources, p) end)
+go.default_sources = sources
 
 lark.default_task = 'all'
 
