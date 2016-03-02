@@ -106,20 +106,53 @@ doc.help =
     doc.param[[val  Any table or function]] ..
     function(val)
         local d = load_docs(val)
-        if d == nil then
-            return
+        if d then
+            if d.desc then
+                print(d.desc)
+            end
+            if d.sig then
+                print()
+                print(string.format('  %s', d.sig))
+            end
+            if d.params then
+                print()
+                for name, desc in pairs(d.params) do
+                    print(string.format('  %s\t%s', name, desc))
+                end
+            end
         end
-        if d.desc then
-            print(d.desc)
-        end
-        if d.sig then
-            print()
-            print(string.format('  %s', d.sig))
-        end
-        if d.params then
-            print()
-            for name, desc in pairs(d.params) do
-                print(string.format('  %s\t%s', name, desc))
+
+        if type(val) == 'table' then
+            local subs = {}
+            for k, v in pairs(val) do
+                if type(k) == "string" then
+                    local dsub = load_docs(v)
+                    if not dsub then
+                        table.insert(subs, {k, nil})
+                    else
+                        table.insert(subs, {k, dsub.desc})
+                    end
+                end
+            end
+            if #subs > 0 then
+                print()
+                print('Subtopics')
+                print()
+                local maxlen = 0
+                for _, v in pairs(subs) do
+                    local n = string.len(v[1])
+                    if n > maxlen then
+                        maxlen = n
+                    end
+                end
+                local descfmt = '%-' .. tostring(maxlen) .. 's%s'
+                for _, v in pairs(subs) do
+                    if not v[2] then
+                        print('  ' .. v[1])
+                    else
+                        print('  ' .. string.format(descfmt, v[1], v[2]))
+                    end
+                end
             end
         end
     end

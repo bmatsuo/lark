@@ -6,6 +6,7 @@ require 'table'
 require 'os'
 
 local core = require('lark.core')
+local doc = require('doc')
 
 local function flatten(...)
     local flat = {}
@@ -29,35 +30,40 @@ lark.default_task = nil
 lark.tasks = {}
 lark.patterns = {}
 
-lark.task = function (name, fn)
-    local pattern = nil
-    local t = name
-    if type(t) == 'table' then
-        pattern = t.pattern
-        if type(t[1]) == "string" then
-            name = t[1]
-        end
-        fn = t[table.getn(t)]
-    end
-
-    if not lark.default_task then
-        lark.default_task = name
-    end
-
-    if name then
-        lark.tasks[name] = fn
-    end
-    if pattern then
-        print('pattern task: ' .. pattern)
-        for _, rec in pairs(lark.patterns) do
-            if rec[1] == pattern then
-                error("pattern already defined: " .. pattern)
+lark.task =
+    doc.sig[[(name, fn) => ()]] ..
+    doc.desc[[Define a new task.]] ..
+    doc.param[[name  string -- the name of the task]] ..
+    doc.param[[fn    string -- the function that performs the task]] ..
+    function (name, fn)
+        local pattern = nil
+        local t = name
+        if type(t) == 'table' then
+            pattern = t.pattern
+            if type(t[1]) == "string" then
+                name = t[1]
             end
+            fn = t[table.getn(t)]
         end
-        local rec = { pattern, fn }
-        table.insert(lark.patterns, rec)
+
+        if not lark.default_task then
+            lark.default_task = name
+        end
+
+        if name then
+            lark.tasks[name] = fn
+        end
+        if pattern then
+            print('pattern task: ' .. pattern)
+            for _, rec in pairs(lark.patterns) do
+                if rec[1] == pattern then
+                    error("pattern already defined: " .. pattern)
+                end
+            end
+            local rec = { pattern, fn }
+            table.insert(lark.patterns, rec)
+        end
     end
-end
 
 
 local function run (name, ctx)
@@ -77,48 +83,68 @@ local function run (name, ctx)
     fn(ctx)
 end
 
-lark.run = function (...)
-    local tasks = {unpack(arg)}
-    if #tasks == 0 then
-        tasks = {lark.default_task}
-    end
-    for i, name in pairs(tasks) do
-        local ctx = name
-        if type(name) ~= 'table' then
-            ctx = {name = name}
-        else
-            name = ctx.name
+lark.run =
+    doc.sig[[(task, ...) => ()]] ..
+    doc.desc[[Execute each task given.]] ..
+    doc.param[[task         string or object -- a task name or object to execute]] ..
+    doc.param[[task.name    string -- a task to execute]] ..
+    doc.param[[task.params  optional table -- a map from parameter names to values]] ..
+    function (...)
+        local tasks = {unpack(arg)}
+        if #tasks == 0 then
+            tasks = {lark.default_task}
         end
+        for i, name in pairs(tasks) do
+            local ctx = name
+            if type(name) ~= 'table' then
+                ctx = {name = name}
+            else
+                name = ctx.name
+            end
 
-        if not name then
-            name = lark.default_task
-			ctx.name = name
+            if not name then
+                name = lark.default_task
+                ctx.name = name
+            end
+
+            run(name, ctx)
         end
-
-        run(name, ctx)
     end
-end
 
-lark.get_name = function(ctx)
-    if ctx then
-        return ctx.name
+lark.get_name =
+    doc.sig[[ctx => string]] ..
+    doc.desc[[Return the name of the task corresponding to the given context.]] ..
+    doc.param[[ctx  object -- the context argument of an executing task]] ..
+    function(ctx)
+        if ctx then
+            return ctx.name
+        end
+        return nil
     end
-    return nil
-end
 
-lark.get_pattern = function(ctx)
-    if ctx then
-        return ctx.pattern
+lark.get_pattern =
+    doc.sig[[ctx => string]] ..
+    doc.desc[[Return the regular expression that matched the executing task or nil if the task name was not matched against a pattern.]] ..
+    doc.param[[ctx  object -- the context argument of an executing task]] ..
+    function(ctx)
+        if ctx then
+            return ctx.pattern
+        end
+        return nil
     end
-    return nil
-end
 
-lark.get_param = function(ctx, name, default)
-    if ctx and ctx.params then
-        return ctx.params[name] or default
+lark.get_param =
+    doc.sig[[(ctx, name, [default]) => string]] ..
+    doc.desc[[Return the value for the name parameter given to the task corresponding to ctx.]] ..
+    doc.param[[ctx      object -- the context argument of an executing task]] ..
+    doc.param[[name     string -- the name of the task parameter]] ..
+    doc.param[[default  any -- returned when the task has no value for the parameter]] ..
+    function(ctx, name, default)
+        if ctx and ctx.params then
+            return ctx.params[name] or default
+        end
+        return default
     end
-    return default
-end
 
 lark.shell_quote = function (args)
     local q = function (s)
@@ -150,54 +176,86 @@ lark.shell_quote = function (args)
     return str
 end
 
-lark.environ = core.environ
+lark.environ =
+    doc.sig[[() => envmap]] ..
+    doc.desc[[Return a copy of the process environment as a table.]] ..
+    core.environ
 
-lark.log = core.log
+lark.log =
+    doc.sig[[{msg, [color = string]} => result]] ..
+    doc.desc[[Log a message to the standard error stream.]] ..
+    doc.param[[msg    string -- The message to display]] ..
+    doc.param[[color  string -- The color to display the message as (red, blue, ...)]] ..
+    core.log
 
-lark.exec = function (args)
-    local cmd_str = lark.shell_quote(args)
+lark.exec =
+    doc.sig[[cmd => result]] ..
+    doc.desc[[Execute a command]] ..
+    doc.param[[cmd         array -- the command to run (e.g. {'gcc', '-c', 'foo.c'}]] ..
+    doc.param[[cmd.dir     string (optional) -- the directory cmd should execute in]] ..
+    doc.param[[cmd.input   string (optional) -- data written to the standard input stream]] ..
+    doc.param[[cmd.stdin   string (optional) -- A source filename to redirect into the standard input stream]] ..
+    doc.param[[cmd.stdout  string (optional) -- A destination filename to receive output redirected from the standard output stream]] ..
+    doc.param[[cmd.stderr  string (optional) -- A destination filename to receive output redirected from the standard error stream]] ..
+    doc.param[[cmd.ignore  boolean (optional) -- Do not terminate execution if cmd exits with an error]] ..
+    function (args)
+        local cmd_str = lark.shell_quote(args)
 
-    args._str = lark.shell_quote(args)
-    local result = core.exec(args)
+        args._str = lark.shell_quote(args)
+        local result = core.exec(args)
 
-    if args.ignore and result.error then
-        if lark.verbose then 
-            local msg = string.format('%s (ignored)', result.error)
-            lark.log{msg, color='yellow'}
+        if args.ignore and result.error then
+            if lark.verbose then
+                local msg = string.format('%s (ignored)', result.error)
+                lark.log{msg, color='yellow'}
+            end
+        elseif result.error then
+            error(result.error)
         end
-    elseif result.error then
-        error(result.error)
     end
-end
 
-lark.start = function(args)
-    args._str = lark.shell_quote(args) .. ' &'
+lark.start =
+    doc.sig[[cmd => ()]] ..
+    doc.desc[[Start asynchronous execution of cmd.  Except where noted the cmd argument is identical to the argument of lark.exec()]] ..
+    doc.param[[cmd.group  string (optional) -- the group that cmd should execute under]] ..
+    function(args)
+        args._str = lark.shell_quote(args) .. ' &'
 
-    core.start(args)
-end
+        core.start(args)
+    end
 
-lark.group = function (args)
-    if type(args) == 'string' then
-        return args
+lark.group =
+    doc.sig[[g => string]] ..
+    doc.desc[[Create a group with optional dependencies.]] ..
+    doc.param[[g.name     string -- name of the group]] ..
+    doc.param[[g.follows  array (optional) -- wait for the specified groups before executing any group processes]] ..
+    doc.param[[g.limit    number (optional) -- limit parallel procceses among the group (in addition to global limits)]] ..
+    function (args)
+        if type(args) == 'string' then
+            return args
+        end
+        if table.getn(args) == 1 then
+            args.name = args[1]
+        end
+        if table.getn(args) > 1 then
+            error('too many positional arguments given')
+        end
+        core.make_group(args)
+        return args[1]
     end
-    if table.getn(args) == 1 then
-        args.name = args[1]
-    end
-    if table.getn(args) > 1 then
-        error('too many positional arguments given')
-    end
-    core.make_group(args)
-    return args[1]
-end
 
-lark.wait = function (...)
-    local args = arg
-    if type(args) ~= 'table' then
-        args = {arg}
+lark.wait =
+    doc.sig[[[group] => nil]] ..
+    doc.desc[[Suspend execution until all processes in the specified groups have terminated.]] ..
+    doc.param[[group  the name of a group to wait for]] ..
+    function (...)
+        local args = arg
+        if type(args) ~= 'table' then
+            args = {arg}
+        end
+        local result = core.wait(unpack(flatten(args)))
+        if result.error then
+            error(result.error)
+        end
     end
-    local result = core.wait(unpack(flatten(args)))
-    if result.error then
-        error(result.error)
-    end
-end
 `
