@@ -1,6 +1,6 @@
 #Change log
 
-##v0.3.0-dev
+##v0.3.0
 
 - Added optional filename parameters to `lark.exec{}`: **stdin**, **stdout**,
   and **stderr**.  See the [docs](docs/lua.md) for more information.
