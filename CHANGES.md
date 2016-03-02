@@ -1,5 +1,7 @@
 #Change log
 
+##v0.4.0-dev
+
 ##v0.3.0
 
 - Added optional filename parameters to `lark.exec{}`: **stdin**, **stdout**,
