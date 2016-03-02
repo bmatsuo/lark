@@ -1,4 +1,4 @@
-package main
+package lark
 
 // LarkLib contains Lua source code for the lark module.
 var LarkLib = `require 'string'
