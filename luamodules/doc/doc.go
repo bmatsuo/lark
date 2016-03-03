@@ -71,26 +71,10 @@ func Go(l *lua.LState, obj lua.LValue, doc *GoDocs) {
 
 // Module returns an instance of a Lua module.
 func Module() module.Module {
-	return defaultDocs.Module()
+	return module.New("doc", docLoader)
 }
 
-var defaultDocs = &Doc{}
-
-// Doc creates lua modules that provides the doc API.
-type Doc struct {
-}
-
-// Module returns a lua module.
-func (d *Doc) Module() module.Module {
-	return &doc{}
-}
-
-type doc struct {
-	desc   *lua.LTable
-	params *lua.LTable
-}
-
-func (d *doc) Loader(l *lua.LState) int {
+func docLoader(l *lua.LState) int {
 	mod := l.NewTable()
 
 	setmt, ok := l.GetGlobal("setmetatable").(*lua.LFunction)
