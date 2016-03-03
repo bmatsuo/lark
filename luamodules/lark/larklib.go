@@ -77,11 +77,11 @@ lark.task =
     end
 
 
-local function run (name, ctx)
-    local fn = lark.tasks[name]
+local function run (task, ctx)
+    local fn = lark.tasks[task]
     if not fn then
         for _, rec in pairs(lark.patterns) do
-            if string.find(name, rec[1]) then
+            if string.find(task, rec[1]) then
                 ctx.pattern = rec[1]
                 fn = rec[2]
                 break
@@ -89,37 +89,27 @@ local function run (name, ctx)
         end
     end
     if not fn then
-        error('no task matching ' .. name)
+        error('no task matching ' .. task)
     end
     fn(ctx)
 end
 
 lark.run =
-    doc.sig[[(task, ...) => ()]] ..
-    doc.desc[[Execute each task given.]] ..
-    doc.param[[task         string or object -- a task name or object to execute]] ..
-    doc.param[[task.name    string -- a task to execute]] ..
-    doc.param[[task.params  optional table -- a map from parameter names to values]] ..
-    function (...)
-        local tasks = {unpack(arg)}
-        if #tasks == 0 then
-            tasks = {lark.default_task}
+    doc.sig[[(task, params) => ()]] ..
+    doc.desc[[Execute the given task.]] ..
+    doc.param[[task    string | nil -- A task name.  If nil is given then default_task is used.]] ..
+    doc.param[[params  (optional) table -- A map from parameter names to (string) values]] ..
+    function (task, params)
+        if not task then
+            task = lark.default_task
+			if not task then error('no task to run') end
         end
-        for i, name in pairs(tasks) do
-            local ctx = name
-            if type(name) ~= 'table' then
-                ctx = {name = name}
-            else
-                name = ctx.name
-            end
-
-            if not name then
-                name = lark.default_task
-                ctx.name = name
-            end
-
-            run(name, ctx)
+        if type(task) ~= 'string' then
+            error('task is not a string')
         end
+
+        local ctx = {name = task, params = params}
+        run(task, ctx)
     end
 
 lark.get_name =
