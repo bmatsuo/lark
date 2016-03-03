@@ -36,7 +36,7 @@ build = lark.newtask .. function()
     for _, o in pairs(objects) do lark.run(o) end
 
     -- compile the application.
-    lark.exec{'gcc', '-o', name, objects}
+    lark.exec('gcc', '-o', name, objects)
 end
 
 -- regular expressions can match sets of task names.
@@ -45,7 +45,7 @@ build_object = lark.newpattern[[%.o$]] .. function(ctx)
     -- get the object name, construct the source path, and compile the object.
     local o = lark.task.get_name(ctx)
     local c = string.gsub(o, '%.o$', '.c')
-    lark.exec{'gcc', '-c', c}
+    lark.exec('gcc', '-c', c)
 end
 ```
 
