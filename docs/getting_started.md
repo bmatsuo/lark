@@ -36,7 +36,7 @@ The above `lark.lua` file defines a task called 'generate' that runs code
 generation and a task called 'build', that depends on code generation, that
 builds executables.  Tasks can be run using the `lark run` command.
 
-**Note:** The `lark.newtask()` and `lark.newpattern()` decorator functions are
+**Note:** The `lark.newtask` and `lark.newpattern()` decorator functions are
 temporary transitional functions and will deprecated in v0.5.0. After v0.5.0
 `lark.task` and `lark.pattern` will be the recommended decorator functions.  In
 v0.4.0 `lark.task` contains deprecated incompatible semantics.
