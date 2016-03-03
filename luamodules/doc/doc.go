@@ -1,5 +1,3 @@
-//go:generate ./build_lib.sh
-
 package doc
 
 import (
@@ -89,20 +87,6 @@ func (d *Doc) Module() module.Module {
 type doc struct {
 	desc   *lua.LTable
 	params *lua.LTable
-}
-
-// LoaderInterp implements module.Module.
-func (d *doc) LoaderInterp(l *lua.LState) int {
-	err := l.DoString(DocLib)
-	if err != nil {
-		l.RaiseError("%s", err)
-		return 0
-	}
-	return 1
-}
-
-func (d *doc) LoaderNative(l *lua.LState) int {
-	return d.Loader(l)
 }
 
 func (d *doc) Loader(l *lua.LState) int {
