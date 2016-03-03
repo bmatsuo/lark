@@ -2,6 +2,7 @@ package doc
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/bmatsuo/lark/internal/module"
@@ -279,8 +280,6 @@ func (d *doc) Loader(l *lua.LState) int {
 			}
 			params := l.GetField(docs, "params")
 			if params != lua.LNil {
-				l.Push(print)
-				l.Call(0, 0)
 
 				ptab, ok := params.(*lua.LTable)
 				if !ok {
@@ -292,9 +291,25 @@ func (d *doc) Loader(l *lua.LState) int {
 					if !ok {
 						l.RaiseError("parameter description is not a string")
 					}
-					ln := fmt.Sprintf("  %s", s)
+					name, desc := splitParam(string(s))
+					if name == "" {
+						return
+					}
+
+					l.Push(print)
+					l.Call(0, 0)
+
+					ln := fmt.Sprintf("  %s", name)
 					l.Push(print)
 					l.Push(lua.LString(ln))
+					l.Call(1, 0)
+
+					desc = textutil.Unindent(desc)
+					desc = strings.TrimSpace(desc)
+					desc = textutil.Wrap(desc, 60)
+					desc = textutil.Indent(desc, "      ")
+					l.Push(print)
+					l.Push(lua.LString(desc))
 					l.Call(1, 0)
 				})
 			}
@@ -381,4 +396,14 @@ func weakTable(l *lua.LState, setmt *lua.LFunction, mode string) lua.LValue {
 	val := l.Get(l.GetTop())
 	l.Pop(1)
 	return val
+}
+
+var paramRegexp = regexp.MustCompile(`^\s*(\S+)(\s+.*)$`)
+
+func splitParam(s string) (name, desc string) {
+	results := paramRegexp.FindAllStringSubmatch(s, 1)
+	if len(results) == 0 {
+		return "", ""
+	}
+	return results[0][1], results[0][2]
 }

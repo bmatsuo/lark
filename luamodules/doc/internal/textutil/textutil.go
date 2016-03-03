@@ -8,8 +8,108 @@ import (
 	"unicode/utf8"
 )
 
+// Wrap wraps lines in text to width.  Indented lines are considered
+// preformatted and are not modified by Wrap.
+//
+// BUG: does not properly handle multibyte runes, accents and such.
+func Wrap(text string, width int) string {
+	if text == "" {
+		return text
+	}
+
+	var lead string
+	var buf bytes.Buffer
+	s := bufio.NewScanner(strings.NewReader(text))
+	for s.Scan() {
+		line := s.Text()
+		if strings.IndexFunc(line, unicode.IsSpace) == 0 {
+			if lead != "" {
+				buf.WriteString(lead)
+				buf.WriteString("\n")
+			}
+			buf.WriteString(line)
+			buf.WriteString("\n")
+			continue
+		}
+
+		if lead != "" {
+			lead = ""
+			if lead[len(lead)-1] == '.' {
+				line = lead + "  " + line
+			} else {
+				line = lead + " " + line
+			}
+		}
+
+		if len(line) < width {
+			buf.WriteString(line)
+			buf.WriteString("\n")
+			continue
+		}
+
+		w := 0
+		for i := range line {
+			w = i
+			if i >= width {
+				break
+			}
+		}
+
+		ispace := strings.LastIndexFunc(line[:w], unicode.IsSpace)
+		if ispace < 0 {
+			ispace = strings.IndexFunc(line[w:], unicode.IsSpace)
+			if ispace >= 0 {
+				ispace += w
+			}
+		}
+		if ispace < 0 {
+			buf.WriteString(line)
+		} else {
+			lead = strings.TrimSpace(line[ispace:])
+			line = strings.TrimSpace(line[:ispace])
+			buf.WriteString(line)
+		}
+		buf.WriteString("\n")
+	}
+	if lead != "" {
+		buf.WriteString(lead)
+		buf.WriteString("\n")
+	}
+
+	result := buf.String()
+	if text[len(text)-1] != '\n' {
+		result = result[:len(result)-1]
+	}
+	return result
+}
+
+// Indent prepends indent to each line of text.
+func Indent(text, indent string) string {
+	if text == "" {
+		return text
+	}
+	var buf bytes.Buffer
+	s := bufio.NewScanner(strings.NewReader(text))
+	for s.Scan() {
+		line := s.Text()
+		if line != "" {
+			buf.WriteString(indent)
+			buf.WriteString(line)
+		}
+		buf.WriteString("\n")
+	}
+	result := buf.String()
+	if text[len(text)-1] != '\n' {
+		result = result[:len(result)-1]
+	}
+	return result
+}
+
 // Unindent removes indentation from non-blank lines in text.
 func Unindent(text string) string {
+	if text == "" {
+		return text
+	}
 	var found bool
 	var indent string
 	s := bufio.NewScanner(strings.NewReader(text))
