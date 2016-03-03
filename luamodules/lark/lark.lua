@@ -41,7 +41,7 @@ local lark =
 
 lark.pattern = task.with_pattern
 lark.newpattern = task.with_pattern
-lark.newtask = task.create
+lark.newtask = task
 
 lark.task =
     doc.sig[[(name, fn) => ()]] ..

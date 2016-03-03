@@ -43,7 +43,7 @@ end
 -- captures can extract information from the name.
 build_object = lark.newpattern[[%.o$]] .. function(ctx)
     -- get the object name, construct the source path, and compile the object.
-    local o = lark.task.get_name(ctx)
+    local o = lark.newtask.get_name(ctx)
     local c = string.gsub(o, '%.o$', '.c')
     lark.exec('gcc', '-c', c)
 end
