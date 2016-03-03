@@ -99,6 +99,7 @@ func normTasks(args []string) ([]string, error) {
 func RunTask(c *Context, task *Task) error {
 	lark := c.Lua.GetGlobal("lark")
 	run := c.Lua.GetField(lark, "run")
+	trace := c.Lua.NewFunction(errTraceback)
 
 	narg := 1
 	c.Lua.Push(run)
@@ -116,7 +117,7 @@ func RunTask(c *Context, task *Task) error {
 		c.Lua.Push(params)
 		narg++
 	}
-	err := c.Lua.PCall(narg, 0, nil)
+	err := c.Lua.PCall(narg, 0, trace)
 	if err != nil {
 		handleErr(c, err)
 	}
@@ -124,7 +125,7 @@ func RunTask(c *Context, task *Task) error {
 	wait := c.Lua.GetField(lark, "wait")
 	for {
 		c.Lua.Push(wait)
-		errwait := c.Lua.PCall(0, 0, nil)
+		errwait := c.Lua.PCall(0, 0, trace)
 		if errwait == nil {
 			break
 		}
@@ -140,22 +141,7 @@ func RunTask(c *Context, task *Task) error {
 }
 
 func handleErr(c *Context, err error) {
-	var x interface{}
-	if c.Verbose() {
-		x = err
-	} else if e, ok := err.(*lua.ApiError); ok {
-		if e.Type == lua.ApiErrorRun {
-			x = e.Object
-			lstr, _ := e.Object.(lua.LString)
-			str := string(lstr)
-			if strings.HasPrefix(str, "lark.lua:") {
-				x = trimLoc(str)
-			}
-		} else {
-			x = err
-		}
-	}
-	core.Log(fmt.Sprint(x), &core.LogOpt{
+	core.Log(fmt.Sprint(err), &core.LogOpt{
 		Color: "red",
 	})
 }
@@ -238,4 +224,14 @@ var reLoc = regexp.MustCompile(`^[^:]+:\d+:\s*`)
 
 func trimLoc(msg string) string {
 	return reLoc.ReplaceAllString(msg, "")
+}
+
+func errTraceback(L *lua.LState) int {
+	msg := L.Get(1)
+	L.SetTop(0)
+	L.Push(L.GetField(L.GetGlobal("debug"), "traceback"))
+	L.Push(msg)
+	L.Push(lua.LNumber(2))
+	L.Call(2, 1)
+	return 1
 }
