@@ -221,27 +221,14 @@ func (d *doc) Loader(l *lua.LState) int {
 			if def == lua.LNil {
 				return 0
 			}
-			deffn, ok := def.(*lua.LFunction)
-			if ok {
-				l.Push(deffn)
-				l.Call(0, lua.MultRet)
-				n := l.GetTop()
-				if n > 0 {
-					ret := make([]lua.LValue, n)
-					for i := 1; i <= n; i++ {
-						ret[i-1] = l.Get(i)
-					}
-					for _, val := range ret {
-						l.SetTop(0)
-						l.Push(print)
-						l.Push(val)
-						l.Call(1, 0)
-					}
-				}
-				return 0
+			lstr, ok := l.ToStringMeta(def).(lua.LString)
+			if !ok {
+				l.RaiseError("default is not a string")
 			}
+			str := textutil.Unindent(string(lstr))
+			str = textutil.Wrap(str, 72)
 			l.Push(print)
-			l.Push(def)
+			l.Push(lua.LString(str))
 			l.Call(1, 0)
 			return 0
 		}
