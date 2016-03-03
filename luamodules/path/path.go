@@ -13,6 +13,11 @@ func Loader(l *lua.LState) int {
 	l.Pop(1) // first argument is the module name
 
 	mod := l.NewTable()
+	doc.Go(l, mod, &doc.GoDocs{
+		Desc: `
+		The path module provides utilities for working with filesystem paths.
+		`,
+	})
 	l.SetFuncs(mod, Exports)
 
 	glob := l.NewClosure(LuaGlob)
