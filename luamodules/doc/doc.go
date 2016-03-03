@@ -264,6 +264,7 @@ func (d *doc) Loader(l *lua.LState) int {
 					l.RaiseError("description is not a string")
 				}
 				str := textutil.Unindent(string(lstr))
+				str = textutil.Wrap(str, 72)
 				str = strings.TrimSpace(str)
 				l.Push(print)
 				l.Push(lua.LString(str))
@@ -306,7 +307,7 @@ func (d *doc) Loader(l *lua.LState) int {
 
 					desc = textutil.Unindent(desc)
 					desc = strings.TrimSpace(desc)
-					desc = textutil.Wrap(desc, 60)
+					desc = textutil.Wrap(desc, 72)
 					desc = textutil.Indent(desc, "      ")
 					l.Push(print)
 					l.Push(lua.LString(desc))

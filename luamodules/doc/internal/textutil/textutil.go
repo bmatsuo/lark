@@ -32,21 +32,31 @@ func Wrap(text string, width int) string {
 			continue
 		}
 
+		if line == "" {
+			if lead != "" {
+				buf.WriteString(lead)
+				buf.WriteString("\n")
+				lead = ""
+			}
+			buf.WriteString("\n")
+			continue
+		}
+
 		if lead != "" {
-			lead = ""
 			if lead[len(lead)-1] == '.' {
 				line = lead + "  " + line
 			} else {
 				line = lead + " " + line
 			}
+			lead = ""
 		}
 
 		if len(line) < width {
-			buf.WriteString(line)
-			buf.WriteString("\n")
+			lead = strings.TrimSpace(line)
 			continue
 		}
 
+		// this is not quite correct..
 		w := 0
 		for i := range line {
 			w = i
