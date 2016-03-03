@@ -33,18 +33,7 @@ func List(c *Context) {
 		log.Fatal(err)
 	}
 
-	err = c.Lua.DoString(`
-	local names = {}
-	for name in pairs(lark.tasks) do table.insert(names, name) end
-	table.sort(names)
-	for _, name in pairs(names) do
-		if lark.default_task == name then
-			print('  ' .. name .. ' (default)')
-		else
-			print('  ' .. name)
-		end
-	end
-	`)
+	err = c.Lua.DoString(`require('lark.task').dump()`)
 	if err != nil {
 		log.Fatal(err)
 	}

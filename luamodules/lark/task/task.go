@@ -81,10 +81,19 @@ func Loader(l *lua.LState) int {
 		Desc: "Find the task by the given name.",
 	})
 
+	dump := l.NewClosure(
+		luaDump(anonTasks, namedTasks, patterns, mod),
+		anonTasks, namedTasks, patterns, mod,
+	)
+	doc.Go(l, dump, &doc.GoDocs{
+		Desc: "Write all task names and patterns to standard output.",
+	})
+
 	l.SetField(mod, "create", create)
 	l.SetField(mod, "with_name", name)
 	l.SetField(mod, "with_pattern", pattern)
 	l.SetField(mod, "find", find)
+	l.SetField(mod, "dump", dump)
 	l.SetField(mod, "run", l.NewClosure(
 		luaRun(find),
 		find,
@@ -198,6 +207,58 @@ func luaFind(anonTasks, namedTasks, patterns, mod *lua.LTable) lua.LGFunction {
 			l.Push(found)
 			return 3
 		}
+
+		return 0
+	}
+}
+
+func luaDump(anonTasks, namedTasks, patterns, mod *lua.LTable) lua.LGFunction {
+	return func(l *lua.LState) int {
+		print := l.GetGlobal("print")
+		def := l.GetField(mod, "default")
+
+		set := l.NewTable()
+		l.ForEach(namedTasks, func(k, v lua.LValue) {
+			l.Push(print)
+			l.Push(lua.LString("="))
+			l.Push(k)
+			if l.Equal(def, k) {
+				l.Push(lua.LString(" (default)"))
+				l.Call(3, 0)
+			} else {
+				l.Call(2, 0)
+			}
+
+			l.SetTable(set, k, lua.LBool(true))
+		})
+		l.ForEach(anonTasks, func(val, _ lua.LValue) {
+			l.ForEach(l.Get(lua.GlobalsIndex).(*lua.LTable), func(k, v lua.LValue) {
+				if !l.Equal(v, val) {
+					return
+				}
+				lname, ok := k.(lua.LString)
+				if !ok {
+					return
+				}
+				if l.GetField(set, string(lname)) == lua.LNil {
+					l.Push(print)
+					l.Push(lua.LString("-"))
+					l.Push(lname)
+					if l.Equal(def, v) {
+						l.Push(lua.LString(" (default)"))
+						l.Call(3, 0)
+					} else {
+						l.Call(2, 0)
+					}
+				}
+			})
+		})
+		l.ForEach(patterns, func(k, v lua.LValue) {
+			l.Push(print)
+			l.Push(lua.LString("~"))
+			l.Push(l.GetField(v, "pattern"))
+			l.Call(2, 0)
+		})
 
 		return 0
 	}

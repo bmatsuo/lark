@@ -42,7 +42,7 @@ function test_with_pattern()
 	task.with_pattern[[.*%.svg$]](function() called_svg = true end)
 	task.with_pattern[[.*%.png$]](function() called_png = true end)
 
-	assert(not task.find('foo.txt'))
+	assert(not task.find('foo.tif'))
 	assert(task.find('foo.png'))
 	assert(task.find('foo.svg'))
 	task.find('foo.svg')()
@@ -80,4 +80,11 @@ function test_run()
 	task.run('run_test_pattern_foo')
 	assert(gotpatt)
 	assert(gotpatt == tpatt)
+end
+
+function test_dump()
+	anon_task_dump = task.create(function() print("ANON") end)
+	task.with_name("foo")(function() print("NAME") end)
+	task.with_pattern(".*%.txt$")(function() print("PATT") end)
+	task.dump()
 end
