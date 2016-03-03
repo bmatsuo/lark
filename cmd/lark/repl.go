@@ -50,7 +50,7 @@ func REPL(c *Context) {
 	helpFunc := c.Lua.GetField(docModule, "help")
 	c.Lua.SetGlobal("help", helpFunc)
 
-	c.Lua.SetField(docModule, "help_default", lua.LString(REPLHelpDefault))
+	c.Lua.SetField(docModule, "default", lua.LString(REPLHelpDefault))
 
 	log.Printf("Lark %-10s Copyright (C) 2016 The Lark authors", larkmeta.Version)
 	log.Println(lua.PackageCopyRight)

@@ -4,8 +4,10 @@ package doc
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/bmatsuo/lark/internal/module"
+	"github.com/bmatsuo/lark/luamodules/doc/internal/textutil"
 	"github.com/yuin/gopher-lua"
 )
 
@@ -89,8 +91,8 @@ type doc struct {
 	params *lua.LTable
 }
 
-// Loader implements module.Module.
-func (d *doc) Loader(l *lua.LState) int {
+// LoaderInterp implements module.Module.
+func (d *doc) LoaderInterp(l *lua.LState) int {
 	err := l.DoString(DocLib)
 	if err != nil {
 		l.RaiseError("%s", err)
@@ -100,6 +102,10 @@ func (d *doc) Loader(l *lua.LState) int {
 }
 
 func (d *doc) LoaderNative(l *lua.LState) int {
+	return d.Loader(l)
+}
+
+func (d *doc) Loader(l *lua.LState) int {
 	setmt, ok := l.GetGlobal("setmetatable").(*lua.LFunction)
 	if !ok {
 		l.RaiseError("unexpected type for setmetatable")
@@ -151,8 +157,9 @@ func (d *doc) LoaderNative(l *lua.LState) int {
 			insert := l.GetField(l.GetGlobal("table"), "insert")
 			l.Push(insert)
 			l.Push(t)
+			l.Push(lua.LNumber(1))
 			l.Push(lua.LString(s))
-			l.Call(2, 0)
+			l.Call(3, 0)
 			l.SetTable(parameters, val, t)
 			return 1
 		}, parameters)
@@ -211,7 +218,7 @@ func (d *doc) LoaderNative(l *lua.LState) int {
 		desc := l.GetTable(descriptions, val)
 		params := l.GetTable(parameters, val)
 		if sig == lua.LNil && desc == lua.LNil && params == lua.LNil {
-			l.Push(nil)
+			l.Push(lua.LNil)
 			return 1
 		}
 		t := l.NewTable()
@@ -264,10 +271,17 @@ func (d *doc) LoaderNative(l *lua.LState) int {
 			desc := l.GetField(docs, "desc")
 			if desc != lua.LNil {
 				l.Push(print)
-				l.Call(0, 0)
+				l.Push(lua.LString(""))
+				l.Call(1, 0)
 
+				lstr, ok := l.ToStringMeta(desc).(lua.LString)
+				if !ok {
+					l.RaiseError("description is not a string")
+				}
+				str := textutil.Unindent(string(lstr))
+				str = strings.TrimSpace(str)
 				l.Push(print)
-				l.Push(desc)
+				l.Push(lua.LString(str))
 				l.Call(1, 0)
 			}
 			sig := l.GetField(docs, "sig")
@@ -302,7 +316,7 @@ func (d *doc) LoaderNative(l *lua.LState) int {
 			}
 		}
 
-		tab, ok := docs.(*lua.LTable)
+		tab, ok := val.(*lua.LTable)
 		if ok {
 			type Topic struct{ k, desc lua.LString }
 			var topics []*Topic
