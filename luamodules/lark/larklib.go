@@ -24,7 +24,7 @@ local function flatten(...)
     return flat
 end
 
-lark = 
+lark =
     doc.desc[[
     The lark module provides the primary Lua interface to the lark system.  A
     project defines its tasks by calling the lark.task() function.  Task
