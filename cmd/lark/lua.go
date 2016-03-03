@@ -5,6 +5,7 @@ import (
 	"log"
 	"path/filepath"
 
+	"github.com/bmatsuo/lark/luamodules/doc"
 	"github.com/bmatsuo/lark/luamodules/lark"
 	"github.com/bmatsuo/lark/luamodules/lark/core"
 	"github.com/bmatsuo/lark/luamodules/path"
@@ -17,6 +18,7 @@ var PreloadModules = []struct {
 	name   string
 	loader lua.LGFunction
 }{
+	{"doc", doc.Module().Loader},
 	{"path", path.Loader},
 	{"lark.core", core.Loader},
 	{"lark", lark.Loader},

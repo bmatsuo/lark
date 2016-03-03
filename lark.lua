@@ -1,3 +1,4 @@
+--local doc = require('doc')
 local go = require('go')
 local version = require('version')
 
@@ -15,3 +16,5 @@ string.gsub(novendor, '(%S+)', function(p) table.insert(sources, p) end)
 go.default_sources = sources
 
 lark.default_task = 'all'
+
+-- doc.help(doc.help)
