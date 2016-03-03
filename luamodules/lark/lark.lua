@@ -154,7 +154,7 @@ lark.get_param =
         return default
     end
 
-lark.shell_quote = function (args)
+local function shell_quote(args)
     local q = function (s)
         s = string.gsub(s, '\\', '\\\\')
         s = string.gsub(s, '"', '\\"')
@@ -173,7 +173,7 @@ lark.shell_quote = function (args)
             if type(x) == 'string' then
                 str = str .. q(x)
             else if type(x) == 'table' then
-                str = str .. lark.shell_quote(x)
+                str = str .. shell_quote(x)
             else
                 error(string.format('cannot quote type: %s', type(x)))
                 end
@@ -207,9 +207,9 @@ lark.exec =
     doc.param[[cmd.stderr  string (optional) -- A destination filename to receive output redirected from the standard error stream]] ..
     doc.param[[cmd.ignore  boolean (optional) -- Do not terminate execution if cmd exits with an error]] ..
     function (args)
-        local cmd_str = lark.shell_quote(args)
+        local cmd_str = shell_quote(args)
 
-        args._str = lark.shell_quote(args)
+        args._str = shell_quote(args)
         local result = core.exec(args)
 
 		local output = result.output
@@ -228,7 +228,7 @@ lark.start =
     doc.desc[[Start asynchronous execution of cmd.  Except where noted the cmd argument is identical to the argument of lark.exec()]] ..
     doc.param[[cmd.group  string (optional) -- the group that cmd should execute under]] ..
     function(args)
-        args._str = lark.shell_quote(args) .. ' &'
+        args._str = shell_quote(args) .. ' &'
 
         core.start(args)
     end
