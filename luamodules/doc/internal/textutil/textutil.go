@@ -42,9 +42,14 @@ func Unindent(text string) string {
 		} else {
 			buf.WriteString(line)
 		}
+		buf.WriteString("\n")
 	}
 
-	return indent
+	result := buf.String()
+	if text[len(text)-1] == '\n' {
+		return result
+	}
+	return result[:len(result)-1]
 }
 
 func commonPrefix(s1, s2 string) string {

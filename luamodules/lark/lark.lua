@@ -21,11 +21,22 @@ local function flatten(...)
     return flat
 end
 
-lark = {}
+lark =
+    doc.desc[[
+    The lark module provides the primary Lua interface to the lark system.  A
+    project defines its tasks by calling the lark.task() function.  Task
+    functions can call other tasks by calling lark.run() function.
 
-lark.default_task = nil
-lark.tasks = {}
-lark.patterns = {}
+    The first task defined is assumed to be the default task and will be run
+    when a user does not explicitly specify a task name to the lark command.
+    If this behavior is not desired the default task can be set manually using
+    the module variable `default_task`.
+    ]] ..
+    {
+        default_task = nil,
+        tasks = {},
+        patterns  = {},
+    }
 
 lark.task =
     doc.sig[[(name, fn) => ()]] ..
