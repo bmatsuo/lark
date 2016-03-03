@@ -65,12 +65,11 @@ func InitLark(c *Context, files []string) error {
 
 	c.Lua.Push(c.Lua.GetGlobal("require"))
 	c.Lua.Push(lua.LString("lark"))
-	err := c.Lua.PCall(1, 0, nil)
-	if err != nil {
-		return err
-	}
+	c.Lua.Call(1, 1)
+	lark := c.Lua.Get(-1)
+	c.Lua.Pop(1)
+	c.Lua.SetGlobal("lark", lark)
 
-	lark := c.Lua.GetGlobal("lark")
 	c.Lua.SetField(lark, "verbose", lua.LBool(c.Verbose()))
 
 	// Load files after lark has been loaded with require().

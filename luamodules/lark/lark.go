@@ -17,9 +17,6 @@ func Loader(l *lua.LState) int {
 		l.RaiseError("%s", err)
 	}
 	l.Push(fn)
-	err = l.PCall(0, 0, nil)
-	if err != nil {
-		l.RaiseError("%s", err)
-	}
-	return 0
+	l.Call(0, 1)
+	return 1
 }
