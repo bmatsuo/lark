@@ -7,6 +7,9 @@
 
 - Modules can be documented using decoractors in the "doc" module.
 
+- Remove the function `lark.shell_quote()`.  It's direct use was never
+  recommended.
+
 ##v0.3.1
 
 - Fix bug retreiving captured output from lark.exec().  The lark.exec()
