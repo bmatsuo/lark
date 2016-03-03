@@ -10,6 +10,9 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
+// Module is a module.Module that loads the doc module.
+var Module = module.New("doc", docLoader)
+
 // GoDocs represents documentation for a Go object
 type GoDocs struct {
 	Sig    string
@@ -67,11 +70,6 @@ func Go(l *lua.LState, obj lua.LValue, doc *GoDocs) {
 			l.RaiseError("%s", err)
 		}
 	}
-}
-
-// Module returns an instance of a Lua module.
-func Module() module.Module {
-	return module.New("doc", docLoader)
 }
 
 func docLoader(l *lua.LState) int {

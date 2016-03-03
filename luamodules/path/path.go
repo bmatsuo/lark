@@ -4,9 +4,13 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/bmatsuo/lark/internal/module"
 	"github.com/bmatsuo/lark/luamodules/doc"
 	"github.com/yuin/gopher-lua"
 )
+
+// Module is a module.Module that loads the path module.
+var Module = module.New("path", Loader)
 
 // Loader preloads the path module so that it can be required in lua scripts.
 func Loader(l *lua.LState) int {

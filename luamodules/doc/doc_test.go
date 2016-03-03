@@ -7,7 +7,7 @@ import (
 )
 
 var testModule = &luatest.Module{
-	Module:     Module(),
+	Module:     Module,
 	TestScript: "doc_test.lua",
 }
 

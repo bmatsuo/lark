@@ -13,10 +13,14 @@ import (
 	"sync"
 
 	"github.com/bmatsuo/lark/execgroup"
+	"github.com/bmatsuo/lark/internal/module"
 	"github.com/fatih/color"
 	"github.com/mattn/go-isatty"
 	"github.com/yuin/gopher-lua"
 )
+
+// Module is a module.Module that loads the lark.core module.
+var Module = module.New("lark.core", Loader)
 
 var defaultCore = newCore(os.Stderr, 0)
 
