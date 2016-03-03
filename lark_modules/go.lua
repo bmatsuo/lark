@@ -1,6 +1,14 @@
-local go = {
-    default_sources = {'.'}
-}
+local doc = require('doc')
+
+local go =
+    doc.desc[[
+    The go module assists in running the go command on project sources.  The
+    default_sources variable controls which directory trees are considered
+    project source code.
+    ]]
+    {
+        default_sources = {'.'}
+    }
 
 local function insert_args(tcmd, targs)
     for i, arg in pairs(targs) do
@@ -28,87 +36,103 @@ local function insert_common_build_flags(tcmd, opt)
     opt_flag(tcmd, '-race', opt.race)
 end
 
-go.gen = function(opt)
-    local cmd = {'go', 'generate'}
-    if not opt then
-        insert_args(cmd, go.default_sources)
-        lark.exec{cmd}
-        return
-    end
-
-    local args = opt
-    if table.getn(args) == 0 then
-        args = go.default_sources
-    end
-    insert_args(cmd, args)
-
-    lark.exec{cmd}
-end
-
-go.install = function(opt)
-    local cmd = {'go', 'install'}
-    if not opt then
-        insert_args(cmd, go.default_sources)
-        lark.exec{cmd}
-        return
-    end
-
-    insert_common_build_flags(cmd, opt)
-
-    local args = opt
-    if table.getn(args) == 0 then
-        args = go.default_sources
-    end
-    insert_args(cmd, args)
-
-    lark.exec{cmd}
-end
-
-go.build = function(opt)
-    local cmd = {'go', 'build'}
-    if not opt then
-        insert_args(cmd, go.default_sources)
-        lark.exec{cmd}
-        return
-    end
-
-    insert_common_build_flags(cmd, opt)
-
-    local args = opt
-    if table.getn(args) == 0 then
-        args = go.default_sources
-    end
-    insert_args(cmd, args)
-
-    lark.exec{cmd}
-end
-
-go.test = function(opt)
-    local cmd = {'go', 'test'}
-    if not opt then
-        insert_args(cmd, go.default_sources)
-        lark.exec{cmd}
-        return
-    end
-
-    insert_common_build_flags(cmd, opt)
-
-    if opt.cover then
-        if type(opt.cover) == 'string' then
-            local arg = string.format('-coverprofile=%s', opt.cover)
-            table.insert(cmd, arg)
-        else
-            table.insert(cmd, '-cover')
+go.gen =
+    doc.sig('opt => ()') ..
+    doc.desc('Generate code using `go generate`.  Parameters are the same as build().') ..
+    function(opt)
+        local cmd = {'go', 'generate'}
+        if not opt then
+            insert_args(cmd, go.default_sources)
+            lark.exec{cmd}
+            return
         end
+
+        local args = opt
+        if table.getn(args) == 0 then
+            args = go.default_sources
+        end
+        insert_args(cmd, args)
+
+        lark.exec{cmd}
     end
 
-    local args = opt
-    if table.getn(args) == 0 then
-        args = go.default_sources
-    end
-    insert_args(cmd, args)
+go.install =
+    doc.sig('opt => ()') ..
+    doc.desc('Install source trees.  Parameters are the same as build().') ..
+    function(opt)
+        local cmd = {'go', 'install'}
+        if not opt then
+            insert_args(cmd, go.default_sources)
+            lark.exec{cmd}
+            return
+        end
 
-    lark.exec{cmd}
-end
+        insert_common_build_flags(cmd, opt)
+
+        local args = opt
+        if table.getn(args) == 0 then
+            args = go.default_sources
+        end
+        insert_args(cmd, args)
+
+        lark.exec{cmd}
+    end
+
+go.build =
+    doc.sig('opt => ()') ..
+    doc.desc('Build source trees.') ..
+    doc.param('opt          (optional) table -- Trees to install (instead of default_sources).') ..
+    doc.param('opt.asmflags (optional) string -- Assembler flags to pass.') ..
+    doc.param('opt.gcflags  (optional) string -- Compiler flags to pass.') ..
+    doc.param('opt.ldflags  (optional) string -- Linker flags to pass.') ..
+    function(opt)
+        local cmd = {'go', 'build'}
+        if not opt then
+            insert_args(cmd, go.default_sources)
+            lark.exec{cmd}
+            return
+        end
+
+        insert_common_build_flags(cmd, opt)
+
+        local args = opt
+        if table.getn(args) == 0 then
+            args = go.default_sources
+        end
+        insert_args(cmd, args)
+
+        lark.exec{cmd}
+    end
+
+go.test =
+    doc.sig('opt => ()') ..
+    doc.desc('Build source trees.  Parameters are the same as build()') ..
+    function(opt)
+        local cmd = {'go', 'test'}
+        if not opt then
+            insert_args(cmd, go.default_sources)
+            lark.exec{cmd}
+            return
+        end
+
+        insert_common_build_flags(cmd, opt)
+
+        if opt.cover then
+            if type(opt.cover) == 'string' then
+                local arg = string.format('-coverprofile=%s', opt.cover)
+                table.insert(cmd, arg)
+            else
+                table.insert(cmd, '-cover')
+            end
+        end
+
+        local args = opt
+        if table.getn(args) == 0 then
+            args = go.default_sources
+        end
+        insert_args(cmd, args)
+
+        lark.exec{cmd}
+    end
 
 return go
