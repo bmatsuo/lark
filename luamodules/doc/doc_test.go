@@ -6,12 +6,12 @@ import (
 	"github.com/bmatsuo/lark/luatest"
 )
 
-var TestModule = &luatest.Module{
+var _Module = &luatest.Module{
 	Name:       "doc",
 	Loader:     (&doc{}).LoaderNative,
 	TestScript: "doc_test.lua",
 }
 
-func TestDoc(t *testing.T) {
-	TestModule.Test(t, "test_doc")
+func TestModule(t *testing.T) {
+	_Module.Test(t)
 }
