@@ -7,8 +7,7 @@ import (
 )
 
 var testModule = &luatest.Module{
-	Name:       "doc",
-	Loader:     (&doc{}).Loader,
+	Module:     Module,
 	TestScript: "doc_test.lua",
 }
 

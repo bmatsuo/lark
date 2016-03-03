@@ -3,15 +3,15 @@ package core
 import (
 	"testing"
 
+	"github.com/bmatsuo/lark/internal/module"
 	"github.com/bmatsuo/lark/luatest"
 )
 
-var Module = luatest.Module{
-	Name:       "lark.core",
-	Loader:     Loader,
+var testModule = luatest.Module{
+	Module:     module.New("lark.core", Loader),
 	TestScript: "core_test.lua",
 }
 
 func TestModule(t *testing.T) {
-	Module.Test(t)
+	testModule.Test(t)
 }

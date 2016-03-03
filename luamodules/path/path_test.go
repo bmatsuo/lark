@@ -7,15 +7,14 @@ import (
 	"github.com/bmatsuo/lark/luatest"
 )
 
-var Module = &luatest.Module{
-	Name:       "path",
-	Loader:     Loader,
+var testModule = &luatest.Module{
+	Module:     Module,
 	TestScript: "path_test.lua",
 	PreloadDeps: []*luatest.Module{
-		{Name: "doc", Loader: doc.Module().Loader},
+		{Module: doc.Module},
 	},
 }
 
 func TestModule(t *testing.T) {
-	Module.Test(t)
+	testModule.Test(t)
 }

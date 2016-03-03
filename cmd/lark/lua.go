@@ -5,6 +5,7 @@ import (
 	"log"
 	"path/filepath"
 
+	"github.com/bmatsuo/lark/internal/module"
 	"github.com/bmatsuo/lark/luamodules/doc"
 	"github.com/bmatsuo/lark/luamodules/lark"
 	"github.com/bmatsuo/lark/luamodules/lark/core"
@@ -14,14 +15,11 @@ import (
 
 // PreloadModules defines the (ordered) set of modules to preload and their
 // loader functions.
-var PreloadModules = []struct {
-	name   string
-	loader lua.LGFunction
-}{
-	{"doc", doc.Module().Loader},
-	{"path", path.Loader},
-	{"lark.core", core.Loader},
-	{"lark", lark.Loader},
+var PreloadModules = []module.Module{
+	doc.Module,
+	path.Module,
+	core.Module,
+	lark.Module,
 }
 
 // FindTaskFiles locates task scripts in the project dir.
@@ -62,17 +60,16 @@ func LoadVM(conf *LuaConfig) (s *lua.LState, err error) {
 // InitLark initializes the lark library and loads files.
 func InitLark(c *Context, files []string) error {
 	for _, mod := range PreloadModules {
-		c.Lua.PreloadModule(mod.name, mod.loader)
+		module.Preload(c.Lua, mod)
 	}
 
 	c.Lua.Push(c.Lua.GetGlobal("require"))
 	c.Lua.Push(lua.LString("lark"))
-	err := c.Lua.PCall(1, 0, nil)
-	if err != nil {
-		return err
-	}
+	c.Lua.Call(1, 1)
+	lark := c.Lua.Get(-1)
+	c.Lua.Pop(1)
+	c.Lua.SetGlobal("lark", lark)
 
-	lark := c.Lua.GetGlobal("lark")
 	c.Lua.SetField(lark, "verbose", lua.LBool(c.Verbose()))
 
 	// Load files after lark has been loaded with require().
