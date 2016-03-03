@@ -1,7 +1,6 @@
 local task = require('lark.task')
 
 function test_create()
-	print("CREATE")
 	local called = 0
 	fn1 = function() called = called + 1 end
 	anon_task1 =
@@ -14,7 +13,6 @@ function test_create()
 end
 
 function test_module()
-	print("MODULE")
 	local called = 0
 	fn2 = function() called = called + 1 end
 	anon_task2 =
@@ -27,7 +25,6 @@ function test_module()
 end
 
 function test_with_name()
-	print("NAME")
 	local called = false
 	local t =
 		task.with_name[[task1]] ..
@@ -40,7 +37,6 @@ function test_with_name()
 end
 
 function test_with_pattern()
-	print("PATTERN")
 	local called_svg = false
 	local called_png = false
 	task.with_pattern[[.*%.svg$]](function() called_svg = true end)
@@ -52,4 +48,28 @@ function test_with_pattern()
 	task.find('foo.svg')()
 	assert(called_svg)
 	assert(not called_png)
+end
+
+function test_get_name()
+	assert(task.get_name() == nil)
+	assert(task.get_name({}) == nil)
+	assert(task.get_name({name = 'x'}) == 'x')
+	assert(task.get_name({pattern = 'x'}) == nil)
+end
+
+function test_get_pattern()
+	assert(task.get_pattern() == nil)
+	assert(task.get_pattern({}) == nil)
+	assert(task.get_pattern({name = 'x'}) == nil)
+	assert(task.get_pattern({pattern = 'x'}) == 'x')
+end
+
+function test_run()
+	local tpatt = 'run_test_pattern_*'
+	local gotpatt = nil
+	local t = function(ctx) gotpatt = task.get_pattern(ctx) end
+	task.with_pattern(tpatt)(t)
+	task.run('run_test_pattern_foo')
+	assert(gotpatt)
+	assert(gotpatt == tpatt)
 end

@@ -79,6 +79,12 @@ func Loader(l *lua.LState) int {
 	l.SetField(mod, "with_name", name)
 	l.SetField(mod, "with_pattern", pattern)
 	l.SetField(mod, "find", find)
+	l.SetField(mod, "run", l.NewClosure(
+		luaRun(find),
+		find,
+	))
+	l.SetField(mod, "get_name", l.NewClosure(luaGetName))
+	l.SetField(mod, "get_pattern", l.NewClosure(luaGetPattern))
 
 	// setmetatable and return mod
 	l.Push(setmt)
@@ -150,7 +156,8 @@ func luaFind(anonTasks, namedTasks, patterns *lua.LTable) lua.LGFunction {
 		if found != nil {
 			rec := l.GetTable(patterns, found)
 			l.Push(l.GetField(rec, "value"))
-			return 1
+			l.Push(found)
+			return 2
 		}
 
 		return 0
@@ -209,6 +216,55 @@ func luaPattern(setmt, decorator *lua.LFunction, t lua.LValue) lua.LGFunction {
 		l.Call(1, 1)
 		return 1
 	}
+}
+
+func luaRun(find *lua.LFunction) lua.LGFunction {
+	return func(l *lua.LState) int {
+		name := l.CheckString(1)
+		params := lua.LValue(lua.LNil)
+		if l.GetTop() > 1 {
+			params = l.CheckTable(2)
+		}
+		l.SetTop(0)
+
+		l.Push(find)
+		l.Push(lua.LString(name))
+		l.Call(1, 2)
+		if l.Get(1) == lua.LNil {
+			l.RaiseError("no task matching name: %s", name)
+		}
+		patt := lua.LValue(lua.LNil)
+		if l.GetTop() > 1 {
+			patt = l.Get(2)
+		}
+		l.SetTop(1)
+
+		ctx := l.NewTable()
+		l.SetField(ctx, "name", lua.LString(name))
+		l.SetField(ctx, "pattern", patt)
+		l.SetField(ctx, "params", params)
+		l.Push(ctx)
+		l.Call(1, 0)
+		return 0
+	}
+}
+
+func luaGetName(l *lua.LState) int {
+	if l.GetTop() == 0 {
+		return 0
+	}
+	ctx := l.CheckTable(1)
+	l.Replace(1, l.GetField(ctx, "name"))
+	return 1
+}
+
+func luaGetPattern(l *lua.LState) int {
+	if l.GetTop() == 0 {
+		return 0
+	}
+	ctx := l.CheckTable(1)
+	l.Replace(1, l.GetField(ctx, "pattern"))
+	return 1
 }
 
 func weakTable(l *lua.LState, setmt *lua.LFunction, mode string) *lua.LTable {
