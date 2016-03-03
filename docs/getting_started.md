@@ -22,24 +22,29 @@ named "lark" is accessible and allows users to define tasks.
 
 **lark.lua**
 ```lua
-lark.task{'build', function()
+build = lark.newtask .. function()
     lark.run('generate')
     lark.exec{'go', 'build', './cmd/...'}
-end}
+end
 
-lark.task{'generate', function()
+generate = lark.newtask .. function()
     lark.exec{'go', 'generate', './...'}
-end}
+end
 ```
 
 The above `lark.lua` file defines a task called 'generate' that runs code
 generation and a task called 'build', that depends on code generation, that
 builds executables.  Tasks can be run using the `lark run` command.
 
+**Note:** The `lark.newtask()` and `lark.newpattern()` decorator functions are
+temporary transitional functions and will deprecated in v0.5.0. After v0.5.0
+`lark.task` and `lark.pattern` will be the recommended decorator functions.  In
+v0.4.0 `lark.task` contains deprecated incompatible semantics.
+
 ```sh
     lark run generate
     lark run build
-    lark run           # runs the default task for the build.
+    lark run           # runs the default task, "build".
 ```
 
 The last line above executes the project's default task, the first task
@@ -55,9 +60,13 @@ command.
 
 ```
 $ lark list
-  build (default)
-  generate
+=   build   (default)
+=   generate
 ```
+
+The '=' each lines first field indicates that the task matches the exact string
+("build" or "generate").  The default task is indicated by the optional third
+field.
 
 ##Learning more about Lua
 
@@ -91,7 +100,7 @@ y = 2
 
 **lark_tasks/mytask.lua**
 ```lua
-function mytask()
+mytask = lark.newtask .. function()
     print(x)
     print(y)
 end
