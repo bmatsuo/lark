@@ -91,6 +91,8 @@ type doc struct {
 }
 
 func (d *doc) Loader(l *lua.LState) int {
+	mod := l.NewTable()
+
 	setmt, ok := l.GetGlobal("setmetatable").(*lua.LFunction)
 	if !ok {
 		l.RaiseError("unexpected type for setmetatable")
@@ -98,123 +100,88 @@ func (d *doc) Loader(l *lua.LState) int {
 	signatures := weakTable(l, setmt, "kv")
 	descriptions := weakTable(l, setmt, "kv")
 	parameters := weakTable(l, setmt, "k")
+
 	decorator := l.NewFunction(luaDecorator)
+	sig := l.NewClosure(
+		decoratorSetter(decorator, signatures),
+		decorator, signatures,
+	)
 
-	mod := l.NewTable()
+	desc := l.NewClosure(
+		decoratorSetter(decorator, descriptions),
+		decorator, descriptions,
+	)
 
-	sig := l.NewClosure(func(l *lua.LState) int {
-		s := l.CheckString(1)
-		l.SetTop(0)
-		fn := l.NewClosure(func(l *lua.LState) int {
-			val := l.Get(1)
-			l.SetTable(signatures, val, lua.LString(s))
-			return 1
-		}, signatures) // variable ``s''?
-		l.Push(decorator)
-		l.Push(fn)
+	param := l.NewClosure(
+		decoratorPrepender(decorator, parameters),
+		parameters, decorator,
+	)
+
+	dodoc := func(obj lua.LValue, s, d string, ps ...string) {
+		l.Push(sig)
+		l.Push(lua.LString(s))
 		l.Call(1, 1)
-		return 1
-	}, signatures, decorator)
-
-	desc := l.NewClosure(func(l *lua.LState) int {
-		s := l.CheckString(1)
-		l.SetTop(0)
-		fn := l.NewClosure(func(l *lua.LState) int {
-			val := l.Get(1)
-			l.SetTable(descriptions, val, lua.LString(s))
-			return 1
-		}, descriptions)
-		l.Push(decorator)
-		l.Push(fn)
+		l.Push(desc)
+		l.Push(lua.LString(d))
 		l.Call(1, 1)
-		return 1
-	}, descriptions, decorator)
-
-	param := l.NewClosure(func(l *lua.LState) int {
-		s := l.CheckString(1)
-		l.SetTop(0)
-		fn := l.NewClosure(func(l *lua.LState) int {
-			val := l.Get(1)
-			t := l.GetTable(parameters, val)
-			if t == lua.LNil {
-				t = l.NewTable()
-			}
-			insert := l.GetField(l.GetGlobal("table"), "insert")
-			l.Push(insert)
-			l.Push(t)
-			l.Push(lua.LNumber(1))
-			l.Push(lua.LString(s))
-			l.Call(3, 0)
-			l.SetTable(parameters, val, t)
-			return 1
-		}, parameters)
-		l.Push(decorator)
-		l.Push(fn)
-		l.Call(1, 1)
-		return 1
-	}, parameters, decorator)
-
-	l.Push(sig)
-	l.Push(lua.LString("s => fn => fn"))
-	l.Call(1, 1)
-	l.Push(desc)
-	l.Push(lua.LString("A decorator that documents a function's signature."))
-	l.Call(1, 1)
-	l.Push(param)
-	l.Push(lua.LString("s   String containing the function signature"))
-	l.Call(1, 1)
-	l.Push(sig)
-	l.Call(1, 1)
-	l.Call(1, 1)
-	l.Call(1, 1)
-
-	l.Push(sig)
-	l.Push(lua.LString("s => fn => fn"))
-	l.Call(1, 1)
-	l.Push(desc)
-	l.Push(lua.LString("A decorator that describes an object."))
-	l.Call(1, 1)
-	l.Push(param)
-	l.Push(lua.LString("s   String containing the object description"))
-	l.Call(1, 1)
-	l.Push(desc)
-	l.Call(1, 1)
-	l.Call(1, 1)
-	l.Call(1, 1)
-
-	l.Push(sig)
-	l.Push(lua.LString("s => fn => fn"))
-	l.Call(1, 1)
-	l.Push(desc)
-	l.Push(lua.LString("A decorator that describes an function parameter."))
-	l.Call(1, 1)
-	l.Push(param)
-	l.Push(lua.LString("s   String containing the parameter and its description separated by white space"))
-	l.Call(1, 1)
-	l.Push(param)
-	l.Call(1, 1)
-	l.Call(1, 1)
-	l.Call(1, 1)
-
-	loadDocs := l.NewClosure(func(l *lua.LState) int {
-		val := l.Get(1)
-		l.SetTop(0)
-		sig := l.GetTable(signatures, val)
-		desc := l.GetTable(descriptions, val)
-		params := l.GetTable(parameters, val)
-		if sig == lua.LNil && desc == lua.LNil && params == lua.LNil {
-			l.Push(lua.LNil)
-			return 1
+		for _, p := range ps {
+			l.Push(param)
+			l.Push(lua.LString(p))
+			l.Call(1, 1)
 		}
-		t := l.NewTable()
-		l.SetField(t, "sig", sig)
-		l.SetField(t, "desc", desc)
-		l.SetField(t, "params", params)
-		l.Push(t)
-		return 1
-	}, signatures, descriptions, parameters)
+		l.Push(obj)
+		for i := 0; i < 2+len(ps); i++ {
+			l.Call(1, 1)
+		}
+	}
 
-	help := l.NewClosure(func(l *lua.LState) int {
+	dodoc(sig,
+		"s => fn => fn",
+		"A decorator that documents a function's signature.",
+		`s  string -- The function signature.`,
+	)
+	dodoc(desc,
+		"s => fn => fn",
+		"A decorator that describes an object.",
+		`s  string -- The object description.`,
+	)
+	dodoc(param,
+		"s => fn => fn",
+		"A decorator that describes a function parameter.",
+		`s  string -- The parameter name and description separated by white space.`,
+	)
+
+	get := l.NewClosure(
+		luaGet(signatures, descriptions, parameters),
+		signatures, descriptions, parameters,
+	)
+	dodoc(get,
+		"obj => table",
+		"Retrieve a table containing documentation for obj.",
+		`obj   table, function, or userdata -- The object to retrieve documentation for.`,
+	)
+
+	help := l.NewClosure(
+		luaHelp(mod, get),
+		mod, get,
+	)
+	dodoc(help,
+		"obj => ()",
+		"Print the documentation for obj.",
+		`obj   table, function, or userdata -- The object to retrieve documentation for.`,
+	)
+
+	l.SetField(mod, "get", get)
+	l.SetField(mod, "sig", sig)
+	l.SetField(mod, "desc", desc)
+	l.SetField(mod, "param", param)
+	l.SetField(mod, "help", help)
+	l.Push(mod)
+	return 1
+}
+
+func luaHelp(mod lua.LValue, get lua.LValue) lua.LGFunction {
+	return func(l *lua.LState) int {
 		print := l.GetGlobal("print")
 		if l.GetTop() == 0 {
 			def := l.GetField(mod, "default")
@@ -235,7 +202,7 @@ func (d *doc) Loader(l *lua.LState) int {
 
 		val := l.Get(1)
 		l.SetTop(0)
-		l.Push(loadDocs)
+		l.Push(get)
 		l.Push(val)
 		l.Call(1, 1)
 		docs := l.Get(1)
@@ -317,7 +284,7 @@ func (d *doc) Loader(l *lua.LState) int {
 					return
 				}
 
-				l.Push(loadDocs)
+				l.Push(get)
 				l.Push(v)
 				l.Call(1, 1)
 				subDocs := l.Get(-1)
@@ -366,15 +333,83 @@ func (d *doc) Loader(l *lua.LState) int {
 		}
 
 		return 0
-	}, mod, loadDocs)
+	}
+}
 
-	l.SetField(mod, "get", loadDocs)
-	l.SetField(mod, "sig", sig)
-	l.SetField(mod, "desc", desc)
-	l.SetField(mod, "param", param)
-	l.SetField(mod, "help", help)
-	l.Push(mod)
-	return 1
+func luaGet(signatures, descriptions, parameters lua.LValue) lua.LGFunction {
+	return func(l *lua.LState) int {
+		val := l.Get(1)
+		l.SetTop(0)
+		sig := l.GetTable(signatures, val)
+		desc := l.GetTable(descriptions, val)
+		params := l.GetTable(parameters, val)
+		if sig == lua.LNil && desc == lua.LNil && params == lua.LNil {
+			l.Push(lua.LNil)
+			return 1
+		}
+		t := l.NewTable()
+		l.SetField(t, "sig", sig)
+		l.SetField(t, "desc", desc)
+		l.SetField(t, "params", params)
+		l.Push(t)
+		return 1
+	}
+}
+
+func getDecorator(l *lua.LState, d *lua.LFunction) *lua.LFunction {
+	if d != nil {
+		return d
+	}
+	return l.NewFunction(luaDecorator)
+}
+
+func decoratorSetter(d *lua.LFunction, table lua.LValue) lua.LGFunction {
+	return func(l *lua.LState) int {
+		s := l.CheckString(1)
+		l.SetTop(0)
+		fn := l.NewClosure(setFunc(table, s), table) // close variable ``s''?
+		l.Push(getDecorator(l, d))
+		l.Push(fn)
+		l.Call(1, 1)
+		return 1
+	}
+}
+
+func decoratorPrepender(d *lua.LFunction, table lua.LValue) lua.LGFunction {
+	return func(l *lua.LState) int {
+		s := l.CheckString(1)
+		l.SetTop(0)
+		fn := l.NewClosure(prependFunc(table, s), table)
+		l.Push(getDecorator(l, d))
+		l.Push(fn)
+		l.Call(1, 1)
+		return 1
+	}
+}
+
+func setFunc(table lua.LValue, s string) lua.LGFunction {
+	return func(l *lua.LState) int {
+		val := l.Get(1)
+		l.SetTable(table, val, lua.LString(s))
+		return 1
+	}
+}
+
+func prependFunc(table lua.LValue, s string) lua.LGFunction {
+	return func(l *lua.LState) int {
+		val := l.Get(1)
+		t := l.GetTable(table, val)
+		if t == lua.LNil {
+			t = l.NewTable()
+		}
+		l.Push(l.GetField(l.GetGlobal("table"), "insert"))
+		l.Push(t)
+		l.Push(lua.LNumber(1))
+		l.Push(lua.LString(s))
+		l.Call(3, 0)
+		l.SetTable(table, val, t)
+		return 1
+	}
 }
 
 func weakTable(l *lua.LState, setmt *lua.LFunction, mode string) lua.LValue {
