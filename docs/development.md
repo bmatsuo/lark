@@ -9,7 +9,7 @@ executable [binary](https://github.com/bmatsuo/lark/releases).  Then the
 project lark scripts can be used to install dependencies.
 
 ```sh
-lark init install
+lark init gen test install
 ```
 
 If you do not want to install Lark as a binary first you will have to use `go
@@ -17,5 +17,5 @@ get` to bootstrap a development environment.
 
 ```sh
 go get ./cmd/...
-lark init install
+./lark init gen test install
 ```
