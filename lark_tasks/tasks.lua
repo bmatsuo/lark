@@ -27,8 +27,6 @@ lark.task{'install', function ()
     go.install{ldflags=ldflags}
 end}
 
--- BUG: We don't want to test the vendored packages.  But we want to run the
--- tests for everything else.
 lark.task{'test', function(ctx)
     local race = lark.get_param(ctx, 'race')
     if race then
