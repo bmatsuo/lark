@@ -3,12 +3,12 @@ package core
 import (
 	"testing"
 
+	"github.com/bmatsuo/lark/internal/module"
 	"github.com/bmatsuo/lark/luatest"
 )
 
 var Module = luatest.Module{
-	Name:       "lark.core",
-	Loader:     Loader,
+	Module:     module.New("lark.core", Loader),
 	TestScript: "core_test.lua",
 }
 

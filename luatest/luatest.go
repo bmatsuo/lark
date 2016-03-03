@@ -4,13 +4,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bmatsuo/lark/internal/module"
 	"github.com/yuin/gopher-lua"
 )
 
 // Module is a lua module to be tested.
 type Module struct {
-	Name        string
-	Loader      lua.LGFunction
+	Module      module.Module
 	TestScript  string
 	PreloadDeps []*Module
 }
@@ -18,10 +18,10 @@ type Module struct {
 // Preload runs the loader to register the module name.
 func (m *Module) Preload(t testing.TB) *lua.LState {
 	L := lua.NewState()
-	for _, _m := range m.PreloadDeps {
-		L.PreloadModule(_m.Name, _m.Loader)
+	module.Preload(L, m.Module)
+	for _, m := range m.PreloadDeps {
+		module.Preload(L, m.Module)
 	}
-	L.PreloadModule(m.Name, m.Loader)
 	err := L.DoFile(m.TestScript)
 	if err != nil {
 		t.Error(err)
