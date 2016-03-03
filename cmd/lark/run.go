@@ -97,42 +97,51 @@ func normTasks(args []string) ([]string, error) {
 
 // RunTask calls lark.run in state to execute task.
 func RunTask(c *Context, task *Task) error {
-	script := fmt.Sprintf("lark.run(%s)", task.ToLua())
-	err := c.Lua.DoString(script)
+	lark := c.Lua.GetGlobal("lark")
+	run := c.Lua.GetField(lark, "run")
+	trace := c.Lua.NewFunction(errTraceback)
+
+	narg := 1
+	c.Lua.Push(run)
+	if task.Name == "" {
+		c.Lua.Push(lua.LNil)
+	} else {
+		c.Lua.Push(lua.LString(task.Name))
+	}
+	if len(task.Params) == 0 {
+		params := c.Lua.NewTable()
+		for k, v := range task.Params {
+			c.Lua.SetField(params, k, lua.LString(v))
+		}
+
+		c.Lua.Push(params)
+		narg++
+	}
+	err := c.Lua.PCall(narg, 0, trace)
 	if err != nil {
 		handleErr(c, err)
 	}
+
+	wait := c.Lua.GetField(lark, "wait")
 	for {
-		errwait := c.Lua.DoString(`lark.wait()`)
+		c.Lua.Push(wait)
+		errwait := c.Lua.PCall(0, 0, trace)
 		if errwait == nil {
 			break
-		} else {
-			if err == nil {
-				handleErr(c, errwait)
-				err = errwait
-			}
+		}
+		if err == nil {
+			handleErr(c, errwait)
+
+			// prevent handleErr from being called multiple times.
+			err = errwait
 		}
 	}
+
 	return err
 }
 
 func handleErr(c *Context, err error) {
-	var x interface{}
-	if c.Verbose() {
-		x = err
-	} else if e, ok := err.(*lua.ApiError); ok {
-		if e.Type == lua.ApiErrorRun {
-			x = e.Object
-			lstr, _ := e.Object.(lua.LString)
-			str := string(lstr)
-			if strings.HasPrefix(str, "lark.lua:") {
-				x = trimLoc(str)
-			}
-		} else {
-			x = err
-		}
-	}
-	core.Log(fmt.Sprint(x), &core.LogOpt{
+	core.Log(fmt.Sprint(err), &core.LogOpt{
 		Color: "red",
 	})
 }
@@ -215,4 +224,14 @@ var reLoc = regexp.MustCompile(`^[^:]+:\d+:\s*`)
 
 func trimLoc(msg string) string {
 	return reLoc.ReplaceAllString(msg, "")
+}
+
+func errTraceback(L *lua.LState) int {
+	msg := L.Get(1)
+	L.SetTop(0)
+	L.Push(L.GetField(L.GetGlobal("debug"), "traceback"))
+	L.Push(msg)
+	L.Push(lua.LNumber(2))
+	L.Call(2, 1)
+	return 1
 }

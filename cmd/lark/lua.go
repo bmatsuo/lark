@@ -63,9 +63,14 @@ func InitLark(c *Context, files []string) error {
 		module.Preload(c.Lua, mod)
 	}
 
+	trace := c.Lua.NewFunction(errTraceback)
+
 	c.Lua.Push(c.Lua.GetGlobal("require"))
 	c.Lua.Push(lua.LString("lark"))
-	c.Lua.Call(1, 1)
+	err := c.Lua.PCall(1, 1, trace)
+	if err != nil {
+		return err
+	}
 	lark := c.Lua.Get(-1)
 	c.Lua.Pop(1)
 	c.Lua.SetGlobal("lark", lark)
