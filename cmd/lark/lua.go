@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/bmatsuo/lark/internal/module"
+	"github.com/bmatsuo/lark/luamodules/decorator"
 	"github.com/bmatsuo/lark/luamodules/doc"
 	"github.com/bmatsuo/lark/luamodules/lark"
 	"github.com/bmatsuo/lark/luamodules/lark/core"
@@ -16,6 +17,7 @@ import (
 // PreloadModules defines the (ordered) set of modules to preload and their
 // loader functions.
 var PreloadModules = []module.Module{
+	decorator.Module,
 	doc.Module,
 	path.Module,
 	core.Module,
