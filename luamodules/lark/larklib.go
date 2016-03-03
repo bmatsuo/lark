@@ -35,6 +35,10 @@ local lark =
     If this behavior is not desired the default task can be set manually using
     the module variable ` + "`" + `default_task` + "`" + `.
     ]] ..
+    doc.var[[
+    default_task
+    string -- The task to perform when lark.run() is given no arguments.
+    ]] ..
     {
         default_task = nil,
         tasks = {},

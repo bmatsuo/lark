@@ -2,8 +2,8 @@ package doc
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
+	"unicode"
 
 	"github.com/bmatsuo/lark/internal/module"
 	"github.com/bmatsuo/lark/luamodules/doc/internal/textutil"
@@ -82,6 +82,7 @@ func docLoader(l *lua.LState) int {
 	signatures := weakTable(l, setmt, "kv")
 	descriptions := weakTable(l, setmt, "kv")
 	parameters := weakTable(l, setmt, "k")
+	variables := weakTable(l, setmt, "k")
 
 	decorator := l.NewFunction(luaDecorator)
 	sig := l.NewClosure(
@@ -96,7 +97,12 @@ func docLoader(l *lua.LState) int {
 
 	param := l.NewClosure(
 		decoratorPrepender(decorator, parameters),
-		parameters, decorator,
+		decorator, parameters,
+	)
+
+	_var := l.NewClosure(
+		decoratorPrepender(decorator, variables),
+		decorator, variables,
 	)
 
 	dodoc := func(obj lua.LValue, s, d string, ps ...string) {
@@ -132,10 +138,15 @@ func docLoader(l *lua.LState) int {
 		"A decorator that describes a function parameter.",
 		`s  string -- The parameter name and description separated by white space.`,
 	)
+	dodoc(_var,
+		"s => fn => fn",
+		"A decorator that describes module variable (table field).",
+		`s  string -- The variable name and description separated by white space.`,
+	)
 
 	get := l.NewClosure(
-		luaGet(signatures, descriptions, parameters),
-		signatures, descriptions, parameters,
+		luaGet(signatures, descriptions, parameters, variables),
+		signatures, descriptions, parameters, variables,
 	)
 	dodoc(get,
 		"obj => table",
@@ -156,6 +167,7 @@ func docLoader(l *lua.LState) int {
 	l.SetField(mod, "get", get)
 	l.SetField(mod, "sig", sig)
 	l.SetField(mod, "desc", desc)
+	l.SetField(mod, "var", _var)
 	l.SetField(mod, "param", param)
 	l.SetField(mod, "help", help)
 	l.Push(mod)
@@ -206,6 +218,49 @@ func luaHelp(mod lua.LValue, get lua.LValue) lua.LGFunction {
 				l.Push(lua.LString(str))
 				l.Call(1, 0)
 			}
+			vars := l.GetField(docs, "vars")
+			if vars != lua.LNil {
+
+				vtab, ok := vars.(*lua.LTable)
+				if !ok {
+					l.RaiseError("variables are not a table")
+				}
+				if vtab.Len() > 0 {
+					l.Push(print)
+					l.Call(0, 0)
+
+					l.Push(print)
+					l.Push(lua.LString("Variables"))
+					l.Call(1, 0)
+				}
+				l.ForEach(vtab, func(i, v lua.LValue) {
+					v = l.ToStringMeta(v)
+					s, ok := v.(lua.LString)
+					if !ok {
+						l.RaiseError("variable description is not a string")
+					}
+					name, desc := splitParam(string(s))
+					if name == "" {
+						return
+					}
+
+					l.Push(print)
+					l.Call(0, 0)
+
+					ln := fmt.Sprintf("  %s", name)
+					l.Push(print)
+					l.Push(lua.LString(ln))
+					l.Call(1, 0)
+
+					desc = textutil.Unindent(desc)
+					desc = strings.TrimSpace(desc)
+					desc = textutil.Wrap(desc, 72)
+					desc = textutil.Indent(desc, "      ")
+					l.Push(print)
+					l.Push(lua.LString(desc))
+					l.Call(1, 0)
+				})
+			}
 			sig := l.GetField(docs, "sig")
 			if sig != lua.LNil {
 				l.Push(print)
@@ -221,6 +276,14 @@ func luaHelp(mod lua.LValue, get lua.LValue) lua.LGFunction {
 				ptab, ok := params.(*lua.LTable)
 				if !ok {
 					l.RaiseError("parameters are not a table")
+				}
+				if ptab.Len() > 0 {
+					l.Push(print)
+					l.Call(0, 0)
+
+					l.Push(print)
+					l.Push(lua.LString("Parameters"))
+					l.Call(1, 0)
 				}
 				l.ForEach(ptab, func(i, v lua.LValue) {
 					v = l.ToStringMeta(v)
@@ -318,14 +381,15 @@ func luaHelp(mod lua.LValue, get lua.LValue) lua.LGFunction {
 	}
 }
 
-func luaGet(signatures, descriptions, parameters lua.LValue) lua.LGFunction {
+func luaGet(signatures, descriptions, parameters, variables lua.LValue) lua.LGFunction {
 	return func(l *lua.LState) int {
 		val := l.Get(1)
 		l.SetTop(0)
 		sig := l.GetTable(signatures, val)
 		desc := l.GetTable(descriptions, val)
 		params := l.GetTable(parameters, val)
-		if sig == lua.LNil && desc == lua.LNil && params == lua.LNil {
+		vars := l.GetTable(variables, val)
+		if sig == lua.LNil && desc == lua.LNil && params == lua.LNil && vars == lua.LNil {
 			l.Push(lua.LNil)
 			return 1
 		}
@@ -333,6 +397,7 @@ func luaGet(signatures, descriptions, parameters lua.LValue) lua.LGFunction {
 		l.SetField(t, "sig", sig)
 		l.SetField(t, "desc", desc)
 		l.SetField(t, "params", params)
+		l.SetField(t, "vars", vars)
 		l.Push(t)
 		return 1
 	}
@@ -407,12 +472,11 @@ func weakTable(l *lua.LState, setmt *lua.LFunction, mode string) lua.LValue {
 	return val
 }
 
-var paramRegexp = regexp.MustCompile(`^\s*(\S+)(\s+.*)$`)
-
 func splitParam(s string) (name, desc string) {
-	results := paramRegexp.FindAllStringSubmatch(s, 1)
-	if len(results) == 0 {
-		return "", ""
+	s = strings.TrimLeftFunc(s, unicode.IsSpace)
+	i := strings.IndexFunc(s, unicode.IsSpace)
+	if i < 0 {
+		return s, ""
 	}
-	return results[0][1], results[0][2]
+	return s[:i], s[i:]
 }
