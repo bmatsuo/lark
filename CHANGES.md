@@ -2,6 +2,12 @@
 
 ##v0.4.0-dev
 
+##v0.3.1
+
+- Fix bug retreiving captured output from lark.exec().  The lark.exec()
+  function returns two values, captured output and any (ignored) error
+  encountered.
+
 ##v0.3.0
 
 - Added optional filename parameters to `lark.exec{}`: **stdin**, **stdout**,
