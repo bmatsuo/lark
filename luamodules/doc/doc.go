@@ -382,29 +382,3 @@ func weakTable(l *lua.LState, setmt *lua.LFunction, mode string) lua.LValue {
 	l.Pop(1)
 	return val
 }
-
-func (d *doc) Exports(l *lua.LState, mt *lua.LTable) map[string]lua.LGFunction {
-	return map[string]lua.LGFunction{
-		"help":      d.LuaHelp(mt),
-		"signature": d.LuaSig(mt),
-		"param":     d.LuaParam(mt),
-	}
-}
-
-func (d *doc) LuaSig(mt *lua.LTable) lua.LGFunction {
-	return func(l *lua.LState) int {
-		return 0
-	}
-}
-
-func (d *doc) LuaParam(mt *lua.LTable) lua.LGFunction {
-	return func(l *lua.LState) int {
-		return 0
-	}
-}
-
-func (d *doc) LuaHelp(mt *lua.LTable) lua.LGFunction {
-	return func(l *lua.LState) int {
-		return 0
-	}
-}
