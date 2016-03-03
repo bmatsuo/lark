@@ -2,6 +2,26 @@ package textutil
 
 import "testing"
 
+func TestSynopsis(t *testing.T) {
+	tests := []struct {
+		text   string
+		expect string
+	}{
+		{"", ""},
+		{"four pinapples", "four pinapples"},
+		{"four. pinapples", "four."},
+		{"four pinapples\n\nfive oranges", "four pinapples"},
+		{"four pinapples.\n\nfive oranges", "four pinapples."},
+	}
+
+	for i, test := range tests {
+		out := Synopsis(test.text)
+		if out != test.expect {
+			t.Errorf("test %d: %q (!= %q)", i, out, test.expect)
+		}
+	}
+}
+
 func TestWrap(t *testing.T) {
 	tests := []struct {
 		width  int

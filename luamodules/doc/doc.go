@@ -325,6 +325,10 @@ func (d *doc) Loader(l *lua.LState) int {
 				if !ok {
 					return
 				}
+				_, ok = v.(*lua.LFunction)
+				if !ok {
+					return
+				}
 
 				l.Push(loadDocs)
 				l.Push(v)
@@ -350,27 +354,27 @@ func (d *doc) Loader(l *lua.LState) int {
 			if len(topics) > 0 {
 				l.Push(print)
 				l.Call(0, 0)
+
 				l.Push(print)
-				l.Push(lua.LString("Subtopics"))
+				l.Push(lua.LString("Functions"))
 				l.Call(1, 0)
+			}
+			for _, t := range topics {
 				l.Push(print)
 				l.Call(0, 0)
-			}
-			maxlen := 0
-			for _, t := range topics {
-				if len(t.k) > maxlen {
-					maxlen = len(t.k)
-				}
-			}
-			for _, t := range topics {
+
 				l.Push(print)
-				if t.desc == lua.LNil {
-					l.Push(lua.LString(fmt.Sprintf("  %s", t.k)))
-				} else {
-					format := "  %-" + fmt.Sprint(maxlen) + "s  %s"
-					l.Push(lua.LString(fmt.Sprintf(format, t.k, t.desc)))
-				}
+				l.Push(lua.LString(fmt.Sprintf("  %s", t.k)))
 				l.Call(1, 0)
+
+				if t.desc != lua.LNil {
+					syn := textutil.Synopsis(string(t.desc))
+					syn = textutil.Wrap(syn, 66)
+					syn = textutil.Indent(syn, "      ")
+					l.Push(print)
+					l.Push(lua.LString(syn))
+					l.Call(1, 0)
+				}
 			}
 		}
 

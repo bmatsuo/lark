@@ -8,6 +8,24 @@ import (
 	"unicode/utf8"
 )
 
+// Synopsis returns the first sentence of text.
+func Synopsis(text string) string {
+	if text == "" {
+		return ""
+	}
+	flat := Wrap(Unindent(text), len(text)+1)
+	s := bufio.NewScanner(strings.NewReader(flat))
+	for s.Scan() {
+		line := s.Text()
+		i := strings.Index(line, ".")
+		if i < 0 {
+			return line
+		}
+		return line[:i+1]
+	}
+	return ""
+}
+
 // Wrap wraps lines in text to width.  Indented lines are considered
 // preformatted and are not modified by Wrap.
 //
