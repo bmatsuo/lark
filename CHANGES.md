@@ -2,6 +2,11 @@
 
 ##v0.4.0-dev
 
+- Documentation is now accessible through the REPL (`lark repl`) using the
+  global function `help()`.
+
+- Modules can be documented using decoractors in the "doc" module.
+
 ##v0.3.1
 
 - Fix bug retreiving captured output from lark.exec().  The lark.exec()
