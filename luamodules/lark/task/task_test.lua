@@ -64,6 +64,14 @@ function test_get_pattern()
 	assert(task.get_pattern({pattern = 'x'}) == 'x')
 end
 
+function test_get_param()
+	assert(task.get_param({}, "abc") == nil)
+	assert(task.get_param({name = 'x'}, "abc") == nil)
+	assert(task.get_param({param = 'x'}, "abc") == nil)
+	assert(task.get_param({params = {abc = 'x'}}, "abc") == 'x')
+	assert(task.get_param({params = {def = 'x'}}, "abc") == nil)
+end
+
 function test_run()
 	local tpatt = 'run_test_pattern_*'
 	local gotpatt = nil

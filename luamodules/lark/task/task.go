@@ -34,7 +34,10 @@ func Loader(l *lua.LState) int {
 	}
 	l.Pop(1)
 
-	nameFunc := l.NewClosure(luaName(decorator, namedTasks), decorator, namedTasks)
+	nameFunc := l.NewClosure(
+		luaName(decorator, namedTasks, mod),
+		decorator, namedTasks, mod,
+	)
 	l.Push(decorator)
 	l.Push(nameFunc)
 	l.Call(1, 1)
@@ -57,7 +60,10 @@ func Loader(l *lua.LState) int {
 		Desc: "A decorator that defines a pattern for its task.",
 	})
 
-	createFunc := l.NewClosure(luaCreate(anonTasks), anonTasks)
+	createFunc := l.NewClosure(
+		luaCreate(anonTasks, mod),
+		anonTasks, mod,
+	)
 	l.Push(decorator)
 	l.Push(createFunc)
 	l.Call(1, 1)
@@ -68,8 +74,8 @@ func Loader(l *lua.LState) int {
 	})
 
 	find := l.NewClosure(
-		luaFind(anonTasks, namedTasks, patterns),
-		anonTasks, namedTasks, patterns,
+		luaFind(anonTasks, namedTasks, patterns, mod),
+		anonTasks, namedTasks, patterns, mod,
 	)
 	doc.Go(l, find, &doc.GoDocs{
 		Desc: "Find the task by the given name.",
@@ -85,6 +91,7 @@ func Loader(l *lua.LState) int {
 	))
 	l.SetField(mod, "get_name", l.NewClosure(luaGetName))
 	l.SetField(mod, "get_pattern", l.NewClosure(luaGetPattern))
+	l.SetField(mod, "get_param", l.NewClosure(luaGetParam))
 
 	// setmetatable and return mod
 	l.Push(setmt)
@@ -105,14 +112,40 @@ func luaDecorator(l *lua.LState) int {
 	return l.GetTop()
 }
 
-func luaFind(anonTasks, namedTasks, patterns *lua.LTable) lua.LGFunction {
+func luaFind(anonTasks, namedTasks, patterns, mod *lua.LTable) lua.LGFunction {
 	return func(l *lua.LState) int {
-		name := l.CheckString(1)
+		var noname bool
+		var name string
+		if l.GetTop() > 0 {
+			name = l.CheckString(1)
+		} else {
+			noname = true
+			var lname lua.LString
+			var ok bool
+			def := l.GetField(mod, "default")
+			lname, ok = def.(lua.LString)
+			if !ok {
+				l.ForEach(l.Get(lua.GlobalsIndex).(*lua.LTable), func(k, v lua.LValue) {
+					if !l.Equal(v, def) {
+						return
+					}
+					lname, ok = k.(lua.LString)
+					if !ok {
+						l.RaiseError("unexpected global index")
+					}
+				})
+			}
+			name = string(lname)
+			if name == "" {
+				l.RaiseError("cannot determine name of task")
+			}
+		}
 
 		val := l.GetField(namedTasks, name)
 		if val != lua.LNil {
 			l.Push(val)
-			return 1
+			l.Push(lua.LString(name))
+			return 2
 		}
 
 		val = l.GetGlobal(name)
@@ -120,8 +153,13 @@ func luaFind(anonTasks, namedTasks, patterns *lua.LTable) lua.LGFunction {
 			isTask, ok := l.GetTable(anonTasks, val).(lua.LBool)
 			if ok && bool(isTask) {
 				l.Push(val)
-				return 1
+				l.Push(lua.LString(name))
+				return 2
 			}
+		}
+
+		if noname {
+			return 0
 		}
 
 		allPatterns := l.NewTable()
@@ -156,31 +194,38 @@ func luaFind(anonTasks, namedTasks, patterns *lua.LTable) lua.LGFunction {
 		if found != nil {
 			rec := l.GetTable(patterns, found)
 			l.Push(l.GetField(rec, "value"))
+			l.Push(lua.LString(name))
 			l.Push(found)
-			return 2
+			return 3
 		}
 
 		return 0
 	}
 }
 
-func luaCreate(t lua.LValue) lua.LGFunction {
+func luaCreate(t lua.LValue, mod *lua.LTable) lua.LGFunction {
 	return func(l *lua.LState) int {
 		val := l.CheckAny(1)
+		if l.GetField(mod, "default") == lua.LNil {
+			l.SetField(mod, "default", val)
+		}
 		l.SetTable(t, val, lua.LBool(true))
 		return 1
 	}
 }
 
-func luaName(decorator *lua.LFunction, t lua.LValue) lua.LGFunction {
+func luaName(decorator *lua.LFunction, t lua.LValue, mod *lua.LTable) lua.LGFunction {
 	return func(l *lua.LState) int {
 		name := l.CheckString(1)
 
 		fn := l.NewClosure(func(l *lua.LState) int {
 			val := l.CheckAny(1)
+			if l.GetField(mod, "default") == lua.LNil {
+				l.SetField(mod, "default", lua.LString(name))
+			}
 			l.SetField(t, name, val)
 			return 1
-		}, t)
+		}, t, mod)
 
 		l.Push(decorator)
 		l.Push(fn)
@@ -220,22 +265,39 @@ func luaPattern(setmt, decorator *lua.LFunction, t lua.LValue) lua.LGFunction {
 
 func luaRun(find *lua.LFunction) lua.LGFunction {
 	return func(l *lua.LState) int {
-		name := l.CheckString(1)
+		var name string
+		lname, ok := l.Get(1).(lua.LString)
+		if ok {
+			name = string(lname)
+		} else if l.Get(1) != lua.LNil {
+			l.CheckString(1) // call will raise an error
+		}
 		params := lua.LValue(lua.LNil)
 		if l.GetTop() > 1 {
 			params = l.CheckTable(2)
 		}
 		l.SetTop(0)
 
-		l.Push(find)
-		l.Push(lua.LString(name))
-		l.Call(1, 2)
-		if l.Get(1) == lua.LNil {
-			l.RaiseError("no task matching name: %s", name)
+		if name != "" {
+			l.Push(find)
+			l.Push(lua.LString(name))
+			l.Call(1, 3)
+			if l.Get(1) == lua.LNil {
+				l.RaiseError("no task matching name: %s", name)
+			}
+		} else {
+			var ok bool
+			l.Push(find)
+			l.Call(0, 2)
+			lname, ok = l.Get(2).(lua.LString)
+			if !ok {
+				l.RaiseError("task name is not a string")
+			}
+			name = string(lname)
 		}
 		patt := lua.LValue(lua.LNil)
-		if l.GetTop() > 1 {
-			patt = l.Get(2)
+		if l.GetTop() > 2 {
+			patt = l.Get(3)
 		}
 		l.SetTop(1)
 
@@ -264,6 +326,18 @@ func luaGetPattern(l *lua.LState) int {
 	}
 	ctx := l.CheckTable(1)
 	l.Replace(1, l.GetField(ctx, "pattern"))
+	return 1
+}
+
+func luaGetParam(l *lua.LState) int {
+	ctx := l.CheckTable(1)
+	name := l.CheckString(2)
+	l.SetTop(0)
+	params := l.GetField(ctx, "params")
+	if params == lua.LNil {
+		return 0
+	}
+	l.Push(l.GetField(params, name))
 	return 1
 }
 
