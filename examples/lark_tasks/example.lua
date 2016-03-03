@@ -8,15 +8,14 @@ local cmd_reusable = {'python', '-c', 'exit(1)'}
 -- set the first task defined will be used as the default.
 task.default = 'demo'
 
--- Patterns are defined using Lua's regular expression syntax.
---
-txt = lark.newpattern[["^(.*)%.txt$]] .. function(ctx)
+-- Pattern matching tasks are defined using Lua's regular expression syntax.
+txt = lark.newpattern[[^(.*)%.txt$]] .. function(ctx)
     local name = lark.newtask.get_name(ctx)
     local patt = lark.newtask.get_pattern(ctx)
     print(name)
     local m = {string.match(name, patt)}
     print(table.concat(m, "\n"))
-    print(lark.get_param(ctx, "p"))
+    print(lark.newtask.get_param(ctx, "p"))
 end
 
 fail = lark.newtask .. function ()

@@ -108,7 +108,7 @@ func RunTask(c *Context, task *Task) error {
 	} else {
 		c.Lua.Push(lua.LString(task.Name))
 	}
-	if len(task.Params) == 0 {
+	if len(task.Params) > 0 {
 		params := c.Lua.NewTable()
 		for k, v := range task.Params {
 			c.Lua.SetField(params, k, lua.LString(v))
