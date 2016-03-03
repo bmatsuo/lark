@@ -37,7 +37,7 @@ go.gen = function(opt)
     end
 
     local args = opt
-    if table.getn(args) == 0 then
+    if #args == 0 then
         args = go.default_sources
     end
     insert_args(cmd, args)
@@ -56,7 +56,7 @@ go.install = function(opt)
     insert_common_build_flags(cmd, opt)
 
     local args = opt
-    if table.getn(args) == 0 then
+    if #args == 0 then
         args = go.default_sources
     end
     insert_args(cmd, args)
@@ -75,7 +75,7 @@ go.build = function(opt)
     insert_common_build_flags(cmd, opt)
 
     local args = opt
-    if table.getn(args) == 0 then
+    if #args == 0 then
         args = go.default_sources
     end
     insert_args(cmd, args)
@@ -103,7 +103,7 @@ go.test = function(opt)
     end
 
     local args = opt
-    if table.getn(args) == 0 then
+    if #args == 0 then
         args = go.default_sources
     end
     insert_args(cmd, args)
