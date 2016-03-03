@@ -12,49 +12,50 @@ var Module = module.New("decorator", Loader)
 func Loader(l *lua.LState) int {
 	mod := l.NewTable()
 
-	mt := metatable(l)
-	create := l.NewClosure(luaCreate(mt), mt)
-	/*
-		doc.Go(l, create, &doc.GoDocs{
-			Desc: `
-				Create a new decorator.  A callable object is returned that
-				decorates its argument.  The returned object can instead be
-				concatenated with an object to decorate it.
-				`,
-			Sig: "fn => obj",
-			Params: []string{
-				`fn
-				function -- The decorator function with signature a => b.
-				Typically fn(x) == x but that is not an requirement.
-				`,
-			},
-		})
-	*/
-	l.SetField(mod, "create", create)
+	alias := l.NewClosure(luaCallAlias)
+	metatable := l.NewClosure(luaMetatable(alias), alias)
 
-	annotator := l.NewClosure(luaAnnotator(create), create)
-	/*
-		doc.Go(l, annotator, &doc.GoDocs{
-			Desc: `
-				Create a new annotating decorator.  The retured
-				`,
-			Sig: "(t, prepend) => obj",
-			Params: []string{
-				`t
-				table -- A map to store annotations.  Typically the map will use
-				weak references on either keys or values (potentially both).
-				`,
-				`prepend
-				boolean -- Annotation values are prepended to a table when stored.
-				When prepend is true table should not have weak value references.
-				`,
-			},
-		})
-	*/
-	l.SetField(mod, "annotator", annotator)
+	l.Push(metatable)
+	l.Push(l.NewClosure(luaCall))
+	l.Call(1, 1)
+	mt := l.Get(-1).(*lua.LTable)
+	l.Pop(0)
+
+	create := l.NewClosure(luaCreate(mt), mt)
+	l.SetField(mod, "metatable", metatable)
+	l.SetField(mod, "create", create)
+	l.SetField(mod, "annotator", l.NewClosure(luaAnnotator(create), create))
 
 	l.Push(mod)
 	return 1
+}
+
+func luaMetatable(alias *lua.LFunction) lua.LGFunction {
+	return func(l *lua.LState) int {
+		fn := l.CheckFunction(1)
+		l.SetTop(0)
+
+		mt := l.NewTable()
+		l.SetField(mt, "__concat", alias)
+		l.SetField(mt, "__call", fn)
+		l.Push(mt)
+		return 1
+	}
+}
+
+func luaCallAlias(l *lua.LState) int {
+	l.CheckAny(1)
+	l.CheckAny(2)
+	l.SetTop(2)
+	l.Call(1, lua.MultRet)
+	return l.GetTop()
+}
+
+func luaCall(l *lua.LState) int {
+	l.Replace(1, l.GetField(l.Get(1), "fn"))
+	narg := l.GetTop() - 1
+	l.Call(narg, lua.MultRet)
+	return l.GetTop()
 }
 
 func metatable(l *lua.LState) *lua.LTable {
