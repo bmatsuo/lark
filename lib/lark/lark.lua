@@ -74,11 +74,33 @@ lark.task =
         end
     end
 
-lark.run = task.run
+local function deprecation(old, new, mod)
+    if mod then
+        return string.format("deprecation warning: use %s in module '%s' instead of %s", new, mod, old)
+    else
+        return string.format("deprecation warning: use %s instead of %s", new, old)
+    end
+end
+
+lark.run =
+    doc.desc[[An alias for run() in module lark.task]] ..
+    function(...)
+        if lark.default_task then
+            task.default = lark.default_task
+            lark.default_task = nil
+
+            local msg = deprecation("lark.default_task", "variable default", 'lark.task')
+            lark.log{msg, color='yellow'}
+        end
+
+        return task.run(unpack(arg))
+    end
 
 local function deprecated_alias(fn, old, new, mod)
     return function(...)
-        print(string.format('deprecation warning: use %s in module %s instead of %s', new, mod, old))
+        local msg = deprecation(old, new, mod)
+        lark.log{msg, color='yellow'}
+
         return fn(unpack(arg))
     end
 end
