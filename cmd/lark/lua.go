@@ -7,6 +7,7 @@ import (
 
 	"github.com/bmatsuo/lark/internal/module"
 	"github.com/bmatsuo/lark/luamodules/decorator"
+	"github.com/bmatsuo/lark/luamodules/decorator/intern"
 	"github.com/bmatsuo/lark/luamodules/doc"
 	"github.com/bmatsuo/lark/luamodules/lark"
 	"github.com/bmatsuo/lark/luamodules/lark/core"
@@ -19,6 +20,7 @@ import (
 // loader functions.
 var PreloadModules = []module.Module{
 	task.Module,
+	intern.Module,
 	decorator.Module,
 	doc.Module,
 	path.Module,

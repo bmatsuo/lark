@@ -84,7 +84,7 @@ func docLoader(l *lua.LState) int {
 	parameters := weakTable(l, setmt, "k")
 
 	l.Push(l.GetGlobal("require"))
-	l.Push(lua.LString("decorator"))
+	l.Push(lua.LString("decorator.intern"))
 	l.Call(1, 1)
 	annotator := l.GetField(l.Get(-1), "annotator")
 	l.Pop(1)
