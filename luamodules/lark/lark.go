@@ -7,8 +7,8 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
-// Module is a module.Module that loads the lark module.
-var Module = module.New("lark", Loader)
+// Module is a gluamodule.Module that loads the lark module.
+var Module = gluamodule.New("lark", Loader)
 
 // Loader loads the default lark module.
 func Loader(l *lua.LState) int {

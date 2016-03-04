@@ -10,8 +10,8 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
-// Module is a module.Module that loads the doc module.
-var Module = module.New("doc", docLoader)
+// Module is a gluamodule.Module that loads the doc module.
+var Module = gluamodule.New("doc", docLoader)
 
 // GoDocs represents documentation for a Go object
 type GoDocs struct {

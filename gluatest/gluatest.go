@@ -10,7 +10,7 @@ import (
 
 // Module is a lua module to be tested.
 type Module struct {
-	Module      module.Module
+	Module      gluamodule.Module
 	TestScript  string
 	PreloadDeps []*Module
 }
@@ -18,9 +18,9 @@ type Module struct {
 // Preload runs the loader to register the module name.
 func (m *Module) Preload(t testing.TB) *lua.LState {
 	L := lua.NewState()
-	module.Preload(L, m.Module)
+	gluamodule.Preload(L, m.Module)
 	for _, m := range m.PreloadDeps {
-		module.Preload(L, m.Module)
+		gluamodule.Preload(L, m.Module)
 	}
 	err := L.DoFile(m.TestScript)
 	if err != nil {

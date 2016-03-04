@@ -18,7 +18,7 @@ import (
 
 // PreloadModules defines the (ordered) set of modules to preload and their
 // loader functions.
-var PreloadModules = []module.Module{
+var PreloadModules = []gluamodule.Module{
 	task.Module,
 	intern.Module,
 	decorator.Module,
@@ -66,7 +66,7 @@ func LoadVM(conf *LuaConfig) (s *lua.LState, err error) {
 // InitLark initializes the lark library and loads files.
 func InitLark(c *Context, files []string) error {
 	for _, mod := range PreloadModules {
-		module.Preload(c.Lua, mod)
+		gluamodule.Preload(c.Lua, mod)
 	}
 
 	trace := c.Lua.NewFunction(errTraceback)

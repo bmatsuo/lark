@@ -8,7 +8,7 @@ import (
 )
 
 var testModule = gluatest.Module{
-	Module:     module.New("lark.core", Loader),
+	Module:     gluamodule.New("lark.core", Loader),
 	TestScript: "core_test.lua",
 }
 

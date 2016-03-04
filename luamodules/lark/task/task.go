@@ -7,7 +7,7 @@ import (
 )
 
 // Module loads the "task" module.
-var Module = module.New("lark.task", Loader)
+var Module = gluamodule.New("lark.task", Loader)
 
 // Loader loads the Lua module.
 func Loader(l *lua.LState) int {

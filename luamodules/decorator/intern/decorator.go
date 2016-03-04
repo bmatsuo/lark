@@ -5,8 +5,8 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
-// Module is a module.Module that loads the "decorator" module.
-var Module = module.New("decorator.intern", Loader)
+// Module is a gluamodule.Module that loads the "decorator" module.
+var Module = gluamodule.New("decorator.intern", Loader)
 
 // Loader is a lua.LGFunction that loads the module.
 func Loader(l *lua.LState) int {

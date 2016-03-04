@@ -19,8 +19,8 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
-// Module is a module.Module that loads the lark.core module.
-var Module = module.New("lark.core", Loader)
+// Module is a gluamodule.Module that loads the lark.core module.
+var Module = gluamodule.New("lark.core", Loader)
 
 var defaultCore = newCore(os.Stderr, 0)
 
