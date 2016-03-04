@@ -8,6 +8,7 @@ func TestSynopsis(t *testing.T) {
 		expect string
 	}{
 		{"", ""},
+		{"\nfour pinapples", "four pinapples"},
 		{"four pinapples", "four pinapples"},
 		{"four. pinapples", "four."},
 		{"four pinapples\n\nfive oranges", "four pinapples"},
