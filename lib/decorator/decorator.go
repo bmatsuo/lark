@@ -2,12 +2,16 @@ package decorator
 
 import (
 	"github.com/bmatsuo/lark/gluamodule"
+	"github.com/bmatsuo/lark/lib/decorator/intern"
 	"github.com/bmatsuo/lark/lib/doc"
 	"github.com/yuin/gopher-lua"
 )
 
 // Module is a gluamodule.Module that loads the "decorator" module.
-var Module = gluamodule.New("decorator", Loader)
+var Module = gluamodule.New("decorator", Loader,
+	intern.Module,
+	doc.Module,
+)
 
 // Loader is a lua.LGFunction that loads the module.
 func Loader(l *lua.LState) int {
