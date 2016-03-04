@@ -1,28 +1,28 @@
-local path = require("path")
+local task = require('lark.task')
+local path = require('path')
 
 local cmd_reusable = {'python', '-c', 'exit(1)'}
 
 -- When `lark run` is not given any arguments lark.default_task will be
 -- executed with the default parameter values.  When lark.default_task is not
 -- set the first task defined will be used as the default.
-lark.default_task = 'demo'
+task.default = 'demo'
 
--- Patterns are defined using Lua's regular expression syntax.
---
-lark.task{pattern="^(.*)%.txt$", function(ctx)
-    local name = lark.get_name(ctx)
-    local patt = lark.get_pattern(ctx)
+-- Pattern matching tasks are defined using Lua's regular expression syntax.
+txt = lark.newpattern[[^(.*)%.txt$]] .. function(ctx)
+    local name = task.get_name(ctx)
+    local patt = task.get_pattern(ctx)
     print(name)
     local m = {string.match(name, patt)}
     print(table.concat(m, "\n"))
-    print(lark.get_param(ctx, "p"))
-end}
+    print(lark.newtask.get_param(ctx, "p"))
+end
 
-lark.task{'fail', function ()
+fail = lark.newtask .. function ()
     lark.exec{cmd_reusable}
-end}
+end
 
-lark.task{'demo', function ()
+demo = lark.newtask .. function ()
 	local file = path.join('abc', 'def')
 	lark.log{file, color='blue'}
 
@@ -51,4 +51,4 @@ lark.task{'demo', function ()
     -- Simple logging is provided with terminal colorization.  TTY devices are
     -- detected and color is ignored when output is written to a file.
     lark.log{'everything works!', color='green'}
-end}
+end

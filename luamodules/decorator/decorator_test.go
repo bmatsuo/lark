@@ -1,4 +1,4 @@
-package path
+package decorator
 
 import (
 	"testing"
@@ -10,7 +10,7 @@ import (
 
 var testModule = &luatest.Module{
 	Module:     Module,
-	TestScript: "path_test.lua",
+	TestScript: "decorator_test.lua",
 	PreloadDeps: []*luatest.Module{
 		{Module: doc.Module},
 		{Module: intern.Module},

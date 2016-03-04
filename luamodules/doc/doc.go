@@ -84,26 +84,26 @@ func docLoader(l *lua.LState) int {
 	parameters := weakTable(l, setmt, "k")
 	variables := weakTable(l, setmt, "k")
 
-	decorator := l.NewFunction(luaDecorator)
-	sig := l.NewClosure(
-		decoratorSetter(decorator, signatures),
-		decorator, signatures,
-	)
+	l.Push(l.GetGlobal("require"))
+	l.Push(lua.LString("decorator.intern"))
+	l.Call(1, 1)
+	annotator := l.GetField(l.Get(-1), "annotator")
+	l.Pop(1)
 
-	desc := l.NewClosure(
-		decoratorSetter(decorator, descriptions),
-		decorator, descriptions,
-	)
+	newAnnotator := func(t lua.LValue, prepend bool) lua.LValue {
+		l.Push(annotator)
+		l.Push(t)
+		l.Push(lua.LBool(prepend))
+		l.Call(2, 1)
+		val := l.Get(-1)
+		l.Pop(1)
+		return val
+	}
 
-	param := l.NewClosure(
-		decoratorPrepender(decorator, parameters),
-		decorator, parameters,
-	)
-
-	_var := l.NewClosure(
-		decoratorPrepender(decorator, variables),
-		decorator, variables,
-	)
+	sig := newAnnotator(signatures, false)
+	desc := newAnnotator(descriptions, false)
+	param := newAnnotator(parameters, true)
+	_var := newAnnotator(parameters, true)
 
 	dodoc := func(obj lua.LValue, s, d string, ps ...string) {
 		l.Push(sig)
@@ -399,62 +399,6 @@ func luaGet(signatures, descriptions, parameters, variables lua.LValue) lua.LGFu
 		l.SetField(t, "params", params)
 		l.SetField(t, "vars", vars)
 		l.Push(t)
-		return 1
-	}
-}
-
-func getDecorator(l *lua.LState, d *lua.LFunction) *lua.LFunction {
-	if d != nil {
-		return d
-	}
-	return l.NewFunction(luaDecorator)
-}
-
-func decoratorSetter(d *lua.LFunction, table lua.LValue) lua.LGFunction {
-	return func(l *lua.LState) int {
-		s := l.CheckString(1)
-		l.SetTop(0)
-		fn := l.NewClosure(setFunc(table, s), table) // close variable ``s''?
-		l.Push(getDecorator(l, d))
-		l.Push(fn)
-		l.Call(1, 1)
-		return 1
-	}
-}
-
-func decoratorPrepender(d *lua.LFunction, table lua.LValue) lua.LGFunction {
-	return func(l *lua.LState) int {
-		s := l.CheckString(1)
-		l.SetTop(0)
-		fn := l.NewClosure(prependFunc(table, s), table)
-		l.Push(getDecorator(l, d))
-		l.Push(fn)
-		l.Call(1, 1)
-		return 1
-	}
-}
-
-func setFunc(table lua.LValue, s string) lua.LGFunction {
-	return func(l *lua.LState) int {
-		val := l.Get(1)
-		l.SetTable(table, val, lua.LString(s))
-		return 1
-	}
-}
-
-func prependFunc(table lua.LValue, s string) lua.LGFunction {
-	return func(l *lua.LState) int {
-		val := l.Get(1)
-		t := l.GetTable(table, val)
-		if t == lua.LNil {
-			t = l.NewTable()
-		}
-		l.Push(l.GetField(l.GetGlobal("table"), "insert"))
-		l.Push(t)
-		l.Push(lua.LNumber(1))
-		l.Push(lua.LString(s))
-		l.Call(3, 0)
-		l.SetTable(table, val, t)
 		return 1
 	}
 }

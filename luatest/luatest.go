@@ -79,9 +79,8 @@ func errTraceback(L *lua.LState) int {
 	msg := L.Get(1)
 	L.SetTop(0)
 	L.Push(L.GetField(L.GetGlobal("debug"), "traceback"))
-	L.Push(lua.LNumber(1))
 	L.Push(msg)
 	L.Push(lua.LNumber(2))
-	L.Call(3, 1)
+	L.Call(2, 1)
 	return 1
 }

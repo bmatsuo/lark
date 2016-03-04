@@ -6,9 +6,12 @@ import (
 	"path/filepath"
 
 	"github.com/bmatsuo/lark/internal/module"
+	"github.com/bmatsuo/lark/luamodules/decorator"
+	"github.com/bmatsuo/lark/luamodules/decorator/intern"
 	"github.com/bmatsuo/lark/luamodules/doc"
 	"github.com/bmatsuo/lark/luamodules/lark"
 	"github.com/bmatsuo/lark/luamodules/lark/core"
+	"github.com/bmatsuo/lark/luamodules/lark/task"
 	"github.com/bmatsuo/lark/luamodules/path"
 	"github.com/yuin/gopher-lua"
 )
@@ -16,6 +19,9 @@ import (
 // PreloadModules defines the (ordered) set of modules to preload and their
 // loader functions.
 var PreloadModules = []module.Module{
+	task.Module,
+	intern.Module,
+	decorator.Module,
 	doc.Module,
 	path.Module,
 	core.Module,
@@ -63,9 +69,14 @@ func InitLark(c *Context, files []string) error {
 		module.Preload(c.Lua, mod)
 	}
 
+	trace := c.Lua.NewFunction(errTraceback)
+
 	c.Lua.Push(c.Lua.GetGlobal("require"))
 	c.Lua.Push(lua.LString("lark"))
-	c.Lua.Call(1, 1)
+	err := c.Lua.PCall(1, 1, trace)
+	if err != nil {
+		return err
+	}
 	lark := c.Lua.Get(-1)
 	c.Lua.Pop(1)
 	c.Lua.SetGlobal("lark", lark)
