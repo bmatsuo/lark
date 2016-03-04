@@ -1,5 +1,5 @@
 hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-updated: 2016-02-29T23:14:30.275772867-08:00
+updated: 2016-03-04T02:52:18.627294781-08:00
 imports:
 - name: github.com/chzyer/readline
   version: e9e6c35b06f2397adec3a6a5dfa89969d706b9fc
@@ -17,7 +17,6 @@ imports:
   version: 56b76bdf51f7708750eac80fa38b952bb9f32639
 - name: github.com/nbutton23/zxcvbn-go
   version: 5fb7f48ad1914518a3781e7bb7f2f3eb267e7ac9
-  repo: https://github.com/nbutton23/zxcvbn-go
 - name: github.com/pmezard/go-difflib
   version: e8554b8641db39598be7f6342874b958f12ae1d4
   subpackages:
