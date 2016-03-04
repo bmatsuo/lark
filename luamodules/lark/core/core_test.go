@@ -3,7 +3,7 @@ package core
 import (
 	"testing"
 
-	"github.com/bmatsuo/lark/internal/module"
+	"github.com/bmatsuo/lark/gluamodule"
 	"github.com/bmatsuo/lark/luatest"
 )
 

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/bmatsuo/lark/internal/module"
+	"github.com/bmatsuo/lark/gluamodule"
 	"github.com/bmatsuo/lark/luamodules/doc/internal/textutil"
 	"github.com/yuin/gopher-lua"
 )

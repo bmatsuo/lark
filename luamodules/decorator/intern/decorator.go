@@ -1,7 +1,7 @@
 package intern
 
 import (
-	"github.com/bmatsuo/lark/internal/module"
+	"github.com/bmatsuo/lark/gluamodule"
 	"github.com/yuin/gopher-lua"
 )
 

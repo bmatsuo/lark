@@ -5,7 +5,7 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/bmatsuo/lark/internal/module"
+	"github.com/bmatsuo/lark/gluamodule"
 	"github.com/bmatsuo/lark/luamodules/decorator"
 	"github.com/bmatsuo/lark/luamodules/decorator/intern"
 	"github.com/bmatsuo/lark/luamodules/doc"

@@ -1,7 +1,7 @@
 package decorator
 
 import (
-	"github.com/bmatsuo/lark/internal/module"
+	"github.com/bmatsuo/lark/gluamodule"
 	"github.com/bmatsuo/lark/luamodules/doc"
 	"github.com/yuin/gopher-lua"
 )

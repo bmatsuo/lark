@@ -13,7 +13,7 @@ import (
 	"sync"
 
 	"github.com/bmatsuo/lark/execgroup"
-	"github.com/bmatsuo/lark/internal/module"
+	"github.com/bmatsuo/lark/gluamodule"
 	"github.com/fatih/color"
 	"github.com/mattn/go-isatty"
 	"github.com/yuin/gopher-lua"
