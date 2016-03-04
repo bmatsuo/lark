@@ -3,6 +3,7 @@ require 'table'
 require 'os'
 
 local core = require('lark.core')
+local task = require('lark.task')
 local doc = require('doc')
 
 local function flatten(...)
@@ -38,6 +39,10 @@ local lark =
         patterns  = {},
     }
 
+lark.pattern = task.with_pattern
+lark.newpattern = task.with_pattern
+lark.newtask = task
+
 lark.task =
     doc.sig[[(name, fn) => ()]] ..
     doc.desc[[Define a new task.]] ..
@@ -58,91 +63,48 @@ lark.task =
             lark.default_task = name
         end
 
-        if name then
-            lark.tasks[name] = fn
-        end
         if pattern then
-            print('pattern task: ' .. pattern)
-            for _, rec in pairs(lark.patterns) do
-                if rec[1] == pattern then
-                    error("pattern already defined: " .. pattern)
-                end
-            end
-            local rec = { pattern, fn }
-            table.insert(lark.patterns, rec)
+            task.with_pattern(pattern)(fn)
+        else
+            task.with_name(name)(fn)
         end
     end
 
+lark.run = task.run
 
-local function run (task, ctx)
-    local fn = lark.tasks[task]
-    if not fn then
-        for _, rec in pairs(lark.patterns) do
-            if string.find(task, rec[1]) then
-                ctx.pattern = rec[1]
-                fn = rec[2]
-                break
-            end
-        end
+local function deprecated_alias(fn, old, new, mod)
+    return function(...)
+        print(string.format('deprecation warning: use %s in module %s instead of %s', new, mod, old))
+        return fn(unpack(arg))
     end
-    if not fn then
-        error('no task matching ' .. task)
-    end
-    fn(ctx)
 end
-
-lark.run =
-    doc.sig[[(task, params) => ()]] ..
-    doc.desc[[Execute the given task.]] ..
-    doc.param[[task    string | nil -- A task name.  If nil is given then default_task is used.]] ..
-    doc.param[[params  (optional) table -- A map from parameter names to (string) values]] ..
-    function (task, params)
-        if not task then
-            task = lark.default_task
-			if not task then error('no task to run') end
-        end
-        if type(task) ~= 'string' then
-            error('task is not a string')
-        end
-
-        local ctx = {name = task, params = params}
-        run(task, ctx)
-    end
 
 lark.get_name =
     doc.sig[[ctx => string]] ..
     doc.desc[[Return the name of the task corresponding to the given context.]] ..
     doc.param[[ctx  object -- the context argument of an executing task]] ..
-    function(ctx)
-        if ctx then
-            return ctx.name
-        end
-        return nil
-    end
+    deprecated_alias(task.get_name, "lark.get_name()", "get_name()", "lark.task")
 
 lark.get_pattern =
     doc.sig[[ctx => string]] ..
-    doc.desc[[Return the regular expression that matched the executing task or nil if the task name was not matched against a pattern.]] ..
+    doc.desc[[
+        Return the regular expression that matched the executing task.  If the
+        task name was not matched against a pattern then nil is returned.
+        ]] ..
     doc.param[[ctx  object -- the context argument of an executing task]] ..
-    function(ctx)
-        if ctx then
-            return ctx.pattern
-        end
-        return nil
-    end
+    deprecated_alias(task.get_pattern, "lark.get_pattern()", "get_pattern()", "lark.task")
 
 lark.get_param =
     doc.sig[[(ctx, name, [default]) => string]] ..
-    doc.desc[[Return the value for the name parameter given to the task corresponding to ctx.]] ..
+    doc.desc[[
+        Return the value for the name parameter given to the task corresponding
+        to ctx.  If the task context has no name parameter then default is
+        returned.
+        ]] ..
     doc.param[[ctx      object -- the context argument of an executing task]] ..
     doc.param[[name     string -- the name of the task parameter]] ..
     doc.param[[default  any -- returned when the task has no value for the parameter]] ..
-    function(ctx, name, default)
-        if ctx and ctx.params then
-            return ctx.params[name] or default
-        end
-        return default
-    end
+    deprecated_alias(task.get_param, "lark.get_param()", "get_param()", "lark.task")
 
 local function shell_quote(args)
     local q = function (s)

@@ -3,42 +3,42 @@ local go = require('go')
 local version = require('version')
 local moses = require('moses')
 
-lark.task{'all', function()
+lark.task('all', function()
     lark.run('gen')
     lark.run('test')
     lark.run('build')
-end}
+end)
 
-lark.task{'init', function()
+lark.task('init', function()
     lark.exec{'glide', 'install'}
-end}
+end)
 
-lark.task{'clean', function()
+lark.task('clean',  function()
     lark.exec{'rm', '-f', 'lark'}
-end}
+end)
 
-lark.task{'gen', function ()
+lark.task('gen', function ()
     go.gen()
-end}
+end)
 
-lark.task{'build', function ()
+lark.task('build', function ()
     go.build{'./cmd/...', ldflags=ldflags}
-end}
+end)
 
-lark.task{'install', function ()
+lark.task('install', function ()
     go.install{ldflags=ldflags}
-end}
+end)
 
-lark.task{'test', function(ctx)
+lark.task('test', function(ctx)
     local race = lark.get_param(ctx, 'race')
     if race then
         go.test{race=true}
     else
         go.test{cover=true}
     end
-end}
+end)
 
-lark.task{'release', function()
+lark.task('release', function()
     lark.run('gen')
     lark.run('test')
 
@@ -74,4 +74,4 @@ lark.task{'release', function()
         end
         lark.exec{'rm', '-r', dist}
     end
-end}
+end)

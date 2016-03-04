@@ -1,8 +1,9 @@
-package path
+package task
 
 import (
 	"testing"
 
+	"github.com/bmatsuo/lark/luamodules/decorator"
 	"github.com/bmatsuo/lark/luamodules/decorator/intern"
 	"github.com/bmatsuo/lark/luamodules/doc"
 	"github.com/bmatsuo/lark/luatest"
@@ -10,9 +11,10 @@ import (
 
 var testModule = &luatest.Module{
 	Module:     Module,
-	TestScript: "path_test.lua",
+	TestScript: "task_test.lua",
 	PreloadDeps: []*luatest.Module{
 		{Module: doc.Module},
+		{Module: decorator.Module},
 		{Module: intern.Module},
 	},
 }
