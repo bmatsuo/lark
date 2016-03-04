@@ -72,10 +72,10 @@ lark.task =
 
 lark.run = task.run
 
-local function deprecated_alias(fn, old, new)
+local function deprecated_alias(fn, old, new, mod)
     return function(...)
-        print(string.format('deprecation warning: use %s instead of %s', new, old))
-        fn(unpack(arg))
+        print(string.format('deprecation warning: use %s in module %s instead of %s', new, mod, old))
+        return fn(unpack(arg))
     end
 end
 
@@ -83,7 +83,7 @@ lark.get_name =
     doc.sig[[ctx => string]] ..
     doc.desc[[Return the name of the task corresponding to the given context.]] ..
     doc.param[[ctx  object -- the context argument of an executing task]] ..
-    deprecated_alias(task.get_name, "lark.get_name", "task.get_name")
+    deprecated_alias(task.get_name, "lark.get_name()", "get_name()", "lark.task")
 
 lark.get_pattern =
     doc.sig[[ctx => string]] ..
@@ -92,7 +92,7 @@ lark.get_pattern =
         task name was not matched against a pattern then nil is returned.
         ]] ..
     doc.param[[ctx  object -- the context argument of an executing task]] ..
-    deprecated_alias(task.get_pattern, "lark.get_pattern", "task.get_pattern")
+    deprecated_alias(task.get_pattern, "lark.get_pattern()", "get_pattern()", "lark.task")
 
 lark.get_param =
     doc.sig[[(ctx, name, [default]) => string]] ..
@@ -104,7 +104,7 @@ lark.get_param =
     doc.param[[ctx      object -- the context argument of an executing task]] ..
     doc.param[[name     string -- the name of the task parameter]] ..
     doc.param[[default  any -- returned when the task has no value for the parameter]] ..
-    deprecated_alias(task.get_param, "lark.get_param", "task.get_param")
+    deprecated_alias(task.get_param, "lark.get_param()", "get_param()", "lark.task")
 
 local function shell_quote(args)
     local q = function (s)

@@ -10,8 +10,8 @@ task.default = 'demo'
 
 -- Pattern matching tasks are defined using Lua's regular expression syntax.
 txt = lark.newpattern[[^(.*)%.txt$]] .. function(ctx)
-    local name = lark.newtask.get_name(ctx)
-    local patt = lark.newtask.get_pattern(ctx)
+    local name = task.get_name(ctx)
+    local patt = task.get_pattern(ctx)
     print(name)
     local m = {string.match(name, patt)}
     print(table.concat(m, "\n"))
