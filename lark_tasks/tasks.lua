@@ -1,11 +1,5 @@
 local go = require('go')
 
-lark.task('all', function()
-    lark.run('gen')
-    lark.run('test')
-    lark.run('build')
-end)
-
 lark.task('init', function()
     lark.exec{'glide', 'install'}
 end)

@@ -15,6 +15,8 @@ local novendor =
 string.gsub(novendor, '(%S+)', function(p) table.insert(sources, p) end)
 go.default_sources = sources
 
-lark.default_task = 'all'
-
--- doc.help(doc.help)
+lark.task('all', function()
+    lark.run('gen')
+    lark.run('test')
+    lark.run('build')
+end)
