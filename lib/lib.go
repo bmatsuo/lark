@@ -1,12 +1,8 @@
+//go:generate bash collect.sh modules.go
+
 package lib
 
-import (
-	"github.com/bmatsuo/lark/gluamodule"
-	"github.com/bmatsuo/lark/lib/decorator"
-	"github.com/bmatsuo/lark/lib/doc"
-	"github.com/bmatsuo/lark/lib/lark"
-)
-
+/*
 func init() {
 	Modules = joinModules(
 		decorator.Module,
@@ -25,3 +21,4 @@ func joinModules(m ...gluamodule.Module) []gluamodule.Module {
 	}
 	return mods
 }
+*/
