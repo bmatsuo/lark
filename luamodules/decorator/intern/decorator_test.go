@@ -3,10 +3,10 @@ package intern
 import (
 	"testing"
 
-	"github.com/bmatsuo/lark/luatest"
+	"github.com/bmatsuo/lark/gluatest"
 )
 
-var testModule = &luatest.Module{
+var testModule = &gluatest.Module{
 	Module:     Module,
 	TestScript: "decorator_test.lua",
 }

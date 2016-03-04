@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	"github.com/bmatsuo/lark/gluamodule"
-	"github.com/bmatsuo/lark/luatest"
+	"github.com/bmatsuo/lark/gluatest"
 )
 
-var testModule = luatest.Module{
+var testModule = gluatest.Module{
 	Module:     module.New("lark.core", Loader),
 	TestScript: "core_test.lua",
 }

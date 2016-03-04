@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"github.com/bmatsuo/lark/luamodules/decorator/intern"
-	"github.com/bmatsuo/lark/luatest"
+	"github.com/bmatsuo/lark/gluatest"
 )
 
-var testModule = &luatest.Module{
+var testModule = &gluatest.Module{
 	Module:     Module,
 	TestScript: "doc_test.lua",
-	PreloadDeps: []*luatest.Module{
+	PreloadDeps: []*gluatest.Module{
 		{Module: intern.Module},
 	},
 }

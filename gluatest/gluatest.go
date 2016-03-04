@@ -1,4 +1,4 @@
-package luatest
+package gluatest
 
 import (
 	"strings"
