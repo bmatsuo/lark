@@ -10,6 +10,10 @@
 - Remove the function `lark.shell_quote()`.  It's direct use was never
   recommended.
 
+- New module "lark.task" that will deprecate task-related functions in the
+  "lark" module and replace the API/syntax used for `lark.task()`.  See #25 and
+  #24.
+
 ##v0.3.1
 
 - Fix bug retreiving captured output from lark.exec().  The lark.exec()
