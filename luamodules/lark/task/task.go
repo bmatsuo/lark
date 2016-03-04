@@ -44,7 +44,23 @@ func Loader(l *lua.LState) int {
 	name := l.Get(-1)
 	l.Pop(1)
 	doc.Go(l, name, &doc.GoDocs{
-		Desc: "A decorator that names its task.",
+		Sig: "name => fn => fn",
+		Desc: `
+		Return a decorator that gives a task function an explicit name.
+		Explicitly named tasks are given the highest priority in matching
+		names given to find() and run().
+		`,
+		Params: []string{
+			`name string
+			-- The task name.  A tasks may only consist of latin
+			alphanumerics and underscore '_'.
+			`,
+			`fn function
+			-- The task function.  The function may take one "context" argument
+			which allows runtime access to task metadeta and command line
+			parameters.
+			`,
+		},
 	})
 
 	patternFunc := l.NewClosure(
@@ -57,7 +73,14 @@ func Loader(l *lua.LState) int {
 	pattern := l.Get(-1)
 	l.Pop(1)
 	doc.Go(l, pattern, &doc.GoDocs{
-		Desc: "A decorator that defines a pattern for its task.",
+		Sig: "patt => fn => fn",
+		Desc: `
+		Returns a decorator that associates the given patten with a function.
+		`,
+		Params: []string{
+			"patt  string -- A regular expression to match against task names",
+			"fn    function -- A task function which may take a context argument",
+		},
 	})
 
 	createFunc := l.NewClosure(
@@ -70,7 +93,21 @@ func Loader(l *lua.LState) int {
 	create := l.Get(-1)
 	l.Pop(1)
 	doc.Go(l, create, &doc.GoDocs{
-		Desc: "A decorator that defines an anonymous task.",
+		Sig: "fn => fn",
+		Desc: `
+		A decorator that creates an anonymous task from a function.
+
+		To call an anonymous task by name assign it to global variable and call
+		run() with the name of the global function.
+
+			> mytask = task.create(function() print("my task!") end)
+			> task.run('mytask')
+			my task!
+			>
+		`,
+		Params: []string{
+			"fn  function -- A task function",
+		},
 	})
 
 	find := l.NewClosure(
@@ -78,7 +115,36 @@ func Loader(l *lua.LState) int {
 		anonTasks, namedTasks, patterns, mod,
 	)
 	doc.Go(l, find, &doc.GoDocs{
-		Desc: "Find the task by the given name.",
+		Sig: "name => (fn, match, pattern)",
+		Desc: `
+		Return the task matching the given name.  If no name is given the
+		default task is returned.
+
+		Find first looks for named tasks with the given name.  If no explicitly
+		named task matches an anonymous task stored in a global variable of the
+		same name will be used.
+
+		When no named task matches a given name it will be tested against
+		pattern matching tasks.  The first pattern task to match the name will
+		be returned.  Pattern matching tasks will be tested in the order they
+		were defined.
+		`,
+		Params: []string{
+			`name (optional) string
+			-- The name of a task that matches a task defined with task.create, task.name(), task.pattern().
+			`,
+			`fn function
+			-- The matching task function.  If nil all other return parameters
+			will be nil.
+			`,
+			`match string
+			-- The name of the matching task.
+			`,
+			`pattern string
+			-- The pattern which matched the task name, if a name was given and
+			no anonymous or explicitly named task could be matched.
+			`,
+		},
 	})
 
 	dump := l.NewClosure(
@@ -86,7 +152,12 @@ func Loader(l *lua.LState) int {
 		anonTasks, namedTasks, patterns, mod,
 	)
 	doc.Go(l, dump, &doc.GoDocs{
-		Desc: "Write all task names and patterns to standard output.",
+		Sig: "() => ()",
+		Desc: `
+		Write all task names and patterns to standard output.  Finding all
+		anonymous tasks is a computationally expensive process.  Do not
+		repeatedly call this function.
+		`,
 	})
 
 	l.SetField(mod, "create", create)
@@ -94,13 +165,82 @@ func Loader(l *lua.LState) int {
 	l.SetField(mod, "with_pattern", pattern)
 	l.SetField(mod, "find", find)
 	l.SetField(mod, "dump", dump)
-	l.SetField(mod, "run", l.NewClosure(
-		luaRun(find),
-		find,
-	))
-	l.SetField(mod, "get_name", l.NewClosure(luaGetName))
-	l.SetField(mod, "get_pattern", l.NewClosure(luaGetPattern))
-	l.SetField(mod, "get_param", l.NewClosure(luaGetParam))
+
+	run := l.NewClosure(luaRun(find), find)
+	l.SetField(mod, "run", run)
+	doc.Go(l, run, &doc.GoDocs{
+		Sig: "name => ()",
+		Desc: `
+		Find and run the task with the given name.  See find() for more
+		information about task precedence.
+		`,
+		Params: []string{
+			`name string
+			-- The name of the task to run.
+			`,
+		},
+	})
+
+	getName := l.NewClosure(luaGetName)
+	l.SetField(mod, "get_name", getName)
+	doc.Go(l, getName, &doc.GoDocs{
+		Sig: "ctx => name",
+		Desc: `
+		Retrieve the name of a (running) task from the task's context.
+		`,
+		Params: []string{
+			`context table
+			-- Task context received as the first argument to a task function.
+			`,
+			`name string
+			-- The task's name explicity given to task.run() or derived for an
+			anonymous task.
+			`,
+		},
+	})
+
+	getPattern := l.NewClosure(luaGetPattern)
+	l.SetField(mod, "get_pattern", getPattern)
+	doc.Go(l, getName, &doc.GoDocs{
+		Sig: "ctx => patt",
+		Desc: `
+		Retrieve the regular expression that matched a (running) task from the
+		task's context.  If the task was not matched using a pattern nil is
+		returned.
+		`,
+		Params: []string{
+			`context table
+			-- Task context received as the first argument to a task function.
+			`,
+			`patt string
+			-- The pattern that matched the task name passed to task.run().
+			`,
+		},
+	})
+
+	getParam := l.NewClosure(luaGetParam)
+	l.SetField(mod, "get_param", getParam)
+	doc.Go(l, getName, &doc.GoDocs{
+		Sig: "(ctx, name) => value",
+		Desc: `
+		Retrieve the value of a task parameter (typically passed in through the
+		command line).
+		`,
+		Params: []string{
+			`context table
+			-- Task context received as the first argument to a task function.
+			`,
+			`name string
+			-- The name of a task parameter.
+			`,
+			`value string
+			-- The value of the named parameter or nil if the task has no
+			parameter with the given name.  While task.run() does not restrict
+			the type of given parameter values all parameter values should be
+			treated as strings.
+			`,
+		},
+	})
 
 	// setmetatable and return mod
 	l.Push(setmt)
