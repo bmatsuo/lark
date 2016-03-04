@@ -201,7 +201,7 @@ func Loader(l *lua.LState) int {
 
 	getPattern := l.NewClosure(luaGetPattern)
 	l.SetField(mod, "get_pattern", getPattern)
-	doc.Go(l, getName, &doc.GoDocs{
+	doc.Go(l, getPattern, &doc.GoDocs{
 		Sig: "ctx => patt",
 		Desc: `
 		Retrieve the regular expression that matched a (running) task from the
@@ -220,7 +220,7 @@ func Loader(l *lua.LState) int {
 
 	getParam := l.NewClosure(luaGetParam)
 	l.SetField(mod, "get_param", getParam)
-	doc.Go(l, getName, &doc.GoDocs{
+	doc.Go(l, getParam, &doc.GoDocs{
 		Sig: "(ctx, name) => value",
 		Desc: `
 		Retrieve the value of a task parameter (typically passed in through the
