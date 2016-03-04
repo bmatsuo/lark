@@ -6,12 +6,15 @@ import (
 	"unicode"
 
 	"github.com/bmatsuo/lark/gluamodule"
+	"github.com/bmatsuo/lark/lib/decorator/intern"
 	"github.com/bmatsuo/lark/lib/doc/internal/textutil"
 	"github.com/yuin/gopher-lua"
 )
 
 // Module is a gluamodule.Module that loads the doc module.
-var Module = gluamodule.New("doc", docLoader)
+var Module = gluamodule.New("doc", docLoader,
+	intern.Module,
+)
 
 // GoDocs represents documentation for a Go object
 type GoDocs struct {

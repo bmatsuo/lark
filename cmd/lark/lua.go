@@ -6,27 +6,9 @@ import (
 	"path/filepath"
 
 	"github.com/bmatsuo/lark/gluamodule"
-	"github.com/bmatsuo/lark/lib/decorator"
-	"github.com/bmatsuo/lark/lib/decorator/intern"
-	"github.com/bmatsuo/lark/lib/doc"
-	"github.com/bmatsuo/lark/lib/lark"
-	"github.com/bmatsuo/lark/lib/lark/core"
-	"github.com/bmatsuo/lark/lib/lark/task"
-	"github.com/bmatsuo/lark/lib/path"
+	"github.com/bmatsuo/lark/lib"
 	"github.com/yuin/gopher-lua"
 )
-
-// PreloadModules defines the (ordered) set of modules to preload and their
-// loader functions.
-var PreloadModules = []gluamodule.Module{
-	task.Module,
-	intern.Module,
-	decorator.Module,
-	doc.Module,
-	path.Module,
-	core.Module,
-	lark.Module,
-}
 
 // FindTaskFiles locates task scripts in the project dir.
 func FindTaskFiles(dir string) ([]string, error) {
@@ -65,7 +47,7 @@ func LoadVM(conf *LuaConfig) (s *lua.LState, err error) {
 
 // InitLark initializes the lark library and loads files.
 func InitLark(c *Context, files []string) error {
-	for _, mod := range PreloadModules {
+	for _, mod := range lib.Modules {
 		gluamodule.Preload(c.Lua, mod)
 	}
 

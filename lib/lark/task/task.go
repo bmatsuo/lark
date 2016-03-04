@@ -2,12 +2,16 @@ package task
 
 import (
 	"github.com/bmatsuo/lark/gluamodule"
+	"github.com/bmatsuo/lark/lib/decorator"
 	"github.com/bmatsuo/lark/lib/doc"
 	"github.com/yuin/gopher-lua"
 )
 
 // Module loads the "task" module.
-var Module = gluamodule.New("lark.task", Loader)
+var Module = gluamodule.New("lark.task", Loader,
+	doc.Module,
+	decorator.Module,
+)
 
 // Loader loads the Lua module.
 func Loader(l *lua.LState) int {

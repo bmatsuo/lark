@@ -14,13 +14,16 @@ import (
 
 	"github.com/bmatsuo/lark/execgroup"
 	"github.com/bmatsuo/lark/gluamodule"
+	"github.com/bmatsuo/lark/lib/doc"
 	"github.com/fatih/color"
 	"github.com/mattn/go-isatty"
 	"github.com/yuin/gopher-lua"
 )
 
 // Module is a gluamodule.Module that loads the lark.core module.
-var Module = gluamodule.New("lark.core", Loader)
+var Module = gluamodule.New("lark.core", Loader,
+	doc.Module,
+)
 
 var defaultCore = newCore(os.Stderr, 0)
 

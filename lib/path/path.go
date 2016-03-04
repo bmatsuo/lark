@@ -10,7 +10,9 @@ import (
 )
 
 // Module is a gluamodule.Module that loads the path module.
-var Module = gluamodule.New("path", Loader)
+var Module = gluamodule.New("path", Loader,
+	doc.Module,
+)
 
 // Loader preloads the path module so that it can be required in lua scripts.
 func Loader(l *lua.LState) int {
