@@ -1,5 +1,5 @@
-hash: 002f4b2ba9228444093f0dba88696b68903fc235c50803bc464d1c7e507013a9
-updated: 2016-03-04T02:53:14.448707092-08:00
+hash: bf0836164006420aa06837a68d357e5aed3e47aac0b7ee2a83793844b3e37c0b
+updated: 2016-03-04T02:58:45.991082325-08:00
 imports:
 - name: github.com/chzyer/readline
   version: e9e6c35b06f2397adec3a6a5dfa89969d706b9fc
@@ -8,13 +8,14 @@ imports:
 - name: github.com/codegangsta/cli
   version: c31a7975863e7810c92e2e288a9ab074f9a88f29
 - name: github.com/fatih/color
-  version: 9aae6aaa22315390f03959adca2c4d395b02fcef
+  version: 4f7bcef27eec7925456d0c30c5e7b0408b3339be
 - name: github.com/mattn/go-colorable
-  version: 3dac7b4f76f6e17fb39b768b89e3783d16e237fe
+  version: 9cbef7c35391cca05f15f8181dc0b18bc9736dbb
+  repo: https://github.com/mattn/go-colorable
 - name: github.com/mattn/go-isatty
   version: 56b76bdf51f7708750eac80fa38b952bb9f32639
 - name: github.com/yuin/gopher-lua
-  version: 159f96c9c15cad62019d484f417818d824e657e9
+  version: e5faab4db06a81efb60d8e16c1d205e1d93736a9
   subpackages:
   - ast
   - parse

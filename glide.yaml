@@ -3,7 +3,11 @@ import:
     - package: github.com/codegangsta/cli
       tag: v1.2.0
     - package: github.com/fatih/color
+      ref: master
     - package: github.com/chzyer/readline
+      ref: master
     - package: github.com/mattn/go-isatty
+      ref: master
     - package: github.com/yuin/gopher-lua
       subpackages: [ast, parse, pm]
+      ref: master
