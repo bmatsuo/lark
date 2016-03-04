@@ -13,7 +13,9 @@ func Synopsis(text string) string {
 	if text == "" {
 		return ""
 	}
-	flat := Wrap(Unindent(text), len(text)+1)
+	just := Unindent(text)
+	trim := strings.TrimSpace(just)
+	flat := Wrap(trim, len(text)+1)
 	s := bufio.NewScanner(strings.NewReader(flat))
 	for s.Scan() {
 		line := s.Text()

@@ -33,6 +33,10 @@ local lark =
     If this behavior is not desired the default task can be set manually using
     the module variable `default_task`.
     ]] ..
+    doc.var[[
+    verbose
+    boolean -- Log more information then normal if this variable is true.
+    ]] ..
     {
         default_task = nil,
         tasks = {},
