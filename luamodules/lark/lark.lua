@@ -34,10 +34,6 @@ local lark =
     the module variable `default_task`.
     ]] ..
     doc.var[[
-    default_task
-    string -- The task to perform when lark.run() is given no arguments.
-    ]] ..
-    doc.var[[
     verbose
     boolean -- Log more information then normal if this variable is true.
     ]] ..

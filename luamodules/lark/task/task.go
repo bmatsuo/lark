@@ -26,6 +26,11 @@ func Loader(l *lua.LState) int {
 			mytask = task .. function() print('my task!') end
 			task.run('mytask')
 		`,
+		Vars: []string{
+			`default
+				string -- The task to perform when lark.run() is given no arguments.
+				`,
+		},
 	})
 
 	setmt, ok := l.GetGlobal("setmetatable").(*lua.LFunction)

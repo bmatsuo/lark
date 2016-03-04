@@ -18,6 +18,7 @@ type GoDocs struct {
 	Sig    string
 	Desc   string
 	Params []string
+	Vars   []string
 }
 
 // Go sets the description for obj to desc.
@@ -40,7 +41,6 @@ func Go(l *lua.LState, obj lua.LValue, doc *GoDocs) {
 		}
 		ndec++
 	}
-
 	if doc.Desc != "" {
 		sig := l.GetField(mod, "desc")
 		l.Push(sig)
@@ -50,6 +50,18 @@ func Go(l *lua.LState, obj lua.LValue, doc *GoDocs) {
 			l.RaiseError("%s", err)
 		}
 		ndec++
+	}
+	if len(doc.Vars) > 0 {
+		_var := l.GetField(mod, "var")
+		for _, v := range doc.Vars {
+			l.Push(_var)
+			l.Push(lua.LString(v))
+			err := l.PCall(1, 1, nil)
+			if err != nil {
+				l.RaiseError("%s", err)
+			}
+			ndec++
+		}
 	}
 	if len(doc.Params) > 0 {
 		param := l.GetField(mod, "param")
@@ -103,7 +115,7 @@ func docLoader(l *lua.LState) int {
 	sig := newAnnotator(signatures, false)
 	desc := newAnnotator(descriptions, false)
 	param := newAnnotator(parameters, true)
-	_var := newAnnotator(parameters, true)
+	_var := newAnnotator(variables, true)
 
 	dodoc := func(obj lua.LValue, s, d string, ps ...string) {
 		l.Push(sig)
