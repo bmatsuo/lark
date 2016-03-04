@@ -6,7 +6,7 @@ import (
 	"unicode"
 
 	"github.com/bmatsuo/lark/gluamodule"
-	"github.com/bmatsuo/lark/luamodules/doc/internal/textutil"
+	"github.com/bmatsuo/lark/lib/doc/internal/textutil"
 	"github.com/yuin/gopher-lua"
 )
 

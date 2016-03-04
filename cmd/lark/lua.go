@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 
 	"github.com/bmatsuo/lark/gluamodule"
-	"github.com/bmatsuo/lark/luamodules/decorator"
-	"github.com/bmatsuo/lark/luamodules/decorator/intern"
-	"github.com/bmatsuo/lark/luamodules/doc"
-	"github.com/bmatsuo/lark/luamodules/lark"
-	"github.com/bmatsuo/lark/luamodules/lark/core"
-	"github.com/bmatsuo/lark/luamodules/lark/task"
-	"github.com/bmatsuo/lark/luamodules/path"
+	"github.com/bmatsuo/lark/lib/decorator"
+	"github.com/bmatsuo/lark/lib/decorator/intern"
+	"github.com/bmatsuo/lark/lib/doc"
+	"github.com/bmatsuo/lark/lib/lark"
+	"github.com/bmatsuo/lark/lib/lark/core"
+	"github.com/bmatsuo/lark/lib/lark/task"
+	"github.com/bmatsuo/lark/lib/path"
 	"github.com/yuin/gopher-lua"
 )
 

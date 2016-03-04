@@ -1,16 +1,18 @@
-package doc
+package decorator
 
 import (
 	"testing"
 
-	"github.com/bmatsuo/lark/luamodules/decorator/intern"
+	"github.com/bmatsuo/lark/lib/decorator/intern"
+	"github.com/bmatsuo/lark/lib/doc"
 	"github.com/bmatsuo/lark/gluatest"
 )
 
 var testModule = &gluatest.Module{
 	Module:     Module,
-	TestScript: "doc_test.lua",
+	TestScript: "decorator_test.lua",
 	PreloadDeps: []*gluatest.Module{
+		{Module: doc.Module},
 		{Module: intern.Module},
 	},
 }

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/bmatsuo/lark/gluamodule"
-	"github.com/bmatsuo/lark/luamodules/doc"
+	"github.com/bmatsuo/lark/lib/doc"
 	"github.com/yuin/gopher-lua"
 )
 

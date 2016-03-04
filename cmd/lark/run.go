@@ -10,7 +10,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/bmatsuo/lark/luamodules/lark/core"
+	"github.com/bmatsuo/lark/lib/lark/core"
 	"github.com/codegangsta/cli"
 	"github.com/yuin/gopher-lua"
 )
