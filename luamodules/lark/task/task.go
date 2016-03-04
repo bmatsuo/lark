@@ -12,6 +12,21 @@ var Module = module.New("lark.task", Loader)
 // Loader loads the Lua module.
 func Loader(l *lua.LState) int {
 	mod := l.NewTable()
+	doc.Go(l, mod, &doc.GoDocs{
+		Desc: `
+		The task module manages lark tasks.  It provides decorators that can be
+		used to define new tasks.  To locate and execute tasks by name the
+		find() and run() functions are provided respectively.
+
+		For convenience the module table acts as a decorator aliasing
+		task.create.  These tasks are located through the global variable index
+
+
+			local task = require('task')
+			mytask = task .. function() print('my task!') end
+			task.run('mytask')
+		`,
+	})
 
 	setmt, ok := l.GetGlobal("setmetatable").(*lua.LFunction)
 	if !ok {
