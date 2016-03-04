@@ -42,9 +42,9 @@ temporary transitional functions and will deprecated in v0.5.0. After v0.5.0
 v0.4.0 `lark.task` contains deprecated incompatible semantics.
 
 ```sh
-    lark run generate
-    lark run build
-    lark run           # runs the default task, "build".
+lark run generate
+lark run build
+lark run           # runs the default task, "build".
 ```
 
 The last line above executes the project's default task, the first task
@@ -52,7 +52,8 @@ defined.  The default task can also be set explicitly in the `lark.lua` file if
 desired.
 
 ```lua
-lark.default_task = 'build'
+task = require('lark.task')
+task.default = 'build'
 ```
 
 A user can query the list of available tasks at any time using the `lark list`
