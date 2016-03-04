@@ -14,6 +14,9 @@
   "lark" module and replace the API/syntax used for `lark.task()`.  See #25 and
   #24.
 
+- Project reorganization.  The contents of the `luamodules/` directory can now
+  be found in the `lib/` directory.
+
 ##v0.3.1
 
 - Fix bug retreiving captured output from lark.exec().  The lark.exec()
