@@ -2,6 +2,8 @@
 
 ##v0.4.0
 
+- Fix documentation of available modules available through the help() command.
+
 - Documentation is now accessible through the REPL (`lark repl`) using the
   global function `help()`.
 
