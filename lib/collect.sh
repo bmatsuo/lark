@@ -29,11 +29,23 @@ for pkg in $(collect); do
 done
 ln ")"
 ln
-ln "// Modules lists every module in the library"
+ln "// Modules lists every module in the library."
 ln "var Modules = []gluamodule.Module{"
 for pkg in $(collect); do
-    name=$(basename "$pkg")
+    name=$(basename "$pkg" | sed s/^_//)
     ln "	$name.Module,"
+done
+ln "}"
+ln
+ln "// InteralModules modules that are not general purpose and should not be
+imported by scripts."
+ln "var InternalModules = []gluamodule.Module{"
+for pkg in $(collect); do
+    if basename "$pkg" | grep ^_ > /dev/null 2>&1
+    then
+        name=$(basename "$pkg" | sed s/^_//)
+        ln "	$name.Module,"
+    fi
 done
 ln "}"
 
