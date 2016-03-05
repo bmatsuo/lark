@@ -53,7 +53,7 @@ Lua Reference
 
 Lua API documentation is available through the help() function in the embedded REPL.
 
-	lark repl
+	lark lua
 	> help()
 	> help(lark)
 */
