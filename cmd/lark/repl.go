@@ -72,11 +72,20 @@ func REPLHelp() string {
 	for _, m := range lib.Modules {
 		modules = append(modules, m.Name())
 	}
+
+	internal := map[string]bool{}
+	for _, m := range lib.InternalModules {
+		internal[m.Name()] = true
+	}
+
 	sort.Strings(modules)
 	var help bytes.Buffer
 	help.WriteString(REPLHelpDefault)
 	help.WriteString("\n\nBuiltin Modules\n\n")
 	for _, m := range modules {
+		if internal[m] {
+			continue
+		}
 		help.WriteString("\t")
 		help.WriteString(m)
 		if m == "lark" {

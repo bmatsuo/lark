@@ -6,7 +6,7 @@ package lib
 import (
 	"github.com/bmatsuo/lark/gluamodule"
 	"github.com/bmatsuo/lark/lib/decorator"
-	"github.com/bmatsuo/lark/lib/decorator/intern"
+	"github.com/bmatsuo/lark/lib/decorator/_intern"
 	"github.com/bmatsuo/lark/lib/doc"
 	"github.com/bmatsuo/lark/lib/lark"
 	"github.com/bmatsuo/lark/lib/lark/core"
@@ -14,7 +14,7 @@ import (
 	"github.com/bmatsuo/lark/lib/path"
 )
 
-// Modules lists every module in the library
+// Modules lists every module in the library.
 var Modules = []gluamodule.Module{
 	lark.Module,
 	core.Module,
@@ -23,4 +23,9 @@ var Modules = []gluamodule.Module{
 	decorator.Module,
 	intern.Module,
 	path.Module,
+}
+
+// InteralModules modules that are not general purpose and should not be imported by scripts.
+var InternalModules = []gluamodule.Module{
+	intern.Module,
 }
