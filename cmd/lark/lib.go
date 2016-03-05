@@ -69,7 +69,7 @@ func InitLark(c *Context, files []string) error {
 	if c.Verbose() && len(files) > 0 {
 		log.Printf("loading files: %v", files)
 	}
-	LoadFiles(state, files)
+	return LoadFiles(c.Lua, files)
 }
 
 // LoadFiles loads the given files into state

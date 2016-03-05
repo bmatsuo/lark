@@ -13,6 +13,7 @@ var Commands = []cli.Command{
 	CommandRun,
 	CommandList,
 	CommandREPL,
+	CommandLua,
 }
 
 // Command is a helper for creating a cli.Command that relies on a Context for

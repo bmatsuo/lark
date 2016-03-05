@@ -73,7 +73,9 @@ import (
 // mean that lark was executed from the command line and is not being logged to
 // a file.
 //
-// BUG: The assumptions made due to IsTTY cannot be overridden.
+// BUG:
+// The assumptions made due to IsTTY cannot be overridden (e.g. by a command
+// line flag).
 var IsTTY = isatty.IsTerminal(os.Stderr.Fd())
 
 // MainHelp is the top-level hop documentation.
