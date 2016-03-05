@@ -4,9 +4,9 @@
 unstable.  As features are developed and practical experience has been gained
 the Lua API will change to better suit the needs of developers.**
 
-**BREAKING CHANGE: In lark v0.5.0 the task API is going to be altered.  Affeted
-portions are now guarded by deprecation warnings.  To avoid these warnings use
-the `lark.newtask` decorator as described in the [Getting
+**BREAKING CHANGE: In lark v0.5.0 the task API is going to be altered.
+Affected portions are now guarded by deprecation warnings.  To avoid these
+warnings use the `lark.newtask` decorator as described in the [Getting
 Started](docs/getting_started.md) guide. For information about a more permanent
 migration strategy see the relevant section of the issue
 [#24](https://github.com/bmatsuo/lark/issues/24)**
