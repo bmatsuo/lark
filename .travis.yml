@@ -27,4 +27,5 @@ install:
 
 script:
   - lark run test test race=1
+  - lark run build
   - ls -lh lark
