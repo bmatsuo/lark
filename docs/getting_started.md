@@ -17,6 +17,12 @@ Install Lark by downloading one of the precompiled
 executable and install it under a directory listed in your PATH environment
 variable.
 
+Instead installing of a stable release, the latest (unstable) version of lark
+can be installed on the command line using `go get`.
+
+    # this is not recommended for most users
+    go get github.com/bmatsuo/lark/cmd/lark
+
 This will give you everything you need to run tasks with Lark.  The Lua
 interpreter is included in the Lark binary and does not need to be installed
 separately.
