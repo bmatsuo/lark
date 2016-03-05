@@ -10,6 +10,16 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
+// FuncSetup is the name of a global variable containing a "setup" function.
+// The setup function will be executed before each test function.  If any setup
+// function fails the test function that would follow it will not execute.
+var FuncSetup = "__test_setup"
+
+// FuncTeardown is the name of a global variable containing a "teardown"
+// function.  A teardown function will execute after each test function or
+// after a setup function has failed.
+var FuncTeardown = "__test_teardown"
+
 // Module is a lua module to be tested.
 type Module struct {
 	Module     gluamodule.Module
@@ -66,8 +76,8 @@ func (m *Module) runTest(t testing.TB, name string, getfunc lfuncGetter) {
 		t.Errorf("FAIL\n%s", err)
 		return
 	}
-	setup := l.GetGlobal("__test_setup")
-	teardown := l.GetGlobal("__test_teardown")
+	setup := l.GetGlobal(FuncSetup)
+	teardown := l.GetGlobal(FuncTeardown)
 
 	if setup != lua.LNil {
 		l.Push(setup)
@@ -95,7 +105,6 @@ func (m *Module) runTest(t testing.TB, name string, getfunc lfuncGetter) {
 		if err != nil {
 			fatal = true
 			t.Error(failmsg("TEARDOWN", err))
-			return
 		}
 	}
 }
