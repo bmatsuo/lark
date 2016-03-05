@@ -54,6 +54,8 @@ func Run(c *Context) {
 		}
 	}
 
+	core.InitModule(os.Stderr, c.Int("j"))
+
 	args := c.Args()
 	var tasks []*Task
 	for {
