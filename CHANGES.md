@@ -2,6 +2,10 @@
 
 ##v0.5.0-dev
 
+##v0.4.0
+
+- Fix documentation of available modules available through the help() command.
+
 ##v0.4.0-beta1
 
 - Documentation is now accessible through the REPL (`lark repl`) using the

@@ -132,14 +132,6 @@ documentation may be inspected
 	> path = require('path')
 	> help(path)
 	> help(path.exists)
-
-
-Available Modules
-
-	doc
-	lark (required by default)
-	lark.core
-	path
 `
 
 // RunREPL runs the main loop of the REPL command.
