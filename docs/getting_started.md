@@ -1,7 +1,14 @@
 #Getting Started with Lark
 
-Here is a simple guide that will get you up and running using Lark.  Lark uses
-Lua for scripting but typical uses require minimal knowledge of the language.
+Here is a simple guide that will get new users up and running with Lark.  Lark
+uses Lua for scripting but typical uses like those demonstrated in this guide
+require minimal knowledge of the language.
+
+This document is meant to accompany the command reference documentation
+available [godoc.org](https://github.com/bmatsuo/lark/cmd/lark).  It will help
+get the lark command installed and highlight the most basic and relevant parts
+of its usage.  Finally, where the guide leaves off it will provide links to
+more detailed documentation, outside of the command reference, if required.
 
 ##Installing Lark
 
@@ -77,9 +84,9 @@ free book [Programming in Lua](http://www.lua.org/pil/contents.html).
 
 ##Builtin modules
 
-As tasks become more complex users will want to make greater use of the modules
-provided by Lark.  Keep the scripting [reference](lua.md) on hand for
-documention of all Lark programming APIs.
+As tasks become more complex users will want to make greater use of the Lua
+module library provided by Lark.  Keep the scripting [reference](lua.md) on
+hand for documention of all Lark programming APIs.
 
 ##Large projects
 
