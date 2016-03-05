@@ -14,18 +14,18 @@ gen = task .. function ()
 end
 
 build = task .. function ()
-    go.build{'./cmd/...', ldflags=ldflags}
+    go.build{'./cmd/...'}
 end
 
 install = task .. function ()
-    go.install{ldflags=ldflags}
+    go.install()
 end
 
 test = task .. function(ctx)
     local race = task.get_param(ctx, 'race')
     if race then
-        go.test{race=true, ldflags=ldflags}
+        go.test{race=true}
     else
-        go.test{cover=true, ldflags=ldflags}
+        go.test{cover=true}
     end
 end
