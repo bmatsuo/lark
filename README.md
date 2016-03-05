@@ -4,6 +4,15 @@
 unstable.  As features are developed and practical experience has been gained
 the Lua API will change to better suit the needs of developers.**
 
+**Breaking change: In lark v0.5.0 the task API is going to be altered.  Affeted
+portions are now guarded by deprecation warnings To avoid these warnings become
+familiar with the now "lark.task" module and add the following line to your
+the main `lark.lua` file in your projects. For more information see #24**
+
+```
+lark.task = require('lark.task')
+```
+
 Lark is a Lua scripting environment that targets build systems and project
 management tasks.  Lark is inspired by `make` and several build systems written
 in Python.  The goal of Lark is to provide the ease and flexibility of a full
