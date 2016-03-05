@@ -27,3 +27,4 @@ install:
 
 script:
   - lark run test test race=1
+  - ls -lh lark
