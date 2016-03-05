@@ -10,9 +10,9 @@
 - Remove the function `lark.shell_quote()`.  It's direct use was never
   recommended.
 
-- New module "lark.task" that will deprecate task-related functions in the
-  "lark" module and replace the API/syntax used for `lark.task()`.  See #25 and
-  #24.
+- New module "lark.task" that will deprecate task-related functions and
+  variables in the "lark" module and replace the API/syntax used for
+  `lark.task()`.  See #24, #25, and #30.
 
 - Project reorganization.  The contents of the `luamodules/` directory can now
   be found in the `lib/` directory.
