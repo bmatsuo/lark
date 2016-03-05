@@ -83,9 +83,10 @@ end
 ##Documentation
 
 New users should read the guide to [Getting Started](docs/getting_started.md).
-After getting comfortable with the basics, users should consult the [Lua
-Scripting Reference](docs/lua.md) to familiarize themselves with the facilities
-provided in a lark task.
+After getting comfortable with the basics, users should consult the command
+reference documentation on
+[godoc.org](https://godoc.org/github.com/bmatsuo/lark/cmd/lark) to familiarize
+themselves more deeply with lark command the lark Lua library.
 
 To fully leverage Lua in Lark tasks it is recommended users unfamiliar with the
 language read relevant sections of the free book [Programming in
