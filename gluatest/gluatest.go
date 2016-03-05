@@ -1,6 +1,7 @@
 package gluatest
 
 import (
+	"sort"
 	"strings"
 	"testing"
 
@@ -45,7 +46,9 @@ func (m *Module) Test(t testing.TB) {
 }
 
 func getTestFuncs(L *lua.LState) []string {
-	return getGlobals(L, selTestFuncs)
+	funcs := getGlobals(L, selTestFuncs)
+	sort.Strings(funcs)
+	return funcs
 }
 
 func selTestFuncs(L *lua.LState, k, v lua.LValue) bool {
