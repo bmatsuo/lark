@@ -23,7 +23,7 @@ can be installed on the command line using `go get`.
     # this is not recommended for most users
     go get github.com/bmatsuo/lark/cmd/lark
 
-Now the system has everything needed to project tasks with Lark.  The Lua
+Now the system has everything needed to run project tasks with Lark.  The Lua
 interpreter is included in the Lark binary and does not need to be installed
 separately.
 
