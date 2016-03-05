@@ -69,14 +69,7 @@ func InitLark(c *Context, files []string) error {
 	if c.Verbose() && len(files) > 0 {
 		log.Printf("loading files: %v", files)
 	}
-	for _, file := range files {
-		err := c.Lua.DoFile(file)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	LoadFiles(state, files)
 }
 
 // LoadFiles loads the given files into state
