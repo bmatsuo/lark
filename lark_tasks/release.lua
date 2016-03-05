@@ -1,8 +1,9 @@
+local task = require('lark.task')
 local path = require('path')
 local version = require('version')
 local moses = require('moses')
 
-lark.task('release', function()
+release = task .. function()
     lark.run('gen')
     lark.run('test')
 
@@ -38,4 +39,4 @@ lark.task('release', function()
         end
         lark.exec{'rm', '-r', dist}
     end
-end)
+end
