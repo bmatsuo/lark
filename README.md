@@ -1,11 +1,11 @@
 #Lark [![Build Status](https://travis-ci.org/bmatsuo/lark.svg?branch=master)](https://travis-ci.org/bmatsuo/lark)
 
-**NOTE:  Until version 1 is released the Lark Lua API should be considered
+**NOTE:  Until version 1 is released the Lark Lua library should be considered
 unstable.  As features are developed and practical experience is gained the Lua
-API will change to better suit the needs of developers.  Any incompatible
-change will be preceded by a deprecation warning and migration plan (if
-necessary).  The list of open [issues](issues) contains all planned upcoming
-incompatabilities (breaking changes).**
+module APIs will change to better suit the needs of developers.  Any
+incompatible change will be preceded by a deprecation warning and migration
+plan (if necessary).  The list of open [issues](issues) contains all planned
+upcoming incompatabilities (breaking changes).**
 
 **BREAKING CHANGE: In lark v0.5.0 the task API is going to be altered.
 Affected portions are now guarded by deprecation warnings.  To avoid these
