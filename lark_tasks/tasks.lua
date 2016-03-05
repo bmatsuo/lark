@@ -14,11 +14,11 @@ gen = task .. function ()
 end
 
 build = task .. function ()
-    go.build{'./cmd/...', ldflags=ldflags}
+    go.build{'./cmd/...'}
 end
 
 install = task .. function ()
-    go.install{ldflags=ldflags}
+    go.install()
 end
 
 test = task .. function(ctx)

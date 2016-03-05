@@ -122,7 +122,11 @@ func LuaInteractive(c *Context) error {
 		c.Lua.SetGlobal("help", c.Lua.GetField(docModule, "help"))
 		c.Lua.SetField(docModule, "default", lua.LString(REPLHelp()))
 
-		log.Printf("Lark %-10s Copyright (C) 2016 The Lark authors", larkmeta.Version)
+		var authors = "The Lark authors"
+		if len(larkmeta.Authors) > 0 {
+			authors = larkmeta.Authors[0].Name
+		}
+		log.Printf("Lark %-10s Copyright (C) 2016 %s", larkmeta.Version, authors)
 		log.Println(lua.PackageCopyRight)
 		log.Println()
 		log.Printf("This environment simulates that of a lark task.")

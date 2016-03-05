@@ -112,12 +112,7 @@ func main() {
 	app.Usage = "Run repeated project tasks"
 	app.ArgsUsage = MainHelp
 	app.Version = larkmeta.Version
-	app.Authors = []cli.Author{
-		{
-			Name:  "Bryan Matsuo",
-			Email: "bryan.matsuo@gmail.com",
-		},
-	}
+	app.Authors = larkmeta.Authors
 	app.Action = func(c *cli.Context) {
 		args := []string{os.Args[0], "run"}
 		args = append(args, c.Args()...)
