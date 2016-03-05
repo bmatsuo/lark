@@ -7,7 +7,7 @@ the Lua API will change to better suit the needs of developers.**
 **Breaking change: In lark v0.5.0 the task API is going to be altered.  Affeted
 portions are now guarded by deprecation warnings To avoid these warnings use
 the `lark.newtask` decorator as described in the [Getting
-Started](docs/getting_started.md) guide or become familiar with the now
+Started](docs/getting_started.md) guide or become familiar with the new
 "lark.task" module and add the following line to your the main `lark.lua` file
 in your projects. For more information see
 [#24](https://github.com/bmatsuo/lark/issues/24)**
