@@ -1,5 +1,7 @@
 #Change log
 
+##v0.5.0-dev
+
 ##v0.4.0-dev
 
 - Documentation is now accessible through the REPL (`lark repl`) using the
