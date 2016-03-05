@@ -76,7 +76,11 @@ import (
 // BUG:
 // The assumptions made due to IsTTY cannot be overridden (e.g. by a command
 // line flag).
-var IsTTY = isatty.IsTerminal(os.Stderr.Fd())
+var (
+	IsTTYStderr = isatty.IsTerminal(os.Stderr.Fd())
+	IsTTYStdout = isatty.IsTerminal(os.Stdout.Fd())
+	IsTTYStdin  = isatty.IsTerminal(os.Stdin.Fd())
+)
 
 // MainHelp is the top-level hop documentation.
 var MainHelp = `
@@ -89,7 +93,7 @@ var MainHelp = `
 `
 
 func main() {
-	if IsTTY {
+	if IsTTYStderr {
 		logflags := log.Flags()
 		logflags &^= log.Ldate | log.Ltime
 		log.SetFlags(logflags)

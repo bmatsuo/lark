@@ -15,7 +15,7 @@ import (
 var CommandLua = Command(func(lark *Context, cmd *cli.Command) {
 	cmd.Name = "lua"
 	cmd.Usage = "Run an interactive intepreter"
-	cmd.Action = lark.Action(REPL)
+	cmd.Action = lark.Action(Lua)
 })
 
 // Lua loads a lua vm with the lark library and executes Lua scripts or
@@ -47,15 +47,8 @@ func Lua(c *Context) {
 // RunLua executes lua code specified in c.Args().
 func RunLua(c *Context) error {
 	args := c.Args()
-
-	// when connected to a terminal and executing with no arguments a special
-	// interactive interpreter is launched which has a unique procedure for
-	// reading and evaluating input.
-	if IsTTY && len(args) == 0 {
-		err := LuaInteractive(c)
-		if err != nil {
-			return err
-		}
+	if len(args) == 0 {
+		return LuaInteractive(c)
 	}
 
 	// determine the input source (stdin or a file)
@@ -93,25 +86,29 @@ func RunLua(c *Context) error {
 // LuaInteractive runs an interactive interpreter for the embedded Lua
 // environment.  LuaInteractive performs extra setup for the interpereter and
 // prints relevant copyright information before reading and interpreting input
-// from the terminal.
+// from a terminal device.
 func LuaInteractive(c *Context) error {
-	c.Lua.Push(c.Lua.GetGlobal("require"))
-	c.Lua.Push(lua.LString("doc"))
-	err := c.Lua.PCall(1, 1, nil)
-	if err != nil {
-		return err
-	}
-	docModule := c.Lua.Get(c.Lua.GetTop())
-	c.Lua.Pop(1)
-	c.Lua.SetGlobal("help", c.Lua.GetField(docModule, "help"))
-	c.Lua.SetField(docModule, "default", lua.LString(REPLHelp()))
+	// when connected to a terminal perform special setup for an interactive
+	// session.
+	if IsTTYStdin {
+		c.Lua.Push(c.Lua.GetGlobal("require"))
+		c.Lua.Push(lua.LString("doc"))
+		err := c.Lua.PCall(1, 1, nil)
+		if err != nil {
+			return err
+		}
+		docModule := c.Lua.Get(c.Lua.GetTop())
+		c.Lua.Pop(1)
+		c.Lua.SetGlobal("help", c.Lua.GetField(docModule, "help"))
+		c.Lua.SetField(docModule, "default", lua.LString(REPLHelp()))
 
-	log.Printf("Lark %-10s Copyright (C) 2016 The Lark authors", larkmeta.Version)
-	log.Println(lua.PackageCopyRight)
-	log.Println()
-	log.Printf("This environment simulates that of a lark task.")
-	log.Printf("For information about any object use the help() \n" +
-		"function.")
+		log.Printf("Lark %-10s Copyright (C) 2016 The Lark authors", larkmeta.Version)
+		log.Println(lua.PackageCopyRight)
+		log.Println()
+		log.Printf("This environment simulates that of a lark task.")
+		log.Printf("For information about any object use the help() \n" +
+			"function.")
+	}
 
 	return RunREPL(c.Lua)
 }
