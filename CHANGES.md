@@ -1,6 +1,6 @@
 #Change log
 
-##v0.4.0-beta1
+##v0.4.0
 
 - Documentation is now accessible through the REPL (`lark repl`) using the
   global function `help()`.
