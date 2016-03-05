@@ -24,8 +24,8 @@ end
 test = task .. function(ctx)
     local race = task.get_param(ctx, 'race')
     if race then
-        go.test{race=true}
+        go.test{race=true, ldflags=ldflags}
     else
-        go.test{cover=true}
+        go.test{cover=true, ldflags=ldflags}
     end
 end
