@@ -11,6 +11,7 @@ import (
 	"github.com/bmatsuo/lark/lib"
 	"github.com/chzyer/readline"
 	"github.com/codegangsta/cli"
+	"github.com/fatih/color"
 	"github.com/yuin/gopher-lua"
 )
 
@@ -24,6 +25,13 @@ var CommandREPL = Command(func(lark *Context, cmd *cli.Command) {
 
 // REPL loads a lua vm and runs an interactive read, evaluate, print loop.
 func REPL(c *Context) {
+	msg := "deprecation warning: use the ``lark lua'' command instead of ``lark repl''"
+	if IsTTYStderr {
+		msg = color.YellowString(msg)
+	}
+	log.Print(msg)
+	log.Println()
+
 	luaFiles, err := FindTaskFiles("")
 	if err != nil {
 		log.Fatal(err)
