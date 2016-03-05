@@ -9,6 +9,14 @@ local core = require('lark.core')
 local task = require('lark.task')
 local doc = require('doc')
 
+local function deprecation(old, new, mod)
+    if mod then
+        return string.format("deprecation warning: use %s in module '%s' instead of %s", new, mod, old)
+    else
+        return string.format("deprecation warning: use %s instead of %s", new, old)
+    end
+end
+
 local function flatten(...)
     local flat = {}
     for i, v in pairs(arg) do
@@ -56,6 +64,9 @@ lark.task =
     doc.param[[name  string -- the name of the task]] ..
     doc.param[[fn    string -- the function that performs the task]] ..
     function (name, fn)
+        local msg = deprecation("lark.task", "name() or create", 'lark.task')
+        lark.log{msg, color='yellow'}
+
         local pattern = nil
         local t = name
         if type(t) == 'table' then
@@ -76,14 +87,6 @@ lark.task =
             task.with_name(name)(fn)
         end
     end
-
-local function deprecation(old, new, mod)
-    if mod then
-        return string.format("deprecation warning: use %s in module '%s' instead of %s", new, mod, old)
-    else
-        return string.format("deprecation warning: use %s instead of %s", new, old)
-    end
-end
 
 lark.run =
     doc.desc[[An alias for run() in module lark.task]] ..
