@@ -25,7 +25,19 @@ var Module = gluamodule.New("lark.core", Loader,
 	doc.Module,
 )
 
-var defaultCore = newCore(os.Stderr, 0)
+// InitModule changes the configuration of the module.  It is not safe to call
+// InitModule after the module has been loaded.
+func InitModule(logWriter io.Writer, limit int) {
+	if logWriter == nil {
+		logWriter = os.Stderr
+	}
+	if limit == 0 {
+		limit = runtime.NumCPU()
+	}
+	defaultCore = newCore(logWriter, limit)
+}
+
+var defaultCore = newCore(os.Stderr, runtime.NumCPU())
 
 type core struct {
 	logger     *log.Logger
@@ -39,33 +51,28 @@ func istty(w io.Writer) bool {
 	type fd interface {
 		Fd() uintptr
 	}
-	wfd, ok := w.(fd)
-	if ok {
-		if isatty.IsTerminal(wfd.Fd()) {
-			return true
-		}
+	switch w := w.(type) {
+	case fd:
+		return isatty.IsTerminal(w.Fd())
+	default:
+		return false
 	}
-	return false
 }
 
 func newCore(logfile io.Writer, limit int) *core {
-	var limitchan chan struct{}
-	if limit == 0 {
-		limit = runtime.NumCPU()
-	}
-	if limit > 0 {
-		limitchan = make(chan struct{}, limit)
-	}
 	c := &core{
 		isTTY:  istty(logfile),
 		groups: make(map[string]*execgroup.Group),
-		limit:  limitchan,
 	}
-	flags := log.LstdFlags
+	if limit > 0 {
+		c.limit = make(chan struct{}, limit)
+	}
+
+	logFlags := log.LstdFlags
 	if c.isTTY {
-		flags &^= log.Ldate | log.Ltime
+		logFlags &^= log.Ldate | log.Ltime
 	}
-	c.logger = log.New(logfile, "", flags)
+	c.logger = log.New(logfile, "", logFlags)
 
 	return c
 }
@@ -73,19 +80,21 @@ func newCore(logfile io.Writer, limit int) *core {
 // Loader preloads the lark.core module so it may be required in lua scripts.
 func Loader(l *lua.LState) int {
 	t := l.NewTable()
-	mod := l.SetFuncs(t, Exports)
+	mod := l.SetFuncs(t, defaultCore.exports())
 	l.Push(mod)
 	return 1
 }
 
-// Exports contains the API for the lark.core lua module.
-var Exports = map[string]lua.LGFunction{
-	"log":        defaultCore.LuaLog,
-	"environ":    defaultCore.LuaEnviron,
-	"exec":       defaultCore.LuaExecRaw,
-	"start":      defaultCore.LuaStartRaw,
-	"make_group": defaultCore.LuaMakeGroup,
-	"wait":       defaultCore.LuaWait,
+// exports contains the API for the lark.core lua module.
+func (c *core) exports() map[string]lua.LGFunction {
+	return map[string]lua.LGFunction{
+		"log":        c.LuaLog,
+		"environ":    c.LuaEnviron,
+		"exec":       c.LuaExecRaw,
+		"start":      c.LuaStartRaw,
+		"make_group": c.LuaMakeGroup,
+		"wait":       c.LuaWait,
+	}
 }
 
 // LuaLog logs a message from lua.
