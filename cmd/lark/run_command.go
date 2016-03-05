@@ -24,6 +24,11 @@ var CommandRun = Command(func(lark *Context, cmd *cli.Command) {
 
     The arguments are the names of tasks from lark.lua.`
 	cmd.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:   "C",
+			Usage:  "Change the working directory before loading files and running tasks",
+			EnvVar: "LARK_RUN_DIRECTORY",
+		},
 		cli.IntFlag{
 			Name:   "j",
 			Usage:  "Number of parallel processes.",
@@ -41,6 +46,14 @@ var CommandRun = Command(func(lark *Context, cmd *cli.Command) {
 
 // Run loads a lua vm and runs tasks specified in the command line.
 func Run(c *Context) {
+	chdir := c.String("C")
+	if chdir != "" {
+		err := os.Chdir(chdir)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	args := c.Args()
 	var tasks []*Task
 	for {
