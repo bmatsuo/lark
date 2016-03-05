@@ -86,7 +86,7 @@ New users should read the guide to [Getting Started](docs/getting_started.md).
 After getting comfortable with the basics, users should consult the command
 reference documentation on
 [godoc.org](https://godoc.org/github.com/bmatsuo/lark/cmd/lark) to familiarize
-themselves more deeply with lark command the lark Lua library.
+themselves more deeply with lark command and the included Lua library.
 
 To fully leverage Lua in Lark tasks it is recommended users unfamiliar with the
 language read relevant sections of the free book [Programming in
