@@ -8,8 +8,8 @@ the Lua API will change to better suit the needs of developers.**
 portions are now guarded by deprecation warnings To avoid these warnings use
 the `lark.newtask` decorator as described in the [Getting
 Started](docs/getting_started.md) guide or become familiar with the new
-"lark.task" module and add the following line to your the main `lark.lua` file
-in your projects. For more information see
+"lark.task" module and add the following line to the main `lark.lua` file in
+your projects. For more information see
 [#24](https://github.com/bmatsuo/lark/issues/24)**
 
 ```
