@@ -7,8 +7,11 @@ local go =
     "asmflags", "gcflags", "ldflags", and the boolean "race".
 
         > go.build{gcflags="-B", race=true}
+
+    The module does not provide a way to execute the go commands
+    asynchronously.  But go commands typically exit rather quickly, so this is
+    not seen an important issue.
     ]] ..
-    doc.sig[[(...) => ()]] ..
     doc.param[[...  string
     -- Source trees in which to generate code.  If values are present they will
     override the value of default_sources.  Any arrays given will be
@@ -61,6 +64,7 @@ end
 
 go.gen =
     doc.desc[[Run the ``go generate'' command.]] ..
+    doc.sig[[(...) => ()]] ..
     doc.param[[sources  table
     -- If array values are present in sources they will override the value of
     default_sources.
@@ -85,6 +89,7 @@ go.gen =
 
 go.install =
     doc.desc[[Run the ``go install'' command.]] ..
+    doc.sig[[opt => ()]] ..
     doc.param[[opt  table
     -- If array values are present in sources they will override the value of
     default_sources.  All common options are supported for the install()
@@ -111,6 +116,7 @@ go.install =
 
 go.build =
     doc.desc[[Run the ``go build'' command.]] ..
+    doc.sig[[opt => ()]] ..
     doc.param[[opt  table
     -- If array values are present in sources they will override the value of
     default_sources.  All common options are supported for the build()
@@ -137,6 +143,7 @@ go.build =
 
 go.test =
     doc.desc[[Run the ``go test'' command.]] ..
+    doc.sig[[opt => ()]] ..
     doc.param[[opt  table
     -- If array values are present in sources they will override the value of
     default_sources.  All common options are supported for the test()

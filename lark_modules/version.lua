@@ -32,9 +32,13 @@ version.get =
     Return the current project version by reading the version file.  The return
     value is cached so future calls to get() do not need to re-read the file.
     ]] ..
+    doc.sig[[filename => version]] ..
     doc.param[[filename  string
     -- The file to read the version number from.  When not given the default
     filename configured for the module will be read.
+    ]] ..
+    doc.param[[version  string
+    -- The first line of the version file (with any trailing newline removed)
     ]] ..
     function(filename)
         filename = get_filename(filename)
@@ -51,9 +55,13 @@ version.read =
     function will read the version file every time it is called, unlike the
     get() function.
     ]] ..
+    doc.sig[[filename => version]] ..
     doc.param[[filename  string
     -- The file to read the version number from.  When not given the default
     filename configured for the module will be read.
+    ]] ..
+    doc.param[[version  string
+    -- The first line of the version file (with any trailing newline removed)
     ]] ..
     function (filename)
         filename = get_filename(filename)
