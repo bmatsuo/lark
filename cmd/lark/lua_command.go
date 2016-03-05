@@ -15,6 +15,12 @@ import (
 var CommandLua = Command(func(lark *Context, cmd *cli.Command) {
 	cmd.Name = "lua"
 	cmd.Usage = "Run an interactive intepreter"
+	cmd.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "c",
+			Usage: "Code to evaluate instead of reading from a file (or stdin).",
+		},
+	}
 	cmd.Action = lark.Action(Lua)
 })
 
@@ -46,6 +52,20 @@ func Lua(c *Context) {
 
 // RunLua executes lua code specified in c.Args().
 func RunLua(c *Context) error {
+	luaExpr := c.String("c")
+	if luaExpr != "" {
+		fn, err := c.Lua.LoadString(luaExpr)
+		if err != nil {
+			return err
+		}
+		c.Lua.Push(fn)
+		args := c.Args()
+		for _, arg := range args {
+			c.Lua.Push(lua.LString(arg))
+		}
+		return c.Lua.PCall(len(args), 0, c.Lua.NewFunction(errTraceback))
+	}
+
 	args := c.Args()
 	if len(args) == 0 {
 		return LuaInteractive(c)
