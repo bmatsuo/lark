@@ -1,3 +1,58 @@
+/*
+Command lark executes project tasks defined with lua scripts.  Lark isolates
+the lua modules available to scripts to modules in the relative directory path
+./lark_modules/ to ensure portability of project tasks across developer
+machines.
+
+The lark command locates tasks defined in the ./lark.lua file or otherwise
+directly under the directory ./lark_tasks/.  Tasks can have names (either
+explicitly given or otherwise inferred) or patterns.  Pattern matching tasks
+will match a set of names defined by a regular expression.
+
+Names are matched against available tasks with a strict precedence.  Explicitly
+named tasks will match the same name with the highest priority.  Any task with
+an inferred name will match the same name with the second highest priority.
+Pattern matching tasks have the lowest priority and will match names in the
+order they were defined.
+
+Tasks can be executed by calling the lua function lark.run() in a script, using
+the lark subcommand "run".  When given no arguments, run will execute the first
+named task that was defined, or a task specified by setting the "default"
+variable in the "lark.task" lua module.
+
+	local task = require('lark.task')
+	task1 = task .. function() print('task1') end
+	task2 = task .. function() print('task2') end
+	lark.run()
+	task.default = 'task2'
+	lark.run()
+	lark.run('task1')
+
+The above script will print a line containing text "task1" followed by a line
+containing "task2" and finally a line containing "task1" again.
+
+
+Command Reference
+
+Command reference documentation is available through the "help" subcommand.
+
+	lark help
+
+The documentation for a specific subcommand is available through the help
+command or by passing the subcommand the -h (or --help) flag.
+
+	lark run -h
+	lark help run
+
+
+Lua Reference
+
+Lua API documentation is available through the embedded repl's help() function.
+
+	lark repl
+	> help()
+	> help(lark)
+*/
 package main
 
 import (
