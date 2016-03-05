@@ -47,7 +47,7 @@ command or by passing the subcommand the -h (or --help) flag.
 
 Lua Reference
 
-Lua API documentation is available through the embedded repl's help() function.
+Lua API documentation is available through the help() function in the embedded REPL.
 
 	lark repl
 	> help()
