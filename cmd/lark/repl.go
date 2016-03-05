@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/bmatsuo/lark/larkmeta"
+	"github.com/bmatsuo/lark/lib"
 	"github.com/chzyer/readline"
 	"github.com/codegangsta/cli"
 	"github.com/yuin/gopher-lua"
@@ -47,10 +50,8 @@ func REPL(c *Context) {
 	}
 	docModule := c.Lua.Get(c.Lua.GetTop())
 	c.Lua.Pop(1)
-	helpFunc := c.Lua.GetField(docModule, "help")
-	c.Lua.SetGlobal("help", helpFunc)
-
-	c.Lua.SetField(docModule, "default", lua.LString(REPLHelpDefault))
+	c.Lua.SetGlobal("help", c.Lua.GetField(docModule, "help"))
+	c.Lua.SetField(docModule, "default", lua.LString(REPLHelp()))
 
 	log.Printf("Lark %-10s Copyright (C) 2016 The Lark authors", larkmeta.Version)
 	log.Println(lua.PackageCopyRight)
@@ -63,6 +64,27 @@ func REPL(c *Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+// REPLHelp returns the help text for the lark REPL.
+func REPLHelp() string {
+	var modules []string
+	for _, m := range lib.Modules {
+		modules = append(modules, m.Name())
+	}
+	sort.Strings(modules)
+	var help bytes.Buffer
+	help.WriteString(REPLHelpDefault)
+	help.WriteString("\n\nBuiltin Modules\n\n")
+	for _, m := range modules {
+		help.WriteString("\t")
+		help.WriteString(m)
+		if m == "lark" {
+			help.WriteString(" (stored in global ``lark'')")
+		}
+		help.WriteString("\n")
+	}
+	return help.String()
 }
 
 // REPLHelpDefault describes the REPL environment and points the user at the
