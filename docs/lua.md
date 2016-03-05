@@ -2,7 +2,7 @@
 
 Lua reference documentation is available through the embedded REPL.
 
-    $ lark repl
+    $ lark lua
     > help()
 
 The global `help()` function can be used to inspect the modules and functions

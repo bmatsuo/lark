@@ -1,8 +1,8 @@
 hash: bf0836164006420aa06837a68d357e5aed3e47aac0b7ee2a83793844b3e37c0b
-updated: 2016-03-04T02:58:45.991082325-08:00
+updated: 2016-03-05T08:14:35.172918691-08:00
 imports:
 - name: github.com/chzyer/readline
-  version: e9e6c35b06f2397adec3a6a5dfa89969d706b9fc
+  version: 14e9df7f3c68bca64f111bab38196975d4696e2f
   subpackages:
   - runes
 - name: github.com/codegangsta/cli

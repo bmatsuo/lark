@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bmatsuo/lark/larkmeta"
 	"github.com/bmatsuo/lark/lib"
 	"github.com/chzyer/readline"
 	"github.com/codegangsta/cli"
@@ -42,25 +41,7 @@ func REPL(c *Context) {
 		log.Fatal(err)
 	}
 
-	c.Lua.Push(c.Lua.GetGlobal("require"))
-	c.Lua.Push(lua.LString("doc"))
-	err = c.Lua.PCall(1, 1, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	docModule := c.Lua.Get(c.Lua.GetTop())
-	c.Lua.Pop(1)
-	c.Lua.SetGlobal("help", c.Lua.GetField(docModule, "help"))
-	c.Lua.SetField(docModule, "default", lua.LString(REPLHelp()))
-
-	log.Printf("Lark %-10s Copyright (C) 2016 The Lark authors", larkmeta.Version)
-	log.Println(lua.PackageCopyRight)
-	log.Println()
-	log.Printf("This environment simulates that of a lark task.")
-	log.Printf("For information about any object use the help() \n" +
-		"function.")
-
-	err = RunREPL(c.Lua)
+	err = LuaInteractive(c)
 	if err != nil {
 		log.Fatal(err)
 	}
