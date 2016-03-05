@@ -1,8 +1,12 @@
 /*
-Command lark executes project tasks defined with lua scripts.  Lark isolates
-the lua modules available to scripts to modules in the relative directory path
-./lark_modules/ to ensure portability of project tasks across developer
-machines.
+Command lark executes project tasks defined with lua scripts.  The Lua
+interpreter included in lark in embedded and is not affected by an existing Lua
+installation on the host system.  Furthermore, Lark isolates the lua modules
+available to scripts to modules in the relative directory path ./lark_modules/
+to ensure portability of project tasks across developer machines.
+
+As of the current release the embedded Lua interpreter is compliant with
+Lua5.1.
 
 The lark command locates tasks defined in the ./lark.lua file or otherwise
 directly under the directory ./lark_tasks/.  Tasks can have names (either
