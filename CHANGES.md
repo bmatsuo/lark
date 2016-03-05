@@ -2,6 +2,23 @@
 
 ##v0.5.0-dev
 
+- New command `lark lua` that behaves more like a standard interpreter than
+  `lark repl`, which is now deprecated.
+
+```sh
+lark lua myscript.lua arg1 arg2 arg3
+lark lua -c 'print("hello world")
+lark lua  # identical to command `lark repl`
+```
+
+- Run accepts a new -C flag that sets the working directory before loading
+  files.  This option is useful for working with sub-projects or working inside
+  a nested project directory.
+
+- Documentation has been added to the project's custom modules (in
+  `lark_modules/`).  This serves as an example of how to document objects in
+  lua code.
+
 ##v0.4.0
 
 - Fix documentation of available modules available through the help() command.
