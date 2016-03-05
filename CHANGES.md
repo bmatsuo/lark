@@ -2,6 +2,10 @@
 
 ##v0.5.0-dev
 
+- Code generation makes sure that a valid version number is always defined.
+  This means that installing the lark command with `go get` is a little safer
+  (it is still a bad idea for production systems though).
+
 - New command `lark lua` that behaves more like a standard interpreter than
   `lark repl`, which is now deprecated.
 
