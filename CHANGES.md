@@ -11,7 +11,7 @@
 
 ```sh
 lark lua myscript.lua arg1 arg2 arg3
-lark lua -c 'print("hello world")
+lark lua -c 'print("hello world")'
 lark lua  # identical to command `lark repl`
 ```
 
