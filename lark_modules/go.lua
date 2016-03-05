@@ -1,6 +1,26 @@
-local go = {
-    default_sources = {'.'}
-}
+local doc = require('doc')
+local go =
+    doc.desc[[
+    Functions to assist in running the go command and its subcommands.  Most
+    functions in this module accept a table of options.  Some of these options
+    are common to all go subcommands.  These options are the strings
+    "asmflags", "gcflags", "ldflags", and the boolean "race".
+
+        > go.build{gcflags="-B", race=true}
+
+    The module does not provide a way to execute the go commands
+    asynchronously.  But go commands typically exit rather quickly, so this is
+    not seen an important issue.
+    ]] ..
+    doc.param[[...  string
+    -- Source trees in which to generate code.  If values are present they will
+    override the value of default_sources.  Any arrays given will be
+    recursively flattened to produce a source tree list.
+    ]] ..
+    doc.var[[default_sources  The default list of source (trees) passed to go subcommands.]] ..
+    {
+        default_sources = {'.'}
+    }
 
 local function insert_args(tcmd, targs)
     for i, arg in pairs(targs) do
@@ -28,87 +48,133 @@ local function insert_common_build_flags(tcmd, opt)
     opt_flag(tcmd, '-race', opt.race)
 end
 
-go.gen = function(opt)
-    local cmd = {'go', 'generate'}
-    if not opt then
-        insert_args(cmd, go.default_sources)
-        lark.exec{cmd}
-        return
-    end
-
-    local args = opt
-    if #args == 0 then
-        args = go.default_sources
-    end
-    insert_args(cmd, args)
-
-    lark.exec{cmd}
-end
-
-go.install = function(opt)
-    local cmd = {'go', 'install'}
-    if not opt then
-        insert_args(cmd, go.default_sources)
-        lark.exec{cmd}
-        return
-    end
-
-    insert_common_build_flags(cmd, opt)
-
-    local args = opt
-    if #args == 0 then
-        args = go.default_sources
-    end
-    insert_args(cmd, args)
-
-    lark.exec{cmd}
-end
-
-go.build = function(opt)
-    local cmd = {'go', 'build'}
-    if not opt then
-        insert_args(cmd, go.default_sources)
-        lark.exec{cmd}
-        return
-    end
-
-    insert_common_build_flags(cmd, opt)
-
-    local args = opt
-    if #args == 0 then
-        args = go.default_sources
-    end
-    insert_args(cmd, args)
-
-    lark.exec{cmd}
-end
-
-go.test = function(opt)
-    local cmd = {'go', 'test'}
-    if not opt then
-        insert_args(cmd, go.default_sources)
-        lark.exec{cmd}
-        return
-    end
-
-    insert_common_build_flags(cmd, opt)
-
-    if opt.cover then
-        if type(opt.cover) == 'string' then
-            local arg = string.format('-coverprofile=%s', opt.cover)
-            table.insert(cmd, arg)
+local function flatten(...)
+    local flat = {}
+    for _, v in pairs(arg) do
+        if type(v) ~= 'table' then
+            table.insert(flat, v)
         else
-            table.insert(cmd, '-cover')
+            for _, v in pairs(flatten(unpack(v))) do
+                table.insert(flat, v)
+            end
         end
     end
-
-    local args = opt
-    if #args == 0 then
-        args = go.default_sources
-    end
-    insert_args(cmd, args)
-
-    lark.exec{cmd}
+    return flat
 end
+
+go.gen =
+    doc.desc[[Run the ``go generate'' command.]] ..
+    doc.sig[[(...) => ()]] ..
+    doc.param[[sources  table
+    -- If array values are present in sources they will override the value of
+    default_sources.
+    ]] ..
+    function(...)
+        local opt = flatten(arg)
+        local cmd = {'go', 'generate'}
+        if #arg == 0 then
+            insert_args(cmd, go.default_sources)
+            lark.exec{cmd}
+            return
+        end
+
+        local args = opt
+        if #args == 0 then
+            args = go.default_sources
+        end
+        insert_args(cmd, args)
+
+        lark.exec{cmd}
+    end
+
+go.install =
+    doc.desc[[Run the ``go install'' command.]] ..
+    doc.sig[[opt => ()]] ..
+    doc.param[[opt  table
+    -- If array values are present in sources they will override the value of
+    default_sources.  All common options are supported for the install()
+    function. 
+    ]] ..
+    function(opt)
+        local cmd = {'go', 'install'}
+        if not opt then
+            insert_args(cmd, go.default_sources)
+            lark.exec{cmd}
+            return
+        end
+
+        insert_common_build_flags(cmd, opt)
+
+        local args = opt
+        if #args == 0 then
+            args = go.default_sources
+        end
+        insert_args(cmd, args)
+
+        lark.exec{cmd}
+    end
+
+go.build =
+    doc.desc[[Run the ``go build'' command.]] ..
+    doc.sig[[opt => ()]] ..
+    doc.param[[opt  table
+    -- If array values are present in sources they will override the value of
+    default_sources.  All common options are supported for the build()
+    function. 
+    ]] ..
+    function(opt)
+        local cmd = {'go', 'build'}
+        if not opt then
+            insert_args(cmd, go.default_sources)
+            lark.exec{cmd}
+            return
+        end
+
+        insert_common_build_flags(cmd, opt)
+
+        local args = opt
+        if #args == 0 then
+            args = go.default_sources
+        end
+        insert_args(cmd, args)
+
+        lark.exec{cmd}
+    end
+
+go.test =
+    doc.desc[[Run the ``go test'' command.]] ..
+    doc.sig[[opt => ()]] ..
+    doc.param[[opt  table
+    -- If array values are present in sources they will override the value of
+    default_sources.  All common options are supported for the test()
+    function. 
+    ]] ..
+    function(opt)
+        local cmd = {'go', 'test'}
+        if not opt then
+            insert_args(cmd, go.default_sources)
+            lark.exec{cmd}
+            return
+        end
+
+        insert_common_build_flags(cmd, opt)
+
+        if opt.cover then
+            if type(opt.cover) == 'string' then
+                local arg = string.format('-coverprofile=%s', opt.cover)
+                table.insert(cmd, arg)
+            else
+                table.insert(cmd, '-cover')
+            end
+        end
+
+        local args = opt
+        if #args == 0 then
+            args = go.default_sources
+        end
+        insert_args(cmd, args)
+
+        lark.exec{cmd}
+    end
 
 return go
