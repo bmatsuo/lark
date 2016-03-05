@@ -41,7 +41,6 @@ build = lark.newtask .. function()
 end
 
 -- regular expressions can match sets of task names.
--- captures can extract information from the name.
 build_object = lark.newpattern[[%.o$]] .. function(ctx)
     -- get the object name, construct the source path, and compile the object.
     local o = lark.newtask.get_name(ctx)
