@@ -20,33 +20,45 @@ var FuncSetup = "__test_setup"
 // after a setup function has failed.
 var FuncTeardown = "__test_teardown"
 
-// Module is a lua module to be tested.
-type Module struct {
-	Module     gluamodule.Module
-	TestScript string
+// File is a test file for a lua module.
+type File struct {
+	Module gluamodule.Module
+	Path   string
 }
 
-// Preload runs the loader to register the module name.
-func (m *Module) Preload(t testing.TB) *lua.LState {
-	L := lua.NewState()
-	gluamodule.Preload(L, gluamodule.Resolve(m.Module)...)
-	err := L.DoFile(m.TestScript)
+// preload runs the loader to register the module name.
+func (m *File) preload(t testing.TB) (*lua.LState, *lua.LFunction) {
+	l := lua.NewState()
+	gluamodule.Preload(l, gluamodule.Resolve(m.Module)...)
+	lfunc, err := l.LoadFile(m.Path)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
-	return L
+	return l, lfunc
+}
+
+// Load runs the loader to register module and then executes the test file.
+func (m *File) Load(t testing.TB) *lua.LState {
+	l, lfunc := m.preload(t)
+	l.Push(lfunc)
+	err := l.PCall(0, 0, l.NewFunction(errTraceback))
+	if err != nil {
+		l.Close()
+		t.Fatal(err)
+	}
+	return l
 }
 
 // Test runs the specified test function
-func (m *Module) Test(t testing.TB) {
+func (m *File) Test(t testing.TB) {
 	testFuncs := m.getTestFuncs(t)
 	for _, fname := range testFuncs {
 		m.runTest(t, fname, getGlobalFunction(fname))
 	}
 }
 
-func (m *Module) getTestFuncs(t testing.TB) []string {
-	l := m.Preload(t)
+func (m *File) getTestFuncs(t testing.TB) []string {
+	l := m.Load(t)
 	defer l.Close()
 
 	return getTestFuncs(l)
@@ -54,7 +66,7 @@ func (m *Module) getTestFuncs(t testing.TB) []string {
 
 type lfuncGetter func(*lua.LState) (*lua.LFunction, error)
 
-func (m *Module) runTest(t testing.TB, name string, getfunc lfuncGetter) {
+func (m *File) runTest(t testing.TB, name string, getfunc lfuncGetter) {
 	var fatal bool
 	defer func() {
 		if fatal {
@@ -62,7 +74,7 @@ func (m *Module) runTest(t testing.TB, name string, getfunc lfuncGetter) {
 		}
 	}()
 
-	l := m.Preload(t)
+	l := m.Load(t)
 	defer l.Close()
 
 	failmsg := func(name string, err error) string {

@@ -7,11 +7,11 @@ import (
 	"github.com/bmatsuo/lark/gluatest"
 )
 
-var testModule = gluatest.Module{
-	Module:     gluamodule.New("lark.core", Loader),
-	TestScript: "core_test.lua",
+var luaCoreTest = &gluatest.File{
+	Module: gluamodule.New("lark.core", Loader),
+	Path:   "core_test.lua",
 }
 
 func TestModule(t *testing.T) {
-	testModule.Test(t)
+	luaCoreTest.Test(t)
 }

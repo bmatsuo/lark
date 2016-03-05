@@ -6,11 +6,11 @@ import (
 	"github.com/bmatsuo/lark/gluatest"
 )
 
-var testModule = &gluatest.Module{
-	Module:     Module,
-	TestScript: "doc_test.lua",
+var luaDocTest = &gluatest.File{
+	Module: Module,
+	Path:   "doc_test.lua",
 }
 
 func TestModule(t *testing.T) {
-	testModule.Test(t)
+	luaDocTest.Test(t)
 }
