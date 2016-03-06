@@ -14,11 +14,11 @@ Started](docs/getting_started.md) guide. For information about a more permanent
 migration strategy see the relevant section of the issue
 [#24](https://github.com/bmatsuo/lark/issues/24)**
 
-Lark is a Lua scripting environment that targets build systems and project
-management tasks.  Lark is inspired by `make` and several build systems written
-in Python.  The goal of Lark is to provide the ease and flexibility of a full
-scripting environment in a portable, self-contained, and easy to integrate
-package.
+Lark is a Lua scripting environment that targets build systems and
+source tree management tasks.  Lark is inspired by `make` and
+several build systems written in Python.  The goal of Lark is to
+provide the ease and flexibility of a full scripting environment
+in a portable, self-contained, and easy to integrate package.
 
 Python tools are great but producing consistent Python environments on
 different machines, or accounting for those differences conversely, causes
