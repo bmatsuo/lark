@@ -8,6 +8,20 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
+func TestLib(t *testing.T) {
+	l := lua.NewState()
+	defer l.Close()
+
+	Preload(l)
+
+	l.Push(l.GetGlobal("require"))
+	l.Push(lua.LString("lark"))
+	err := l.PCall(1, 0, nil)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func BenchmarkRequireModule(b *testing.B) {
 	testRequireAll.BenchmarkRequireModule(b)
 }
