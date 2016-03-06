@@ -9,6 +9,10 @@ import (
 )
 
 func TestLib(t *testing.T) {
+	if len(Modules) == 0 {
+		t.Fatal("no modules")
+	}
+
 	l := lua.NewState()
 	defer l.Close()
 
