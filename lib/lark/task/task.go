@@ -185,8 +185,8 @@ func Loader(l *lua.LState) int {
 	})
 
 	l.SetField(mod, "create", create)
-	l.SetField(mod, "with_name", name)
-	l.SetField(mod, "with_pattern", pattern)
+	l.SetField(mod, "name", name)
+	l.SetField(mod, "pattern", pattern)
 	l.SetField(mod, "find", find)
 	l.SetField(mod, "dump", dump)
 

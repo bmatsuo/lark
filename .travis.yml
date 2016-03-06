@@ -14,9 +14,9 @@ before_install:
 
   - mkdir -p ~/bin
 
-  - wget -O ~/lark-0_4_0_beta1-linux-amd64.tar.gz https://github.com/bmatsuo/lark/releases/download/v0.4.0-beta1/lark-0_4_0_beta1-linux-amd64.tar.gz
-  - tar -C ~ -xvzf ~/lark-0_4_0_beta1-linux-amd64.tar.gz
-  - cp ~/lark-0_4_0_beta1-linux-amd64/lark ~/bin
+  - wget -O ~/lark-0_4_0_beta2-linux-amd64.tar.gz https://github.com/bmatsuo/lark/releases/download/v0.4.0-beta2/lark-0_4_0_beta2-linux-amd64.tar.gz
+  - tar -C ~ -xvzf ~/lark-0_4_0_beta2-linux-amd64.tar.gz
+  - cp ~/lark-0_4_0_beta2-linux-amd64/lark ~/bin
 
   - wget -O ~/glide-0.8.3-linux-amd64.tar.gz https://github.com/Masterminds/glide/releases/download/0.8.3/glide-0.8.3-linux-amd64.tar.gz
   - tar -C ~ -xvzf ~/glide-0.8.3-linux-amd64.tar.gz
