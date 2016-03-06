@@ -11,6 +11,6 @@ go.default_sources = sources
 
 all = lark.task .. function()
     lark.run('gen')
-    lark.run('test')
     lark.run('build')
+    lark.run('test')
 end
