@@ -95,6 +95,14 @@ func TestFile_runTest_failure(t *testing.T) {
 	}
 }
 
+func BenchmarkRequireModule(b *testing.B) {
+	emptyModuleFile := &File{
+		Module: gluamodule.New("test.module", basicTestLoader),
+		Path:   "empty_test.lua",
+	}
+	emptyModuleFile.BenchmarkRequireModule(b)
+}
+
 type TBFailRecorder struct {
 	ReallyFail bool
 	FailFunc   func()
@@ -173,6 +181,11 @@ func statefulLoader(state map[string]interface{}) lua.LGFunction {
 		l.Push(mod)
 		return 1
 	}
+}
+
+func emptyLoader(l *lua.LState) int {
+	l.Push(l.NewTable())
+	return 1
 }
 
 func basicTestLoader(l *lua.LState) int {
