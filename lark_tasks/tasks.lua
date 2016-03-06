@@ -17,7 +17,7 @@ build = task .. function ()
     lark.run('./cmd/lark')
 end
 
-build_patt = task.with_pattern[[^./cmd/.*]] .. function (ctx)
+build_patt = task.pattern[[^./cmd/.*]] .. function (ctx)
     go.build{task.get_name(ctx)}
 end
 
