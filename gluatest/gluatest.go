@@ -59,6 +59,7 @@ func (m *File) BenchmarkRequireModule(b *testing.B) {
 		b.StartTimer()
 		err := l.PCall(0, 0, nil)
 		b.StopTimer()
+		l.Close()
 		if err != nil {
 			b.Fatal(err)
 		}
