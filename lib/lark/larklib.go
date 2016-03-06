@@ -54,8 +54,8 @@ local lark =
         patterns  = {},
     }
 
-lark.pattern = task.with_pattern
-lark.newpattern = task.with_pattern
+lark.pattern = task.pattern
+lark.newpattern = task.pattern
 lark.newtask = task
 
 lark.task =
@@ -82,9 +82,9 @@ lark.task =
         end
 
         if pattern then
-            task.with_pattern(pattern)(fn)
+            task.pattern(pattern)(fn)
         else
-            task.with_name(name)(fn)
+            task.name(name)(fn)
         end
     end
 
