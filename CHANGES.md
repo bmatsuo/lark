@@ -25,15 +25,11 @@ lark lua  # identical to command `lark repl`
 
 ##v0.4.0
 
-##v0.4.0-beta2
-
 - Rename the `with_pattern()` and `with_name()` functions in the "lark.task"
   module to `pattern()` and `name()` respectively.  See #59 and #60 for more
   details.
 
 - Fix documentation of available modules available through the help() command.
-
-##v0.4.0-beta1
 
 - Documentation is now accessible through the REPL (`lark repl`) using the
   global function `help()`.
