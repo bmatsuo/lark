@@ -49,6 +49,22 @@ func (m *File) Load(t testing.TB) *lua.LState {
 	return l
 }
 
+// BenchmarkRequireModule benchmarks the execution of the preload function (not
+// the act of registering it).
+func (m *File) BenchmarkRequireModule(b *testing.B) {
+	b.StopTimer()
+	for i := 0; i <= b.N; i++ {
+		l, fn := m.preload(b)
+		l.Push(fn)
+		b.StartTimer()
+		err := l.PCall(0, 0, nil)
+		b.StopTimer()
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 // Test runs the specified test function
 func (m *File) Test(t testing.TB) {
 	testFuncs := m.getTestFuncs(t)
