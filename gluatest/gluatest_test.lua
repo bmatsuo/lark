@@ -1,4 +1,4 @@
-module = require('test.module')
+local module = require('test.module')
 
 function helper()
     return 'HELP!'

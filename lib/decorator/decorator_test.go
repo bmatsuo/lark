@@ -14,3 +14,7 @@ var luaDecoratorTest = &gluatest.File{
 func TestModule(t *testing.T) {
 	luaDecoratorTest.Test(t)
 }
+
+func BenchmarkRequireModule(b *testing.B) {
+	luaDecoratorTest.BenchmarkRequireModule(b)
+}
