@@ -25,7 +25,7 @@ func Loader(l *lua.LState) int {
 
 	metatable := l.GetField(internal, "metatable")
 	l.SetField(mod, "metatable", metatable)
-	doc.Go(l, metatable, &doc.GoDocs{
+	doc.Go(l, metatable, &doc.Docs{
 		Sig: "call => mt",
 		Desc: `
 			Create a new metatable for a basic decorator with concat/call
@@ -42,7 +42,7 @@ func Loader(l *lua.LState) int {
 	})
 	create := l.GetField(internal, "create")
 	l.SetField(mod, "create", create)
-	doc.Go(l, create, &doc.GoDocs{
+	doc.Go(l, create, &doc.Docs{
 		Sig: "dec => obj => obj",
 		Desc: `
 			Return a simple copy/concat decorator using the given decorating
@@ -61,7 +61,7 @@ func Loader(l *lua.LState) int {
 	})
 	annotator := l.GetField(internal, "annotator")
 	l.SetField(mod, "annotator", annotator)
-	doc.Go(l, annotator, &doc.GoDocs{
+	doc.Go(l, annotator, &doc.Docs{
 		Sig: "(tab, prepend) => annot => obj => obj",
 		Desc: `
 			Return a copy/concat decorator that 

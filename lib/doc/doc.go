@@ -16,8 +16,80 @@ var Module = gluamodule.New("doc", docLoader,
 	intern.Module,
 )
 
-// GoDocs represents documentation for a Go object
-type GoDocs struct {
+// Get loads documentation about lv from l.
+func Get(l *lua.LState, lv lua.LValue) (*Docs, error) {
+	l.Push(l.GetGlobal("require"))
+	l.Push(lua.LString(Module.Name()))
+	err := l.PCall(1, 1, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	doc := l.Get(-1)
+	l.Pop(1)
+
+	l.Push(l.GetField(doc, "get"))
+	l.Push(lv)
+	err = l.PCall(1, 1, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	ld := l.Get(-1)
+	l.Pop(1)
+
+	if ld == lua.LNil {
+		return nil, nil
+	}
+
+	var ok bool
+	d := &Docs{}
+	lvsig := l.GetField(ld, "sig")
+	lsig, ok := lvsig.(lua.LString)
+	d.Sig = string(lsig)
+	if !ok && lvsig != lua.LNil {
+		return nil, fmt.Errorf("invalid sig: %s", lvsig.Type())
+	}
+	lvdesc := l.GetField(ld, "desc")
+	ldesc, ok := lvdesc.(lua.LString)
+	d.Desc = string(ldesc)
+	if !ok && lvdesc != lua.LNil {
+		return nil, fmt.Errorf("invalid desc: %s", lvdesc.Type())
+	}
+	lvparams := l.GetField(ld, "params")
+	lparams, ok := lvparams.(*lua.LTable)
+	if !ok && lvparams != lua.LNil {
+		return nil, fmt.Errorf("invalid prams: %s", lvparams.Type())
+	}
+	if lparams != nil {
+		l.ForEach(lparams, func(k, v lua.LValue) {
+			s, ok := v.(lua.LString)
+			if !ok {
+				return
+			}
+			d.Params = append(d.Params, string(s))
+		})
+	}
+	lvvars := l.GetField(ld, "vars")
+	lvars, ok := lvvars.(*lua.LTable)
+	if !ok && lvvars != lua.LNil {
+		return nil, fmt.Errorf("invalid variables: %s", lvvars.Type())
+	}
+	if lvars != nil {
+		l.ForEach(lvars, func(k, v lua.LValue) {
+			s, ok := v.(lua.LString)
+			if !ok {
+				return
+			}
+			d.Vars = append(d.Vars, string(s))
+		})
+	}
+
+	return d, nil
+}
+
+// Docs represents documentation for a Go object
+type Docs struct {
 	Sig    string
 	Desc   string
 	Params []string
@@ -25,7 +97,7 @@ type GoDocs struct {
 }
 
 // Go sets the description for obj to desc.
-func Go(l *lua.LState, obj lua.LValue, doc *GoDocs) {
+func Go(l *lua.LState, obj lua.LValue, doc *Docs) {
 	require := l.GetGlobal("require")
 	l.Push(require)
 	l.Push(lua.LString("doc"))
@@ -426,8 +498,10 @@ func weakTable(l *lua.LState, setmt *lua.LFunction, mode string) lua.LValue {
 	l.Push(l.NewTable())
 	l.Push(mt)
 	l.Call(2, 1)
+
 	val := l.Get(l.GetTop())
 	l.Pop(1)
+
 	return val
 }
 
