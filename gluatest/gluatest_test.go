@@ -98,7 +98,7 @@ func TestFile_runTest_failure(t *testing.T) {
 func BenchmarkRequireModule(b *testing.B) {
 	emptyModuleFile := &File{
 		Module: gluamodule.New("test.module", basicTestLoader),
-		Path:   "gluatest_test.lua",
+		Path:   "empty_test.lua",
 	}
 	emptyModuleFile.BenchmarkRequireModule(b)
 }
