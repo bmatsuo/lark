@@ -50,14 +50,16 @@ func (m *File) Load(t testing.TB) *lua.LState {
 }
 
 // BenchmarkRequireModule benchmarks the execution of the preload function (not
-// the act of registering it).
+// the act of preloading it).
 func (m *File) BenchmarkRequireModule(b *testing.B) {
 	b.StopTimer()
 	for i := 0; i <= b.N; i++ {
-		l, fn := m.preload(b)
-		l.Push(fn)
+		l := lua.NewState()
+		gluamodule.Preload(l, gluamodule.Resolve(m.Module)...)
+		l.Push(l.GetGlobal("require"))
+		l.Push(lua.LString(m.Module.Name()))
 		b.StartTimer()
-		err := l.PCall(0, 0, nil)
+		err := l.PCall(1, 0, nil)
 		b.StopTimer()
 		l.Close()
 		if err != nil {

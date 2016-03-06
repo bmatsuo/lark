@@ -14,3 +14,7 @@ var luaPathTest = &gluatest.File{
 func TestModule(t *testing.T) {
 	luaPathTest.Test(t)
 }
+
+func BenchmarkRequireModule(b *testing.B) {
+	luaPathTest.BenchmarkRequireModule(b)
+}
