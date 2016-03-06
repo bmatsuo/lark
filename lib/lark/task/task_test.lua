@@ -24,10 +24,10 @@ function test_module()
 	assert(called)
 end
 
-function test_with_name()
+function test_name()
 	local called = false
 	local t =
-		task.with_name[[task1]] ..
+		task.name[[task1]] ..
 		function() called = true end
 
 	assert(not task.find('t'))
@@ -36,11 +36,11 @@ function test_with_name()
 	assert(called)
 end
 
-function test_with_pattern()
+function test_pattern()
 	local called_svg = false
 	local called_png = false
-	task.with_pattern[[.*%.svg$]](function() called_svg = true end)
-	task.with_pattern[[.*%.png$]](function() called_png = true end)
+	task.pattern[[.*%.svg$]](function() called_svg = true end)
+	task.pattern[[.*%.png$]](function() called_png = true end)
 
 	assert(not task.find('foo.tif'))
 	assert(task.find('foo.png'))
@@ -76,7 +76,7 @@ function test_run()
 	local tpatt = 'run_test_pattern_*'
 	local gotpatt = nil
 	local t = function(ctx) gotpatt = task.get_pattern(ctx) end
-	task.with_pattern(tpatt)(t)
+	task.pattern(tpatt)(t)
 	task.run('run_test_pattern_foo')
 	assert(gotpatt)
 	assert(gotpatt == tpatt)
@@ -84,7 +84,7 @@ end
 
 function test_dump()
 	anon_task_dump = task.create(function() print("ANON") end)
-	task.with_name("foo")(function() print("NAME") end)
-	task.with_pattern(".*%.txt$")(function() print("PATT") end)
+	task.name("foo")(function() print("NAME") end)
+	task.pattern(".*%.txt$")(function() print("PATT") end)
 	task.dump()
 end
