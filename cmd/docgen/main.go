@@ -189,6 +189,10 @@ func (g *textGenerator) GenerateDocs(out io.Writer, h *DocsHeader, d *doc.Docs) 
 				continue
 			}
 			printf("  %s\n", sub.Name)
+			if sub.Docs == nil {
+				printf("\n")
+				continue
+			}
 			text := sub.Desc
 			text = textutil.Unindent(text)
 			text = strings.TrimSpace(text)
@@ -211,6 +215,10 @@ func (g *textGenerator) GenerateDocs(out io.Writer, h *DocsHeader, d *doc.Docs) 
 				continue
 			}
 			printf("  %s\n", sub.Name)
+			if sub.Docs == nil {
+				printf("\n")
+				continue
+			}
 			text := sub.Desc
 			text = textutil.Unindent(text)
 			text = strings.TrimSpace(text)
