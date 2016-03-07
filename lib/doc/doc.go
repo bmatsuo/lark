@@ -7,8 +7,8 @@ import (
 
 	"github.com/bmatsuo/lark/gluamodule"
 	"github.com/bmatsuo/lark/internal/lx"
+	"github.com/bmatsuo/lark/internal/textutil"
 	"github.com/bmatsuo/lark/lib/decorator/_intern"
-	"github.com/bmatsuo/lark/lib/doc/internal/textutil"
 	"github.com/yuin/gopher-lua"
 )
 
@@ -123,6 +123,89 @@ type Docs struct {
 	Params []string
 	Vars   []string
 	Subs   []*Sub
+}
+
+// NumVar returns the number of variables declared for d.
+func (d *Docs) NumVar() int {
+	return len(d.Vars)
+}
+
+func splitNamed(named string) (name, rest string) {
+	text := strings.TrimSpace(named)
+	index := strings.IndexFunc(text, unicode.IsSpace)
+	if index < 0 {
+		return text, ""
+	}
+	return text[:index], text[index:]
+}
+
+// Var returns the name and description variable i in d.
+func (d *Docs) Var(i int) (name string) {
+	name, _ = splitNamed(d.Vars[i])
+	return name
+}
+
+// VarDesc returns the description of variable i in d.
+func (d *Docs) VarDesc(i int) (desc string) {
+	_, rest := splitNamed(d.Vars[i])
+	return rest
+}
+
+// VarType returns the type of variable i in d if it can be inferred from the
+// documentation.
+//
+// BUG:
+// VarType is not implemented.  No convention has been settled on.
+func (d *Docs) VarType(i int) (typ string) {
+	return ""
+}
+
+// NumParam returns the number of parameters declared for d.
+func (d *Docs) NumParam() int {
+	return len(d.Params)
+}
+
+// Param returns the name and description parameter i in d.
+func (d *Docs) Param(i int) (name string) {
+	name, _ = splitNamed(d.Params[i])
+	return name
+}
+
+// ParamDesc returns the description of parameter i in d.
+func (d *Docs) ParamDesc(i int) (desc string) {
+	_, rest := splitNamed(d.Params[i])
+	return rest
+}
+
+// ParamType returns the type of parameter i in d if it can be inferred from the
+// documentation.
+//
+// BUG:
+// ParamType is not implemented.  No convention has been settled on.
+func (d *Docs) ParamType(i int) (typ string) {
+	return ""
+}
+
+// Funcs returns function subtopics of d.
+func (d *Docs) Funcs() []*Sub {
+	var sub []*Sub
+	for _, s := range d.Subs {
+		if s.Type == "function" {
+			sub = append(sub, s)
+		}
+	}
+	return sub
+}
+
+// Others returns non-function subtopics of d.
+func (d *Docs) Others() []*Sub {
+	var sub []*Sub
+	for _, s := range d.Subs {
+		if s.Type != "function" {
+			sub = append(sub, s)
+		}
+	}
+	return sub
 }
 
 // Sub is subtopic documentation for a Lua object.
