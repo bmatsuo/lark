@@ -2,6 +2,8 @@
 
 ##v0.5.0-dev
 
+- Test coverage throughout the repository has increased.
+
 - Simple benchmarks added to track changes in `lark` startup time.
 
 - Code generation makes sure that a valid version number is always defined.
