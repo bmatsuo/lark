@@ -1,3 +1,5 @@
+// Command docgen is an experimental development command for generating static
+// documentation for lua modules.
 package main
 
 import (
