@@ -60,7 +60,11 @@ func (g *textFormatter) printf(format string, v ...interface{}) {
 }
 
 func (g *textFormatter) writeDocs(h *Header, d *Docs) {
-	fmt.Fprintf(g.buf, "%s %s\n\n", h.DocsType, h.Name)
+	if h != nil {
+		fmt.Fprintf(g.buf, "%s %s\n\n", h.DocsType, h.Name)
+	} else {
+		g.printf("\n")
+	}
 	text := d.Usage
 	text = textutil.Unindent(text)
 	text = strings.TrimSpace(text)

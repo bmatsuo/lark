@@ -2,6 +2,8 @@ package doc
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"strings"
 	"unicode"
 
@@ -47,9 +49,16 @@ func decodeDocs(l *lua.LState, lv lua.LValue, name string) (*Docs, error) {
 	if lv == lua.LNil {
 		return nil, nil
 	}
+	if lv.Type() != lua.LTTable {
+		return nil, fmt.Errorf("not a table: %s", lv.Type())
+	}
+
 	ldocs := &lx.NamedValue{
 		Name:  fmt.Sprintf("%s docs", name),
 		Value: lv,
+	}
+	if name == "" {
+		ldocs.Name = name
 	}
 
 	d := &Docs{}
@@ -362,7 +371,7 @@ func docLoader(l *lua.LState) int {
 		"",
 		`
 		The doc module contains utilities for documenting Lua objects using
-		decorators.  Seconds of documentation are declared separately using
+		decorators.  Sections of documentation are declared separately using
 		small idiomatically named decorators.  Decorators are defined for
 		documenting (module) table descriptions, variables, and functions.  For
 		function decorators are defined to document signatures and parameter
@@ -462,175 +471,22 @@ func luaHelp(mod lua.LValue, get lua.LValue) lua.LGFunction {
 		l.Push(get)
 		l.Push(val)
 		l.Call(1, 1)
-		docs := l.Get(1)
-		if docs != lua.LNil {
-			desc := l.GetField(docs, "desc")
-			if desc != lua.LNil {
-				l.Push(print)
-				l.Push(lua.LString(""))
-				l.Call(1, 0)
 
-				lstr, ok := l.ToStringMeta(desc).(lua.LString)
-				if !ok {
-					l.RaiseError("description is not a string")
-				}
-				str := textutil.Unindent(string(lstr))
-				str = textutil.Wrap(str, 72)
-				str = strings.TrimSpace(str)
-				l.Push(print)
-				l.Push(lua.LString(str))
-				l.Call(1, 0)
-			}
-			vars := l.GetField(docs, "vars")
-			if vars != lua.LNil {
+		docs := l.Get(-1)
+		l.SetTop(0)
 
-				vtab, ok := vars.(*lua.LTable)
-				if !ok {
-					l.RaiseError("variables are not a table")
-				}
-				if vtab.Len() > 0 {
-					l.Push(print)
-					l.Call(0, 0)
-
-					l.Push(print)
-					l.Push(lua.LString("Variables"))
-					l.Call(1, 0)
-				}
-				l.ForEach(vtab, func(i, v lua.LValue) {
-					v = l.ToStringMeta(v)
-					s, ok := v.(lua.LString)
-					if !ok {
-						l.RaiseError("variable description is not a string")
-					}
-					name, desc := splitParam(string(s))
-					if name == "" {
-						return
-					}
-
-					l.Push(print)
-					l.Call(0, 0)
-
-					ln := fmt.Sprintf("  %s", name)
-					l.Push(print)
-					l.Push(lua.LString(ln))
-					l.Call(1, 0)
-
-					desc = textutil.Unindent(desc)
-					desc = strings.TrimSpace(desc)
-					desc = textutil.Wrap(desc, 72)
-					desc = textutil.Indent(desc, "      ")
-					l.Push(print)
-					l.Push(lua.LString(desc))
-					l.Call(1, 0)
-				})
-			}
-			sig := l.GetField(docs, "sig")
-			if sig != lua.LNil {
-				l.Push(print)
-				l.Call(0, 0)
-
-				l.Push(print)
-				l.Push(sig)
-				l.Call(1, 0)
-			}
-			params := l.GetField(docs, "params")
-			if params != lua.LNil {
-
-				ptab, ok := params.(*lua.LTable)
-				if !ok {
-					l.RaiseError("parameters are not a table")
-				}
-				if ptab.Len() > 0 {
-					l.Push(print)
-					l.Call(0, 0)
-
-					l.Push(print)
-					l.Push(lua.LString("Parameters"))
-					l.Call(1, 0)
-				}
-				l.ForEach(ptab, func(i, v lua.LValue) {
-					v = l.ToStringMeta(v)
-					s, ok := v.(lua.LString)
-					if !ok {
-						l.RaiseError("parameter description is not a string")
-					}
-					name, desc := splitParam(string(s))
-					if name == "" {
-						return
-					}
-
-					l.Push(print)
-					l.Call(0, 0)
-
-					ln := fmt.Sprintf("  %s", name)
-					l.Push(print)
-					l.Push(lua.LString(ln))
-					l.Call(1, 0)
-
-					desc = textutil.Unindent(desc)
-					desc = strings.TrimSpace(desc)
-					desc = textutil.Wrap(desc, 72)
-					desc = textutil.Indent(desc, "      ")
-					l.Push(print)
-					l.Push(lua.LString(desc))
-					l.Call(1, 0)
-				})
-			}
+		godocs, err := decodeDocs(l, docs, "")
+		if err != nil {
+			l.RaiseError("%s", err)
 		}
-
-		subs, ok := l.GetField(docs, "sub").(*lua.LTable)
-		if ok {
-			type Topic struct{ k, desc lua.LString }
-			var topics []*Topic
-			l.ForEach(subs, func(k, v lua.LValue) {
-				_k, ok := k.(lua.LString)
-				if !ok {
-					return
-				}
-				subDocs := l.GetField(v, "docs")
-
-				t := &Topic{k: _k, desc: ""}
-				if subDocs != lua.LNil {
-					desc := l.GetField(subDocs, "desc")
-					t.desc, ok = desc.(lua.LString)
-					if !ok {
-						t.desc, ok = l.ToStringMeta(desc).(lua.LString)
-						if !ok {
-							l.RaiseError("cannot convert description to string")
-						}
-					}
-				}
-
-				topics = append(topics, t)
-			})
-
-			if len(topics) > 0 {
-				l.Push(print)
-				l.Call(0, 0)
-
-				l.Push(print)
-				l.Push(lua.LString("Functions"))
-				l.Call(1, 0)
-			}
-			for _, t := range topics {
-				l.Push(print)
-				l.Call(0, 0)
-
-				l.Push(print)
-				l.Push(lua.LString(fmt.Sprintf("  %s", t.k)))
-				l.Call(1, 0)
-
-				if t.desc != lua.LNil {
-					syn := textutil.Synopsis(string(t.desc))
-					syn = textutil.Wrap(syn, 66)
-					syn = textutil.Indent(syn, "      ")
-					l.Push(print)
-					l.Push(lua.LString(syn))
-					l.Call(1, 0)
-				}
-			}
+		text, err := NewFormatter().Format(nil, godocs, "")
+		if err != nil {
+			l.RaiseError("%s", err)
 		}
-
+		_, err = io.Copy(os.Stderr, strings.NewReader(text))
+		if err != nil {
+			l.RaiseError("%s", err)
+		}
 		return 0
 	}
 }
