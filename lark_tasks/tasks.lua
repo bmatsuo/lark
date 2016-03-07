@@ -24,6 +24,11 @@ gen = task .. function ()
     go.gen()
 end
 
+gen_docs = task .. function ()
+    lark.run('./cmd/docgen')
+    lark.exec{'./docgen'}
+end
+
 build = task .. function ()
     lark.run('./cmd/lark')
 end
