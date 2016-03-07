@@ -16,12 +16,12 @@ import (
 
 // Modules lists every module in the library.
 var Modules = []gluamodule.Module{
+	decorator.Module,
+	intern.Module,
+	doc.Module,
 	lark.Module,
 	core.Module,
 	task.Module,
-	doc.Module,
-	decorator.Module,
-	intern.Module,
 	path.Module,
 }
 

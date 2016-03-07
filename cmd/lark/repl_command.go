@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/bmatsuo/lark/lib"
+	"github.com/bmatsuo/lark/project"
 	"github.com/chzyer/readline"
 	"github.com/codegangsta/cli"
 	"github.com/fatih/color"
@@ -32,7 +33,7 @@ func REPL(c *Context) {
 	log.Print(msg)
 	log.Println()
 
-	luaFiles, err := FindTaskFiles("")
+	luaFiles, err := project.FindTaskFiles(".")
 	if err != nil {
 		log.Fatal(err)
 	}

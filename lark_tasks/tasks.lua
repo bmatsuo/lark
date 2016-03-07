@@ -14,7 +14,11 @@ gen = task .. function ()
 end
 
 build = task .. function ()
-    go.build{'./cmd/...'}
+    lark.run('./cmd/lark')
+end
+
+build_patt = task.pattern[[^./cmd/.*]] .. function (ctx)
+    go.build{task.get_name(ctx)}
 end
 
 install = task .. function ()

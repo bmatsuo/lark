@@ -16,7 +16,7 @@ var Module = gluamodule.New("lark.task", Loader,
 // Loader loads the Lua module.
 func Loader(l *lua.LState) int {
 	mod := l.NewTable()
-	doc.Go(l, mod, &doc.GoDocs{
+	doc.Go(l, mod, &doc.Docs{
 		Desc: `
 		The task module manages lark tasks.  It provides decorators that can be
 		used to define new tasks.  To locate and execute tasks by name the
@@ -67,7 +67,7 @@ func Loader(l *lua.LState) int {
 	l.Call(1, 1)
 	name := l.Get(-1)
 	l.Pop(1)
-	doc.Go(l, name, &doc.GoDocs{
+	doc.Go(l, name, &doc.Docs{
 		Sig: "name => fn => fn",
 		Desc: `
 		Return a decorator that gives a task function an explicit name.
@@ -96,7 +96,7 @@ func Loader(l *lua.LState) int {
 	l.Call(1, 1)
 	pattern := l.Get(-1)
 	l.Pop(1)
-	doc.Go(l, pattern, &doc.GoDocs{
+	doc.Go(l, pattern, &doc.Docs{
 		Sig: "patt => fn => fn",
 		Desc: `
 		Returns a decorator that associates the given patten with a function.
@@ -116,7 +116,7 @@ func Loader(l *lua.LState) int {
 	l.Call(1, 1)
 	create := l.Get(-1)
 	l.Pop(1)
-	doc.Go(l, create, &doc.GoDocs{
+	doc.Go(l, create, &doc.Docs{
 		Sig: "fn => fn",
 		Desc: `
 		A decorator that creates an anonymous task from a function.
@@ -138,7 +138,7 @@ func Loader(l *lua.LState) int {
 		luaFind(anonTasks, namedTasks, patterns, mod),
 		anonTasks, namedTasks, patterns, mod,
 	)
-	doc.Go(l, find, &doc.GoDocs{
+	doc.Go(l, find, &doc.Docs{
 		Sig: "name => (fn, match, pattern)",
 		Desc: `
 		Return the task matching the given name.  If no name is given the
@@ -175,7 +175,7 @@ func Loader(l *lua.LState) int {
 		luaDump(anonTasks, namedTasks, patterns, mod),
 		anonTasks, namedTasks, patterns, mod,
 	)
-	doc.Go(l, dump, &doc.GoDocs{
+	doc.Go(l, dump, &doc.Docs{
 		Sig: "() => ()",
 		Desc: `
 		Write all task names and patterns to standard output.  Finding all
@@ -192,7 +192,7 @@ func Loader(l *lua.LState) int {
 
 	run := l.NewClosure(luaRun(find), find)
 	l.SetField(mod, "run", run)
-	doc.Go(l, run, &doc.GoDocs{
+	doc.Go(l, run, &doc.Docs{
 		Sig: "name => ()",
 		Desc: `
 		Find and run the task with the given name.  See find() for more
@@ -207,7 +207,7 @@ func Loader(l *lua.LState) int {
 
 	getName := l.NewClosure(luaGetName)
 	l.SetField(mod, "get_name", getName)
-	doc.Go(l, getName, &doc.GoDocs{
+	doc.Go(l, getName, &doc.Docs{
 		Sig: "ctx => name",
 		Desc: `
 		Retrieve the name of a (running) task from the task's context.
@@ -225,7 +225,7 @@ func Loader(l *lua.LState) int {
 
 	getPattern := l.NewClosure(luaGetPattern)
 	l.SetField(mod, "get_pattern", getPattern)
-	doc.Go(l, getPattern, &doc.GoDocs{
+	doc.Go(l, getPattern, &doc.Docs{
 		Sig: "ctx => patt",
 		Desc: `
 		Retrieve the regular expression that matched a (running) task from the
@@ -244,7 +244,7 @@ func Loader(l *lua.LState) int {
 
 	getParam := l.NewClosure(luaGetParam)
 	l.SetField(mod, "get_param", getParam)
-	doc.Go(l, getParam, &doc.GoDocs{
+	doc.Go(l, getParam, &doc.Docs{
 		Sig: "(ctx, name) => value",
 		Desc: `
 		Retrieve the value of a task parameter (typically passed in through the

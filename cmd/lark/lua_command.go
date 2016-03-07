@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/bmatsuo/lark/larkmeta"
+	"github.com/bmatsuo/lark/project"
 	"github.com/codegangsta/cli"
 	"github.com/yuin/gopher-lua"
 )
@@ -27,7 +28,7 @@ var CommandLua = Command(func(lark *Context, cmd *cli.Command) {
 // Lua loads a lua vm with the lark library and executes Lua scripts or
 // expressions.
 func Lua(c *Context) {
-	luaFiles, err := FindTaskFiles("")
+	luaFiles, err := project.FindTaskFiles(".")
 	if err != nil {
 		log.Fatal(err)
 	}

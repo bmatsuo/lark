@@ -19,7 +19,7 @@ func Loader(l *lua.LState) int {
 	l.Pop(1) // first argument is the module name
 
 	mod := l.NewTable()
-	doc.Go(l, mod, &doc.GoDocs{
+	doc.Go(l, mod, &doc.Docs{
 		Desc: `
 		The path module provides utilities for working with filesystem paths.
 		`,
@@ -27,7 +27,7 @@ func Loader(l *lua.LState) int {
 	l.SetFuncs(mod, Exports)
 
 	glob := l.NewClosure(LuaGlob)
-	doc.Go(l, glob, &doc.GoDocs{
+	doc.Go(l, glob, &doc.Docs{
 		Sig:  "patt => [string]",
 		Desc: "Returns an array of paths that match the given pattern.",
 		Params: []string{
@@ -37,7 +37,7 @@ func Loader(l *lua.LState) int {
 	l.SetField(mod, "glob", glob)
 
 	base := l.NewClosure(LuaBase)
-	doc.Go(l, base, &doc.GoDocs{
+	doc.Go(l, base, &doc.Docs{
 		Sig:  "path => string",
 		Desc: "Returns the basename of the given path.",
 		Params: []string{
@@ -47,7 +47,7 @@ func Loader(l *lua.LState) int {
 	l.SetField(mod, "base", base)
 
 	dir := l.NewClosure(LuaDir)
-	doc.Go(l, dir, &doc.GoDocs{
+	doc.Go(l, dir, &doc.Docs{
 		Sig:  "path => string",
 		Desc: "Returns the directory containing the given path.",
 		Params: []string{
@@ -57,7 +57,7 @@ func Loader(l *lua.LState) int {
 	l.SetField(mod, "dir", dir)
 
 	ext := l.NewClosure(LuaExt)
-	doc.Go(l, ext, &doc.GoDocs{
+	doc.Go(l, ext, &doc.Docs{
 		Sig:  "path => string",
 		Desc: "Returns the file extension of the given path.",
 		Params: []string{
@@ -67,7 +67,7 @@ func Loader(l *lua.LState) int {
 	l.SetField(mod, "ext", ext)
 
 	join := l.NewClosure(LuaJoin)
-	doc.Go(l, join, &doc.GoDocs{
+	doc.Go(l, join, &doc.Docs{
 		Sig:  "[path] => string",
 		Desc: "Joins the given paths using the filesystem path separator and returns the result.",
 		Params: []string{
@@ -77,7 +77,7 @@ func Loader(l *lua.LState) int {
 	l.SetField(mod, "join", join)
 
 	exists := l.NewClosure(LuaExists)
-	doc.Go(l, exists, &doc.GoDocs{
+	doc.Go(l, exists, &doc.Docs{
 		Sig:  "path => bool",
 		Desc: "Returns true if and only if path exists",
 		Params: []string{
@@ -87,7 +87,7 @@ func Loader(l *lua.LState) int {
 	l.SetField(mod, "exists", exists)
 
 	isDir := l.NewClosure(LuaIsDir)
-	doc.Go(l, isDir, &doc.GoDocs{
+	doc.Go(l, isDir, &doc.Docs{
 		Sig:  "path => bool",
 		Desc: "Returns true if and only if path exists and is a directory",
 		Params: []string{

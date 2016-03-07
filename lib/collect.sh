@@ -4,7 +4,7 @@ OUTPUT_PATH=$1
 IMPORT_PATH=github.com/bmatsuo/lark
 
 collect() {
-    for pkg in $(find . -type d); do
+    for pkg in $(find . -type d | sort); do
         grep 'var Module ' "$pkg"/*.go > /dev/null 2>&1
         if [[ $? -eq 0 ]]; then
             echo "$pkg" | sed "s!^.!$IMPORT_PATH/lib!"
