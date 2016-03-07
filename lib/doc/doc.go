@@ -229,23 +229,42 @@ func docLoader(l *lua.LState) int {
 	_var := newAnnotator(variables, true)
 
 	dodoc := func(obj lua.LValue, s, d string, ps ...string) {
-		l.Push(sig)
-		l.Push(lua.LString(s))
-		l.Call(1, 1)
-		l.Push(desc)
-		l.Push(lua.LString(d))
-		l.Call(1, 1)
+		ncall := 2 + len(ps)
+		if s != "" {
+			l.Push(sig)
+			l.Push(lua.LString(s))
+			l.Call(1, 1)
+			ncall--
+		}
+		if d != "" {
+			l.Push(desc)
+			l.Push(lua.LString(d))
+			l.Call(1, 1)
+			ncall--
+		}
 		for _, p := range ps {
 			l.Push(param)
 			l.Push(lua.LString(p))
 			l.Call(1, 1)
 		}
 		l.Push(obj)
-		for i := 0; i < 2+len(ps); i++ {
+		for i := 0; i < ncall; i++ {
 			l.Call(1, 1)
 		}
 	}
 
+	dodoc(mod,
+		"",
+		`
+		The doc module contains utilities for documenting Lua objects using
+		decorators.  Seconds of documentation are declared separately using
+		small idiomatically named decorators.  Decorators are defined for
+		documenting (module) table descriptions, variables, and functions.  For
+		function decorators are defined to document signatures and parameter
+		values.
+		`,
+		"",
+	)
 	dodoc(sig,
 		"s => fn => fn",
 		"A decorator that documents a function's signature.",
@@ -506,18 +525,19 @@ func luaGet(signatures, descriptions, parameters, variables lua.LValue) lua.LGFu
 		desc := l.GetTable(descriptions, val)
 		params := l.GetTable(parameters, val)
 		vars := l.GetTable(variables, val)
-		if sig == lua.LNil && desc == lua.LNil && params == lua.LNil && vars == lua.LNil {
+		tab, ok := val.(*lua.LTable)
+		if sig == lua.LNil && desc == lua.LNil && params == lua.LNil && vars == lua.LNil && !ok {
 			l.Push(lua.LNil)
 			return 1
 		}
+
 		t := l.NewTable()
 		l.SetField(t, "sig", sig)
 		l.SetField(t, "desc", desc)
 		l.SetField(t, "params", params)
 		l.SetField(t, "vars", vars)
 
-		tab, ok := val.(*lua.LTable)
-		if ok {
+		if tab != nil {
 			topics := l.NewTable()
 
 			l.ForEach(tab, func(k, v lua.LValue) {

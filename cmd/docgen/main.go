@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/bmatsuo/lark/lib"
 	"github.com/bmatsuo/lark/lib/doc"
@@ -16,38 +17,56 @@ func main() {
 	l := lua.NewState()
 	defer l.Close()
 
-	err := dumpModules(l)
+	err := dump(l)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func dumpModules(l *lua.LState) error {
+func dump(l *lua.LState) error {
 	err := project.InitLib(l, nil)
 	if err != nil {
 		return err
 	}
 
-	for _, m := range lib.Modules {
-		log.Print(m.Name())
+	var modules []string
+	if len(os.Args[1:]) > 0 {
+		modules = os.Args[1:]
+	} else {
+	mloop:
+		for _, m := range lib.Modules {
+			name := m.Name()
+			for _, hidden := range lib.InternalModules {
+				if name == hidden.Name() {
+					continue mloop
+				}
+			}
+			modules = append(modules, name)
+		}
+	}
 
+	return dumpDocs(l, modules)
+}
+
+func dumpDocs(l *lua.LState, names []string) error {
+	for _, m := range names {
+		log.Printf("require(%q)", m)
 		l.Push(l.GetGlobal("require"))
-		l.Push(lua.LString(m.Name()))
+		l.Push(lua.LString(m))
 		err := l.PCall(1, 1, nil)
 		if err != nil {
-			return fmt.Errorf("%s: %s", m.Name(), err)
+			return fmt.Errorf("%s: %s", m, err)
 		}
 
 		mod := l.Get(-1)
 		l.Pop(1)
 
-		mdocs, err := doc.Get(l, mod, m.Name())
+		mdocs, err := doc.Get(l, mod, m)
 		if err != nil {
-			return fmt.Errorf("module %s: documentation error: %v", m.Name(), err)
+			return fmt.Errorf("module %s: documentation error: %v", m, err)
 		}
 
 		log.Printf("%q", mdocs)
 	}
-
 	return nil
 }
