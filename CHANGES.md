@@ -2,6 +2,8 @@
 
 ##v0.5.0-dev
 
+- Simple benchmarks added to track changes in `lark` startup time.
+
 - Code generation makes sure that a valid version number is always defined.
   This means that installing the lark command with `go get` is a little safer
   (it is still a bad idea for production systems though).
