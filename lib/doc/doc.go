@@ -229,8 +229,7 @@ func Go(l *lua.LState, obj lua.LValue, doc *Docs) {
 
 	ndec := 0
 	if doc.Usage != "" {
-		sig := l.GetField(mod, "usage")
-		l.Push(sig)
+		l.Push(l.GetField(mod, "usage"))
 		l.Push(lua.LString(doc.Usage))
 		err := l.PCall(1, 1, nil)
 		if err != nil {
@@ -239,8 +238,7 @@ func Go(l *lua.LState, obj lua.LValue, doc *Docs) {
 		ndec++
 	}
 	if doc.Sig != "" {
-		sig := l.GetField(mod, "sig")
-		l.Push(sig)
+		l.Push(l.GetField(mod, "sig"))
 		l.Push(lua.LString(doc.Sig))
 		err := l.PCall(1, 1, nil)
 		if err != nil {
@@ -249,8 +247,7 @@ func Go(l *lua.LState, obj lua.LValue, doc *Docs) {
 		ndec++
 	}
 	if doc.Desc != "" {
-		sig := l.GetField(mod, "desc")
-		l.Push(sig)
+		l.Push(l.GetField(mod, "desc"))
 		l.Push(lua.LString(doc.Desc))
 		err := l.PCall(1, 1, nil)
 		if err != nil {
@@ -332,18 +329,21 @@ func docLoader(l *lua.LState) int {
 			l.Push(usage)
 			l.Push(lua.LString(u))
 			l.Call(1, 1)
+		} else {
 			ncall--
 		}
 		if s != "" {
 			l.Push(sig)
 			l.Push(lua.LString(s))
 			l.Call(1, 1)
+		} else {
 			ncall--
 		}
 		if d != "" {
 			l.Push(desc)
 			l.Push(lua.LString(d))
 			l.Call(1, 1)
+		} else {
 			ncall--
 		}
 		for _, p := range ps {
@@ -368,7 +368,6 @@ func docLoader(l *lua.LState) int {
 		function decorators are defined to document signatures and parameter
 		values.
 		`,
-		"",
 	)
 	dodoc(usage,
 		"",
