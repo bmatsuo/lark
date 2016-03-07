@@ -32,7 +32,7 @@ mloop:
 				continue mloop
 			}
 		}
-		patt := fmt.Sprintf(`\s*%s\s`, name)
+		patt := fmt.Sprintf(`\s%s\s`, name)
 		re, err := regexp.Compile(patt)
 		if err != nil {
 			t.Errorf("pattern %d: %v", i, err)
