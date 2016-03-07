@@ -41,7 +41,7 @@ func dumpModules(l *lua.LState) error {
 		mod := l.Get(-1)
 		l.Pop(1)
 
-		mdocs, err := doc.Get(l, mod)
+		mdocs, err := doc.Get(l, mod, m.Name())
 		if err != nil {
 			return fmt.Errorf("module %s: documentation error: %v", m.Name(), err)
 		}
