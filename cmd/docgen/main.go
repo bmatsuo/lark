@@ -413,7 +413,6 @@ func (g *mdFormatter) writeDocs(h *doc.Header, d *doc.Docs) {
 			if sub.Name == "" {
 				continue
 			}
-			log.Printf(sub.Name)
 			g.printf("**%s**\n\n", sub.Name)
 			if sub.Docs == nil {
 				continue

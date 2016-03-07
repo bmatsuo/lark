@@ -2,13 +2,7 @@
 
 ##Functions
 
-**exec**
-
 **wait**
-
-**log**
-
-Log a message to the standard error stream.
 
 **start**
 
@@ -17,4 +11,10 @@ Log a message to the standard error stream.
 **environ**
 
 Return a copy of the process environment as a table.
+
+**exec**
+
+**log**
+
+Log a message to the standard error stream.
 
