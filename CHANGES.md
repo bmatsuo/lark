@@ -2,6 +2,8 @@
 
 ##v0.4.0
 
+- Fix bug where errors encountered by `lark.exec()` were ignored. See #62.
+
 ##v0.4.0-beta2
 
 - Rename the `with_pattern()` and `with_name()` functions in the "lark.task"
