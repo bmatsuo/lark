@@ -3,14 +3,11 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"strings"
 
-	"github.com/bmatsuo/lark/internal/textutil"
 	"github.com/bmatsuo/lark/lib"
 	"github.com/bmatsuo/lark/lib/doc"
 	"github.com/bmatsuo/lark/project"
@@ -53,7 +50,7 @@ func dump(l *lua.LState) error {
 }
 
 func dumpDocs(l *lua.LState, names []string) error {
-	gen := &bufferedTextGenerator{}
+	gen := &textGenerator{}
 	out := os.Stdout
 	for _, m := range names {
 		l.Push(l.GetGlobal("require"))
@@ -71,170 +68,28 @@ func dumpDocs(l *lua.LState, names []string) error {
 			return fmt.Errorf("module %s: documentation error: %v", m, err)
 		}
 
-		header := &DocsHeader{
+		header := &doc.Header{
 			DocsType: "Module",
 			Name:     m,
-			Usage:    fmt.Sprintf("local %s = require(%q)", m, m),
 		}
 		gen.GenerateDocs(out, header, mdocs)
 	}
 	return nil
 }
 
-// DocsHeader describes a page of documentation
-type DocsHeader struct {
-	DocsType string
-	Name     string
-	Usage    string
-}
-
 // Generator formats doc.Docs objects and writes them to an output stream.
 type Generator interface {
-	GenerateDocs(out io.Writer, h *DocsHeader, d *doc.Docs) error
-}
-
-type bufferedTextGenerator textGenerator
-
-func (g *bufferedTextGenerator) GenerateDocs(out io.Writer, h *DocsHeader, d *doc.Docs) (err error) {
-	_out := bufio.NewWriter(out)
-	defer func() {
-		if err != nil {
-			err = _out.Flush()
-		}
-	}()
-	return (*textGenerator)(g).GenerateDocs(out, h, d)
+	GenerateDocs(out io.Writer, h *doc.Header, d *doc.Docs) error
 }
 
 type textGenerator struct {
 }
 
-func (g *textGenerator) GenerateDocs(out io.Writer, h *DocsHeader, d *doc.Docs) error {
-	var err error
-	printf := func(format string, v ...interface{}) {
-		if err != nil {
-			return
-		}
-		_, err = fmt.Fprintf(out, format, v...)
+func (g *textGenerator) GenerateDocs(out io.Writer, h *doc.Header, d *doc.Docs) error {
+	s, err := doc.NewFormatter().Format(h, d, "  ")
+	if err != nil {
+		return err
 	}
-
-	printf("%s %s\n\n", h.DocsType, h.Name)
-	text := d.Usage
-	text = textutil.Unindent(text)
-	text = strings.TrimSpace(text)
-	if text != "" {
-		printf("  %s\n\n", textutil.Indent(text, "  "))
-	}
-	text = d.Sig
-	text = textutil.Unindent(text)
-	text = strings.TrimSpace(text)
-	if text != "" {
-		printf("Signature:\n\n")
-		printf("%s\n\n", textutil.Indent(text, "  "))
-	}
-	if d.Desc != "" {
-		text = textutil.Unindent(d.Desc)
-		text = textutil.Wrap(text, 72)
-		text = strings.TrimSpace(text)
-		printf("%s\n\n", text)
-	}
-	numvar := d.NumVar()
-	if numvar > 0 {
-		printf("Variables:\n\n")
-		for i := 0; i < numvar; i++ {
-			printf("  %s", d.Var(i))
-			typ := d.VarType(i)
-			if typ != "" {
-				printf("  %s\n", typ)
-			} else {
-				printf("\n")
-			}
-			text = d.VarDesc(i)
-			text = textutil.Unindent(text)
-			text = textutil.Wrap(text, 66)
-			text = strings.TrimSpace(text)
-			if text != "" {
-				text = textutil.Indent(text, "      ")
-				printf("%s\n\n", text)
-			} else {
-				printf("\n")
-			}
-		}
-	}
-	numparam := d.NumParam()
-	if numparam > 0 {
-		printf("Parameters:\n\n")
-		for i := 0; i < numparam; i++ {
-			printf("  %s", d.Param(i))
-			typ := d.ParamType(i)
-			if typ != "" {
-				printf("  %s\n", typ)
-			} else {
-				printf("\n")
-			}
-			text = d.ParamDesc(i)
-			text = textutil.Unindent(text)
-			text = textutil.Wrap(text, 66)
-			text = strings.TrimSpace(text)
-			if text != "" {
-				text = textutil.Indent(text, "      ")
-				printf("%s\n\n", text)
-			} else {
-				printf("\n")
-			}
-		}
-	}
-
-	funcs := d.Funcs()
-	if len(funcs) > 0 {
-		printf("Functions:\n\n")
-		for _, sub := range funcs {
-			if sub.Name == "" {
-				continue
-			}
-			printf("  %s\n", sub.Name)
-			if sub.Docs == nil {
-				printf("\n")
-				continue
-			}
-			text = sub.Desc
-			text = textutil.Unindent(text)
-			text = strings.TrimSpace(text)
-			text = textutil.Synopsis(text)
-			text = textutil.Wrap(text, 66)
-			if text != "" {
-				text = textutil.Indent(text, "      ")
-				printf("%s\n\n", text)
-			} else {
-				printf("\n")
-			}
-		}
-	}
-
-	others := d.Others()
-	if len(others) > 0 {
-		printf("Subtopics:\n\n")
-		for _, sub := range others {
-			if sub.Name == "" {
-				continue
-			}
-			printf("  %s\n", sub.Name)
-			if sub.Docs == nil {
-				printf("\n")
-				continue
-			}
-			text = sub.Desc
-			text = textutil.Unindent(text)
-			text = strings.TrimSpace(text)
-			text = textutil.Synopsis(text)
-			text = textutil.Wrap(text, 66)
-			if text != "" {
-				text = textutil.Indent(text, "      ")
-				printf("%s\n\n", text)
-			} else {
-				printf("\n")
-			}
-		}
-	}
-
+	_, err = io.WriteString(out, s)
 	return err
 }
