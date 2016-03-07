@@ -64,6 +64,7 @@ import (
 	"os"
 
 	"github.com/bmatsuo/lark/larkmeta"
+	"github.com/bmatsuo/lark/project"
 	"github.com/codegangsta/cli"
 	"github.com/mattn/go-isatty"
 	"github.com/yuin/gopher-lua"
@@ -102,7 +103,7 @@ func main() {
 	// Set search path for lua modules.  The search path must be completely
 	// contained by the working directory to help ensure repeatable builds
 	// across machines.
-	lua.LuaPathDefault = "./lark_modules/?.lua;./lark_modules/?/init.lua"
+	lua.LuaPathDefault = project.LuaPath(".")
 	os.Setenv(lua.LuaPath, "")
 
 	cli.VersionFlag.Name = "version"

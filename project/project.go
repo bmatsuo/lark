@@ -22,6 +22,15 @@ var TaskDir = "lark_tasks"
 // ModuleDir is the root directory for modules in a lark project.
 var ModuleDir = "lark_modules"
 
+// LuaPath returns the dir project LUA_PATH value, referencing only ModuleDir
+// inside dir.
+func LuaPath(dir string) string {
+	root := filepath.Join(dir, ModuleDir)
+	luaFiles := filepath.Join(root, "?.lua")
+	luaInits := filepath.Join(root, "?", "init.lua")
+	return fmt.Sprintf("%s;%s", luaFiles, luaInits)
+}
+
 // FindTaskFiles locates task scripts in the project dir.
 func FindTaskFiles(dir string) ([]string, error) {
 	var luaFiles []string
