@@ -17,7 +17,7 @@ init = task .. function()
 end
 
 clean = task .. function()
-    lark.exec{'rm', '-f', 'lark'}
+    lark.exec{'rm', '-f', 'lark', 'docgen'}
 end
 
 gen = task .. function ()
