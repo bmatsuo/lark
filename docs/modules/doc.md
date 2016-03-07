@@ -13,9 +13,25 @@ values.
 
 ##Functions
 
+**desc**
+
+A decorator that describes an object.
+
 **get**
 
 Retrieve a table containing documentation for obj.
+
+**help**
+
+Print the documentation for obj.
+
+**param**
+
+A decorator that describes a function parameter.
+
+**sig**
+
+A decorator that documents a function's signature.
 
 **usage**
 
@@ -24,20 +40,4 @@ A decorator that documents the usage of an object.
 **var**
 
 A decorator that describes module variable (table field).
-
-**param**
-
-A decorator that describes a function parameter.
-
-**help**
-
-Print the documentation for obj.
-
-**desc**
-
-A decorator that describes an object.
-
-**sig**
-
-A decorator that documents a function's signature.
 

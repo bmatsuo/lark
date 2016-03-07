@@ -2,12 +2,6 @@
 
 ##Functions
 
-**wait**
-
-**start**
-
-**make_group**
-
 **environ**
 
 Return a copy of the process environment as a table.
@@ -17,4 +11,10 @@ Return a copy of the process environment as a table.
 **log**
 
 Log a message to the standard error stream.
+
+**make_group**
+
+**start**
+
+**wait**
 

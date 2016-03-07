@@ -6,29 +6,29 @@ The path module provides utilities for working with filesystem paths.
 
 ##Functions
 
+**base**
+
+Returns the basename of the given path.
+
 **dir**
 
 Returns the directory containing the given path.
-
-**is_dir**
-
-Returns true if and only if path exists and is a directory
-
-**ext**
-
-Returns the file extension of the given path.
 
 **exists**
 
 Returns true if and only if path exists
 
+**ext**
+
+Returns the file extension of the given path.
+
 **glob**
 
 Returns an array of paths that match the given pattern.
 
-**base**
+**is_dir**
 
-Returns the basename of the given path.
+Returns true if and only if path exists and is a directory
 
 **join**
 

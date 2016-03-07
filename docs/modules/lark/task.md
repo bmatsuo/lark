@@ -22,22 +22,17 @@ string -- The task to perform when lark.run() is given no arguments.
 
 ##Functions
 
-**find**
-
-Return the task matching the given name.
-
 **create**
 
 A decorator that creates an anonymous task from a function.
 
-**pattern**
+**dump**
 
-Returns a decorator that associates the given patten with a function.
+Write all task names and patterns to standard output.
 
-**get_pattern**
+**find**
 
-Retrieve the regular expression that matched a (running) task from the
-task's context.
+Return the task matching the given name.
 
 **get_name**
 
@@ -48,15 +43,20 @@ Retrieve the name of a (running) task from the task's context.
 Retrieve the value of a task parameter (typically passed in through the
 command line).
 
-**dump**
+**get_pattern**
 
-Write all task names and patterns to standard output.
-
-**run**
-
-Find and run the task with the given name.
+Retrieve the regular expression that matched a (running) task from the
+task's context.
 
 **name**
 
 Return a decorator that gives a task function an explicit name.
+
+**pattern**
+
+Returns a decorator that associates the given patten with a function.
+
+**run**
+
+Find and run the task with the given name.
 

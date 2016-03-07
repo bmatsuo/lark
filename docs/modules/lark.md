@@ -19,57 +19,57 @@ boolean -- Log more information then normal if this variable is true.
 
 ##Functions
 
-**get_pattern**
-
-Return the regular expression that matched the executing task.
-
 **environ**
 
 Return a copy of the process environment as a table.
 
-**log**
+**exec**
 
-Log a message to the standard error stream.
+Execute a command
 
-**group**
+**get_name**
 
-Create a group with optional dependencies.
-
-**newpattern**
-
-Returns a decorator that associates the given patten with a function.
-
-**task**
-
-Define a new task.
-
-**run**
-
-An alias for run() in module lark.
+Return the name of the task corresponding to the given context.
 
 **get_param**
 
 Return the value for the name parameter given to the task corresponding
 to ctx.
 
-**wait**
+**get_pattern**
 
-Suspend execution until all processes in the specified groups have
-terminated.
+Return the regular expression that matched the executing task.
+
+**group**
+
+Create a group with optional dependencies.
+
+**log**
+
+Log a message to the standard error stream.
+
+**newpattern**
+
+Returns a decorator that associates the given patten with a function.
 
 **pattern**
 
 Returns a decorator that associates the given patten with a function.
 
-**get_name**
+**run**
 
-Return the name of the task corresponding to the given context.
+An alias for run() in module lark.
 
 **start**
 
 Start asynchronous execution of cmd.
 
-**exec**
+**task**
 
-Execute a command
+Define a new task.
+
+**wait**
+
+Suspend execution until all processes in the specified groups have
+terminated.
 

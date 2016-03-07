@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"strings"
 	"unicode"
 
@@ -122,6 +123,7 @@ func decodeDocs(l *lua.LState, lv lua.LValue, name string) (*Docs, error) {
 		if suberr != nil {
 			return nil, suberr
 		}
+		sort.Sort(byTypeAndName(d.Subs))
 	}
 	return d, nil
 }
@@ -224,6 +226,23 @@ type Sub struct {
 	Name string
 	Type string
 	*Docs
+}
+
+type byTypeAndName []*Sub
+
+func (s byTypeAndName) Len() int {
+	return len(s)
+}
+
+func (s byTypeAndName) Less(i, j int) bool {
+	if s[i].Type == s[j].Type {
+		return s[i].Name < s[j].Name
+	}
+	return s[i].Type < s[i].Type
+}
+
+func (s byTypeAndName) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
 }
 
 // Go sets the description for obj to desc.  Go ignores doc.Subs, functions and
