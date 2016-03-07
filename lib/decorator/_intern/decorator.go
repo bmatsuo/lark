@@ -68,10 +68,9 @@ func metatable(l *lua.LState) *lua.LTable {
 func luaCreate(mt *lua.LTable) lua.LGFunction {
 	return func(l *lua.LState) int {
 		fn := l.CheckFunction(1)
-		dec := l.NewTable()
-		l.SetField(dec, "fn", fn)
+		l.SetTop(0)
 		l.Push(l.GetGlobal("setmetatable"))
-		l.Push(dec)
+		l.Push(fn)
 		l.Push(mt)
 		l.Call(2, 1)
 		return 1
@@ -98,26 +97,21 @@ func luaAnnotator(create *lua.LFunction) lua.LGFunction {
 }
 
 func luaConcatMeta(l *lua.LState) int {
-	dec := l.Get(1)
 	if l.GetTop() < 2 {
 		l.RaiseError("nothing to concatenate")
 	}
 	l.SetTop(2)
-	fn := l.GetField(dec, "fn")
-	l.Replace(1, fn)
 	l.Call(1, 1)
 	return 1
 }
 
 func luaCallMeta(l *lua.LState) int {
-	dec := l.Get(1)
 	if l.GetTop() < 1 {
 		l.RaiseError("nothing to call")
 	}
-	l.Replace(1, l.GetField(dec, "fn"))
 	narg := l.GetTop() - 1
-	l.Call(narg, 1)
-	return 1
+	l.Call(narg, lua.MultRet)
+	return l.GetTop()
 }
 
 func setter(create *lua.LFunction, table lua.LValue) lua.LGFunction {

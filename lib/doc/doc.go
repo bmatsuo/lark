@@ -551,7 +551,9 @@ func luaGet(usages, signatures, descriptions, parameters, variables lua.LValue) 
 				topics.Append(subTopic)
 			})
 
-			l.SetField(t, "sub", topics)
+			if topics.Len() > 0 {
+				l.SetField(t, "sub", topics)
+			}
 		}
 
 		l.Push(t)
