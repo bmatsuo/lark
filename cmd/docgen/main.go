@@ -118,18 +118,21 @@ func (g *textGenerator) GenerateDocs(out io.Writer, h *DocsHeader, d *doc.Docs) 
 	}
 
 	printf("%s %s\n\n", h.DocsType, h.Name)
-	if d.Sig != "" {
-		text := d.Sig
-		text = textutil.Unindent(text)
-		text = strings.TrimSpace(text)
-		text = textutil.Indent(text, "  ")
-		printf("Signature:\n\n%s\n\n", d.Sig)
+	text := d.Usage
+	text = textutil.Unindent(text)
+	text = strings.TrimSpace(text)
+	if text != "" {
+		printf("  %s\n\n", textutil.Indent(text, "  "))
 	}
-	if h.Usage != "" {
-		printf("  %s\n\n", h.Usage)
+	text = d.Sig
+	text = textutil.Unindent(text)
+	text = strings.TrimSpace(text)
+	if text != "" {
+		printf("Signature:\n\n")
+		printf("%s\n\n", textutil.Indent(text, "  "))
 	}
 	if d.Desc != "" {
-		text := textutil.Unindent(d.Desc)
+		text = textutil.Unindent(d.Desc)
 		text = textutil.Wrap(text, 72)
 		text = strings.TrimSpace(text)
 		printf("%s\n\n", text)
@@ -145,7 +148,7 @@ func (g *textGenerator) GenerateDocs(out io.Writer, h *DocsHeader, d *doc.Docs) 
 			} else {
 				printf("\n")
 			}
-			text := d.VarDesc(i)
+			text = d.VarDesc(i)
 			text = textutil.Unindent(text)
 			text = textutil.Wrap(text, 66)
 			text = strings.TrimSpace(text)
@@ -168,7 +171,7 @@ func (g *textGenerator) GenerateDocs(out io.Writer, h *DocsHeader, d *doc.Docs) 
 			} else {
 				printf("\n")
 			}
-			text := d.ParamDesc(i)
+			text = d.ParamDesc(i)
 			text = textutil.Unindent(text)
 			text = textutil.Wrap(text, 66)
 			text = strings.TrimSpace(text)
@@ -193,7 +196,7 @@ func (g *textGenerator) GenerateDocs(out io.Writer, h *DocsHeader, d *doc.Docs) 
 				printf("\n")
 				continue
 			}
-			text := sub.Desc
+			text = sub.Desc
 			text = textutil.Unindent(text)
 			text = strings.TrimSpace(text)
 			text = textutil.Synopsis(text)
@@ -219,7 +222,7 @@ func (g *textGenerator) GenerateDocs(out io.Writer, h *DocsHeader, d *doc.Docs) 
 				printf("\n")
 				continue
 			}
-			text := sub.Desc
+			text = sub.Desc
 			text = textutil.Unindent(text)
 			text = strings.TrimSpace(text)
 			text = textutil.Synopsis(text)

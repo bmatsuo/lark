@@ -54,6 +54,7 @@ func decodeDocs(l *lua.LState, lv lua.LValue, name string) (*Docs, error) {
 
 	d := &Docs{}
 
+	d.Usage = lx.OptStringField(l, ldocs, "usage", "")
 	d.Sig = lx.OptStringField(l, ldocs, "sig", "")
 	d.Desc = lx.OptStringField(l, ldocs, "desc", "")
 	lparams := lx.OptTableField(l, ldocs, "params", nil)
@@ -118,6 +119,7 @@ func decodeDocs(l *lua.LState, lv lua.LValue, name string) (*Docs, error) {
 
 // Docs represents documentation for a Lua object.
 type Docs struct {
+	Usage  string
 	Sig    string
 	Desc   string
 	Params []string
@@ -215,7 +217,8 @@ type Sub struct {
 	*Docs
 }
 
-// Go sets the description for obj to desc.
+// Go sets the description for obj to desc.  Go ignores doc.Subs, functions and
+// documented variables must have their documentation declared separately.
 func Go(l *lua.LState, obj lua.LValue, doc *Docs) {
 	require := l.GetGlobal("require")
 	l.Push(require)
@@ -225,6 +228,16 @@ func Go(l *lua.LState, obj lua.LValue, doc *Docs) {
 	l.Pop(1)
 
 	ndec := 0
+	if doc.Usage != "" {
+		sig := l.GetField(mod, "usage")
+		l.Push(sig)
+		l.Push(lua.LString(doc.Usage))
+		err := l.PCall(1, 1, nil)
+		if err != nil {
+			l.RaiseError("%s", err)
+		}
+		ndec++
+	}
 	if doc.Sig != "" {
 		sig := l.GetField(mod, "sig")
 		l.Push(sig)
@@ -285,6 +298,7 @@ func docLoader(l *lua.LState) int {
 	if !ok {
 		l.RaiseError("unexpected type for setmetatable")
 	}
+	usages := weakTable(l, setmt, "kv")
 	signatures := weakTable(l, setmt, "kv")
 	descriptions := weakTable(l, setmt, "kv")
 	parameters := weakTable(l, setmt, "k")
@@ -306,13 +320,20 @@ func docLoader(l *lua.LState) int {
 		return val
 	}
 
+	usage := newAnnotator(usages, false)
 	sig := newAnnotator(signatures, false)
 	desc := newAnnotator(descriptions, false)
 	param := newAnnotator(parameters, true)
 	_var := newAnnotator(variables, true)
 
-	dodoc := func(obj lua.LValue, s, d string, ps ...string) {
-		ncall := 2 + len(ps)
+	dodoc := func(obj lua.LValue, u, s, d string, ps ...string) {
+		ncall := 3 + len(ps)
+		if u != "" {
+			l.Push(usage)
+			l.Push(lua.LString(u))
+			l.Call(1, 1)
+			ncall--
+		}
 		if s != "" {
 			l.Push(sig)
 			l.Push(lua.LString(s))
@@ -337,6 +358,7 @@ func docLoader(l *lua.LState) int {
 	}
 
 	dodoc(mod,
+		"local doc = require('doc')",
 		"",
 		`
 		The doc module contains utilities for documenting Lua objects using
@@ -348,32 +370,43 @@ func docLoader(l *lua.LState) int {
 		`,
 		"",
 	)
+	dodoc(usage,
+		"",
+		"s => fn => fn",
+		"A decorator that documents the usage of an object.",
+		`s  string -- Text describing usage.`,
+	)
 	dodoc(sig,
+		"",
 		"s => fn => fn",
 		"A decorator that documents a function's signature.",
 		`s  string -- The function signature.`,
 	)
 	dodoc(desc,
+		"",
 		"s => fn => fn",
 		"A decorator that describes an object.",
 		`s  string -- The object description.`,
 	)
 	dodoc(param,
+		"",
 		"s => fn => fn",
 		"A decorator that describes a function parameter.",
 		`s  string -- The parameter name and description separated by white space.`,
 	)
 	dodoc(_var,
+		"",
 		"s => fn => fn",
 		"A decorator that describes module variable (table field).",
 		`s  string -- The variable name and description separated by white space.`,
 	)
 
 	get := l.NewClosure(
-		luaGet(signatures, descriptions, parameters, variables),
-		signatures, descriptions, parameters, variables,
+		luaGet(usages, signatures, descriptions, parameters, variables),
+		usages, signatures, descriptions, parameters, variables,
 	)
 	dodoc(get,
+		"",
 		"obj => table",
 		"Retrieve a table containing documentation for obj.",
 		`obj   table, function, or userdata -- The object to retrieve documentation for.`,
@@ -384,17 +417,23 @@ func docLoader(l *lua.LState) int {
 		mod, get,
 	)
 	dodoc(help,
+		"",
 		"obj => ()",
 		"Print the documentation for obj.",
 		`obj   table, function, or userdata -- The object to retrieve documentation for.`,
 	)
 
-	l.SetField(mod, "get", get)
+	// decorators
+	l.SetField(mod, "usage", usage)
 	l.SetField(mod, "sig", sig)
 	l.SetField(mod, "desc", desc)
 	l.SetField(mod, "var", _var)
 	l.SetField(mod, "param", param)
+
+	// accessors
+	l.SetField(mod, "get", get)
 	l.SetField(mod, "help", help)
+
 	l.Push(mod)
 	return 1
 }
@@ -597,13 +636,14 @@ func luaHelp(mod lua.LValue, get lua.LValue) lua.LGFunction {
 	}
 }
 
-func luaGet(signatures, descriptions, parameters, variables lua.LValue) lua.LGFunction {
+func luaGet(usages, signatures, descriptions, parameters, variables lua.LValue) lua.LGFunction {
 	var rec lua.LGFunction
 	rec = func(l *lua.LState) int {
 		val := l.Get(1)
 		depth := l.OptInt(2, 1)
 
 		l.SetTop(0)
+		usage := l.GetTable(usages, val)
 		sig := l.GetTable(signatures, val)
 		desc := l.GetTable(descriptions, val)
 		params := l.GetTable(parameters, val)
@@ -615,6 +655,7 @@ func luaGet(signatures, descriptions, parameters, variables lua.LValue) lua.LGFu
 		}
 
 		t := l.NewTable()
+		l.SetField(t, "usage", usage)
 		l.SetField(t, "sig", sig)
 		l.SetField(t, "desc", desc)
 		l.SetField(t, "params", params)
