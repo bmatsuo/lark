@@ -8,10 +8,14 @@ import (
 	"github.com/bmatsuo/lark/internal/textutil"
 )
 
-// Header provides a header for Docs if the information is known.
+// Header provides a header for Docs if the information is known.  Acceptable
+// DocsType values are "module", "object", and "index".  Acceptable DocsSubType
+// values are "module" and "object".  DocsType and DocsSubType are case
+// insensitive.
 type Header struct {
-	DocsType string
-	Name     string
+	DocsType    string
+	DocsSubType string
+	Name        string
 }
 
 // Formatter formats d as text with header h.  The Format method only formats
