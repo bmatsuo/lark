@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/bmatsuo/lark/project"
 	"github.com/codegangsta/cli"
 )
 
@@ -16,7 +17,7 @@ var CommandList = Command(func(lark *Context, cmd *cli.Command) {
 
 // List loads a lua vm and prints all defined tasks to standard output.
 func List(c *Context) {
-	luaFiles, err := FindTaskFiles("")
+	luaFiles, err := project.FindTaskFiles(".")
 	if err != nil {
 		log.Fatal(err)
 	}

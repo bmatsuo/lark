@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/yuin/gopher-lua"
 )
 
 var pathSeparator = string([]rune{filepath.Separator})
@@ -22,13 +24,31 @@ var TaskDir = "lark_tasks"
 // ModuleDir is the root directory for modules in a lark project.
 var ModuleDir = "lark_modules"
 
-// LuaPath returns the dir project LUA_PATH value, referencing only ModuleDir
-// inside dir.
-func LuaPath(dir string) string {
+// PackagePath returns the dir project LUA_PATH value, referencing only
+// ModuleDir inside dir.
+func PackagePath(dir string) string {
 	root := filepath.Join(dir, ModuleDir)
 	luaFiles := filepath.Join(root, "?.lua")
 	luaInits := filepath.Join(root, "?", "init.lua")
 	return fmt.Sprintf("%s;%s", luaFiles, luaInits)
+}
+
+// SetPackagePath sets the package.path variable to PacakgePath(dir).
+func SetPackagePath(l *lua.LState, dir string) error {
+	return SetPackagePathRaw(l, PackagePath(dir))
+}
+
+// SetPackagePathRaw sets the package.path variable to path.
+func SetPackagePathRaw(l *lua.LState, path string) error {
+	l.Push(l.NewFunction(func(l *lua.LState) int {
+		l.SetField(
+			l.GetGlobal("package"), "path",
+			l.Get(1),
+		)
+		return 0
+	}))
+	l.Push(lua.LString(path))
+	return l.PCall(1, 0, nil)
 }
 
 // FindTaskFiles locates task scripts in the project dir.

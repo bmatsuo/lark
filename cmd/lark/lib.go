@@ -1,16 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"path/filepath"
 
 	"github.com/bmatsuo/lark/gluamodule"
 	"github.com/bmatsuo/lark/lib"
+	"github.com/bmatsuo/lark/project"
 	"github.com/yuin/gopher-lua"
 )
 
 // FindTaskFiles locates task scripts in the project dir.
+/*
 func FindTaskFiles(dir string) ([]string, error) {
 	var luaFiles []string
 	join := filepath.Join
@@ -27,9 +27,11 @@ func FindTaskFiles(dir string) ([]string, error) {
 	return luaFiles, nil
 
 }
+*/
 
 // LuaConfig contains options for a new Lua virtual machine.
 type LuaConfig struct {
+	PackagePath string
 }
 
 // LoadVM creates a lua.State from conf and returns it.
@@ -41,6 +43,18 @@ func LoadVM(conf *LuaConfig) (s *lua.LState, err error) {
 			s.Close()
 		}
 	}()
+
+	if conf != nil {
+		var err error
+		if conf.PackagePath == "" {
+			err = project.SetPackagePath(s, ".")
+		} else {
+			err = project.SetPackagePathRaw(s, conf.PackagePath)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return s, nil
 }

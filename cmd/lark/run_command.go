@@ -11,6 +11,7 @@ import (
 	"unicode"
 
 	"github.com/bmatsuo/lark/lib/lark/core"
+	"github.com/bmatsuo/lark/project"
 	"github.com/codegangsta/cli"
 	"github.com/yuin/gopher-lua"
 )
@@ -73,7 +74,7 @@ func Run(c *Context) {
 		tasks = []*Task{{}}
 	}
 
-	luaFiles, err := FindTaskFiles("")
+	luaFiles, err := project.FindTaskFiles("")
 	if err != nil {
 		log.Fatal(err)
 	}
