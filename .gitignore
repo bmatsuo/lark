@@ -1,5 +1,6 @@
 # the lark executable
 /lark
+/docgen
 
 # the release directory
 /release
