@@ -1,6 +1,17 @@
 local task = require('lark.task')
 local go = require('go')
 
+local function collect(...)
+    local args = {unpack(arg)}
+    args.stdout = '$'
+    args.echo = false
+    local output = lark.exec(args)
+    local ret = {}
+    local insert = function(x) table.insert(ret, x) end
+    string.gsub(output, '(%S+)', insert)
+    return ret
+end
+
 init = task .. function()
     lark.exec{'glide', 'install'}
 end
@@ -15,6 +26,13 @@ end
 
 build = task .. function ()
     lark.run('./cmd/lark')
+end
+
+build_all = task .. function()
+    local cmds = collect('sh', '-c', 'ls -d ./cmd/*')
+    for _, build in pairs(cmds) do
+        lark.run(build)
+    end
 end
 
 build_patt = task.pattern[[^./cmd/.*]] .. function (ctx)
