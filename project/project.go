@@ -18,10 +18,12 @@ var LarkFile = []string{
 	"Larkfile",
 }
 
-// TaskDir is the auxiliary task directory in a lark project.
+// TaskDir is the auxiliary task directory, a subdirectory of the project
+// (root).
 var TaskDir = "lark_tasks"
 
-// ModuleDir is the root directory for modules in a lark project.
+// ModuleDir is the root directory for third-party modules available to tasks,
+// a subdirectory of the project (root).
 var ModuleDir = "lark_modules"
 
 // PackagePath returns the dir project LUA_PATH value, referencing only
@@ -51,7 +53,9 @@ func SetPackagePathRaw(l *lua.LState, path string) error {
 	return l.PCall(1, 0, nil)
 }
 
-// FindTaskFiles locates task scripts in the project dir.
+// FindTaskFiles locates task scripts in the project dir.  Task files under the
+// project TaskDir must be directly contained in the TaskDir and cannot be
+// nested in additional subdirectories.
 func FindTaskFiles(dir string) ([]string, error) {
 	var luaFiles []string
 	join := filepath.Join
