@@ -26,6 +26,9 @@ lark lua  # identical to command `lark repl`
   lua code.
 
 ##v0.4.0
+=======
+
+- Fix bug where errors encountered by `lark.exec()` were ignored. See #62.
 
 - Rename the `with_pattern()` and `with_name()` functions in the "lark.task"
   module to `pattern()` and `name()` respectively.  See #59 and #60 for more
