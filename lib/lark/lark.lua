@@ -193,16 +193,20 @@ lark.exec =
         args._str = shell_quote(args)
         local result = core.exec(args)
 
-		local output = result.output
-		local err = result.err
-		if args.ignore and err then
-			if lark.verbose then
-				local msg = string.format('%s (ignored)', err)
-				lark.log{msg, color='yellow'}
-			end
-		end
-		return output, err
-	end
+        local output = result.output
+        local err = result.error
+        if err then
+            if args.ignore then
+                if lark.verbose then
+                    local msg = string.format('%s (ignored)', err)
+                    lark.log{msg, color='yellow'}
+                end
+            else
+                error(err)
+            end
+        end
+        return output, err
+    end
 
 lark.start =
     doc.sig[[cmd => ()]] ..
