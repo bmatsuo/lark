@@ -114,8 +114,8 @@ printed explicitly using the print() builtin.
 	xyz
 	>
 
-Builtin modules, and custom modules in the lark_modules/ directory can be
-imported using the require() function.  Modules can the be used or the
+Modules (builtin and otherwise custom modules in the lark_modules/ directory)
+can be imported using the require() function.  Modules can then be used or the
 documentation may be inspected
 
 	> path = require('path')

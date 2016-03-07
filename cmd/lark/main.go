@@ -70,6 +70,9 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
+// App is the lark application
+var App *cli.App
+
 // IsTTY is true if standard error is connected to a terminal. This is taken to
 // mean that lark was executed from the command line and is not being logged to
 // a file.
@@ -93,6 +96,22 @@ var MainHelp = `
         lark run -h
 `
 
+// Init configures app as the lark application.
+func Init(app *cli.App) *cli.App {
+	app.Name = "lark"
+	app.Usage = "Run repeated project tasks"
+	app.ArgsUsage = MainHelp
+	app.Version = larkmeta.Version
+	app.Authors = larkmeta.Authors
+	app.Action = func(c *cli.Context) {
+		args := []string{os.Args[0], "run"}
+		args = append(args, c.Args()...)
+		app.Run(args)
+	}
+	app.Commands = Commands
+	return app
+}
+
 func main() {
 	if IsTTYStderr {
 		logflags := log.Flags()
@@ -108,18 +127,6 @@ func main() {
 
 	cli.VersionFlag.Name = "version"
 
-	app := cli.NewApp()
-	app.Name = "lark"
-	app.Usage = "Run repeated project tasks"
-	app.ArgsUsage = MainHelp
-	app.Version = larkmeta.Version
-	app.Authors = larkmeta.Authors
-	app.Action = func(c *cli.Context) {
-		args := []string{os.Args[0], "run"}
-		args = append(args, c.Args()...)
-		app.Run(args)
-	}
-	app.Commands = Commands
-
+	app := Init(cli.NewApp())
 	app.Run(os.Args)
 }
