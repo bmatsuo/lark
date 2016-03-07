@@ -80,19 +80,57 @@ func dumpDocs(l *lua.LState, names []string) error {
 		})
 	}
 
-	gen := &mdGenerator{}
-	out := os.Stdout
+	gen := &mdGenerator{root: "docs", index: func(typ string) string { return "lua" }}
 	hindex := &doc.Header{
 		DocsType:    "index",
 		DocsSubType: "Module",
 	}
-	gen.GenerateIndex(out, hindex, headers, docs)
-	fmt.Println()
+	path := gen.DocsPath(hindex)
+	err := os.MkdirAll(filepath.Dir(path), 0755)
+	if err != nil {
+		return err
+	}
+	err = generateIndexFile(gen, path, hindex, headers, docs)
+	if err != nil {
+		return err
+	}
 	for i, h := range headers {
 		d := docs[i]
-		gen.GenerateDocs(out, h, d)
+		path := gen.DocsPath(h)
+		err := os.MkdirAll(filepath.Dir(path), 0755)
+		if err != nil {
+			return err
+		}
+		err = generateDocsFile(gen, path, h, d)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+func generateIndexFile(gen Generator, path string, h *doc.Header, headers []*doc.Header, docs []*doc.Docs) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	err = gen.GenerateIndex(f, h, headers, docs)
+	if err != nil {
+		return err
+	}
+	return f.Close()
+}
+
+func generateDocsFile(gen Generator, path string, h *doc.Header, d *doc.Docs) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	err = gen.GenerateDocs(f, h, d)
+	if err != nil {
+		return err
+	}
+	return f.Close()
 }
 
 // Generator formats doc.Docs objects and writes them to an output stream.
@@ -171,7 +209,8 @@ func (g *textGenerator) GenerateIndex(out io.Writer, h *doc.Header, headers []*d
 }
 
 type mdGenerator struct {
-	root string
+	root  string
+	index func(string) string
 }
 
 func (g *mdGenerator) FileFormat() string {
@@ -179,22 +218,37 @@ func (g *mdGenerator) FileFormat() string {
 }
 
 func (g *mdGenerator) DocsPath(h *doc.Header) string {
+	path := g.path(h)
+	if path == "" {
+		return ""
+	}
+	return filepath.Join(g.root, path)
+}
+
+func (g *mdGenerator) path(h *doc.Header) string {
 	docstype := strings.ToLower(h.DocsType)
 	subtype := strings.ToLower(h.DocsSubType)
 	if docstype == "index" {
+		if g.index != nil {
+			name := g.index(subtype)
+			name += ".md"
+			return name
+		}
+		filename := "index.md"
 		if subtype != "" {
 			return subtype + ".md"
 		}
-		return "index.md"
+		return filename
 	}
 	path := filepath.Join(strings.Split(h.Name, ".")...)
 	dir := "modules"
 	if docstype == "object" {
 		dir = "objects"
 	}
-	path = filepath.Join(g.root, dir, path)
+	path = filepath.Join(dir, path)
 	path += ".md"
 	return path
+
 }
 
 func (g *mdGenerator) GenerateDocs(out io.Writer, h *doc.Header, d *doc.Docs) error {
@@ -220,7 +274,7 @@ func (g *mdGenerator) GenerateIndex(out io.Writer, h *doc.Header, headers []*doc
 	for i, h := range headers {
 		d := docs[i]
 
-		mdpath := g.DocsPath(h)
+		mdpath := g.path(h)
 		printf("##[%s](%s)\n\n", h.Name, mdpath)
 		if d == nil {
 			continue
@@ -359,6 +413,7 @@ func (g *mdFormatter) writeDocs(h *doc.Header, d *doc.Docs) {
 			if sub.Name == "" {
 				continue
 			}
+			log.Printf(sub.Name)
 			g.printf("**%s**\n\n", sub.Name)
 			if sub.Docs == nil {
 				continue
