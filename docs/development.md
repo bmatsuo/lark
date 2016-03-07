@@ -16,6 +16,6 @@ If you do not want to install Lark as a binary first you will have to use `go
 get` to bootstrap a development environment.
 
 ```sh
-go get ./cmd/...
+go get ./cmd/lark
 ./lark init gen test install
 ```
