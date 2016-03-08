@@ -423,7 +423,7 @@ func (g *mdFormatter) writeDocs(h *doc.Header, d *doc.Docs) {
 				continue
 			}
 			if sec == "" {
-				g.printf("**[%s](#function-%s)**\n\n", sub.Name, strings.Replace(sub.Name, ".", "", -1))
+				g.printf("**[%s](#function-%s)**\n\n", sub.Name, h.Name+strings.Replace(sub.Name, ".", "", -1))
 			} else {
 			}
 			if sub.Docs == nil {

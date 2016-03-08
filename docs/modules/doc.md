@@ -13,31 +13,31 @@ values.
 
 ##Functions
 
-**[desc](#function-desc)**
+**[desc](#function-docdesc)**
 
 A decorator that describes an object.
 
-**[get](#function-get)**
+**[get](#function-docget)**
 
 Retrieve a table containing documentation for obj.
 
-**[help](#function-help)**
+**[help](#function-dochelp)**
 
 Print the documentation for obj.
 
-**[param](#function-param)**
+**[param](#function-docparam)**
 
 A decorator that describes a function parameter.
 
-**[sig](#function-sig)**
+**[sig](#function-docsig)**
 
 A decorator that documents a function's signature.
 
-**[usage](#function-usage)**
+**[usage](#function-docusage)**
 
 A decorator that documents the usage of an object.
 
-**[var](#function-var)**
+**[var](#function-docvar)**
 
 A decorator that describes module variable (table field).
 

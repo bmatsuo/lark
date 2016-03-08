@@ -19,60 +19,60 @@ boolean -- Log more information then normal if this variable is true.
 
 ##Functions
 
-**[environ](#function-environ)**
+**[environ](#function-larkenviron)**
 
 Return a copy of the process environment as a table.
 
-**[exec](#function-exec)**
+**[exec](#function-larkexec)**
 
 Execute a command
 
-**[get_name](#function-get_name)**
+**[get_name](#function-larkget_name)**
 
 Return the name of the task corresponding to the given context.
 
-**[get_param](#function-get_param)**
+**[get_param](#function-larkget_param)**
 
 Return the value for the name parameter given to the task corresponding
 to ctx.
 
-**[get_pattern](#function-get_pattern)**
+**[get_pattern](#function-larkget_pattern)**
 
 Return the regular expression that matched the executing task.
 
-**[group](#function-group)**
+**[group](#function-larkgroup)**
 
 Create a group with optional dependencies.
 
-**[log](#function-log)**
+**[log](#function-larklog)**
 
 Log a message to the standard error stream.
 
-**[newpattern](#function-newpattern)**
+**[newpattern](#function-larknewpattern)**
 
 This function has been deprecated.
 
-**[newtask](#function-newtask)**
+**[newtask](#function-larknewtask)**
 
 This function has been deprecated.
 
-**[pattern](#function-pattern)**
+**[pattern](#function-larkpattern)**
 
 Returns a decorator that associates the given patten with a function.
 
-**[run](#function-run)**
+**[run](#function-larkrun)**
 
 An alias for run() in module lark.
 
-**[start](#function-start)**
+**[start](#function-larkstart)**
 
 Start asynchronous execution of cmd.
 
-**[task](#function-task)**
+**[task](#function-larktask)**
 
 A decorator that creates an anonymous task from a function.
 
-**[wait](#function-wait)**
+**[wait](#function-larkwait)**
 
 Suspend execution until all processes in the specified groups have
 terminated.
