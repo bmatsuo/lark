@@ -344,8 +344,17 @@ func (g *mdFormatter) writeP(text string, wrap int) {
 }
 
 func (g *mdFormatter) writeDocs(h *doc.Header, d *doc.Docs) {
+	sec := ""
 	if h != nil {
-		fmt.Fprintf(g.buf, "#%s %s\n\n", h.DocsType, h.Name)
+		if h.DocsType == "Module" {
+			fmt.Fprintf(g.buf, "#%s %s\n\n", h.DocsType, h.Name)
+		} else {
+			sec = "#"
+			fmt.Fprintf(g.buf, "%s#%s %s\n\n", sec, h.DocsType, h.Name)
+		}
+	}
+	if d == nil {
+		return
 	}
 	text := d.Usage
 	text = textutil.Unindent(text)
@@ -358,18 +367,18 @@ func (g *mdFormatter) writeDocs(h *doc.Header, d *doc.Docs) {
 	text = textutil.Unindent(text)
 	text = strings.TrimSpace(text)
 	if text != "" {
-		g.printf("##Signature\n\n")
+		g.printf("%s##Signature\n\n", sec)
 		g.printf("%s\n\n", text)
 	}
 	text = textutil.Unindent(d.Desc)
 	text = strings.TrimSpace(text)
 	if text != "" {
-		g.printf("##Description\n\n")
+		g.printf("%s##Description\n\n", sec)
 		g.writeP(text, 72)
 	}
 	numvar := d.NumVar()
 	if numvar > 0 {
-		g.printf("##Variables\n\n")
+		g.printf("%s##Variables\n\n", sec)
 		for i := 0; i < numvar; i++ {
 			g.printf("**%s**", d.Var(i))
 			typ := d.VarType(i)
@@ -388,7 +397,7 @@ func (g *mdFormatter) writeDocs(h *doc.Header, d *doc.Docs) {
 	}
 	numparam := d.NumParam()
 	if numparam > 0 {
-		g.printf("##Parameters\n\n")
+		g.printf("%s##Parameters\n\n", sec)
 		for i := 0; i < numparam; i++ {
 			g.printf("**%s**", d.Param(i))
 			typ := d.ParamType(i)
@@ -408,7 +417,7 @@ func (g *mdFormatter) writeDocs(h *doc.Header, d *doc.Docs) {
 
 	funcs := d.Funcs()
 	if len(funcs) > 0 {
-		g.printf("##Functions\n\n")
+		g.printf("%s##Functions\n\n", sec)
 		for _, sub := range funcs {
 			if sub.Name == "" {
 				continue
@@ -430,7 +439,7 @@ func (g *mdFormatter) writeDocs(h *doc.Header, d *doc.Docs) {
 
 	others := d.Others()
 	if len(others) > 0 {
-		g.printf("##Subtopics\n\n")
+		g.printf("%s##Subtopics\n\n", sec)
 		for _, sub := range others {
 			if sub.Name == "" {
 				continue
@@ -448,5 +457,21 @@ func (g *mdFormatter) writeDocs(h *doc.Header, d *doc.Docs) {
 				g.printf("%s\n\n", text)
 			}
 		}
+	}
+
+	for _, sub := range others {
+		hsub := &doc.Header{}
+		*hsub = *h
+		hsub.DocsType = "Object"
+		hsub.Name += "." + sub.Name
+		g.writeDocs(hsub, sub.Docs)
+	}
+
+	for _, sub := range funcs {
+		hsub := &doc.Header{}
+		*hsub = *h
+		hsub.DocsType = "Function"
+		hsub.Name += "." + sub.Name
+		g.writeDocs(hsub, sub.Docs)
 	}
 }

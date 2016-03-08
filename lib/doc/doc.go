@@ -152,6 +152,80 @@ func splitNamed(named string) (name, rest string) {
 	return text[:index], text[index:]
 }
 
+func isTypeWord(c rune) bool {
+	return c == '(' || c == ')' || unicode.IsLetter(c)
+
+}
+
+func isTypeSep(c rune) bool {
+	return c == ',' || c == '|' || unicode.IsSpace(c)
+}
+
+func isTypeString(s string) bool {
+	var words []string
+	rem := s
+	for len(rem) > 0 {
+		sepIndex := strings.IndexFunc(rem, isTypeSep)
+		nonLIndex := strings.IndexFunc(rem, func(c rune) bool { return !isTypeWord(c) })
+		if sepIndex != nonLIndex {
+			return false
+		}
+		if sepIndex < 0 {
+			words = append(words, rem)
+			break
+		}
+		words = append(words, rem[:sepIndex])
+		rem = rem[sepIndex:]
+
+		nonSepIndex := strings.IndexFunc(rem, func(c rune) bool { return !isTypeSep(c) })
+		lIndex := strings.IndexFunc(rem, isTypeWord)
+		if nonSepIndex != lIndex {
+			return false
+		}
+		rem = rem[lIndex:]
+	}
+
+	if len(words) == 0 {
+		return false
+	}
+	if words[0] == "" {
+		return false
+	}
+	if words[0] == "or" {
+		return false
+	}
+
+	disj := false
+	for _, word := range words {
+		if word == "or" {
+			if disj {
+				return false
+			}
+			disj = true
+		} else {
+			disj = false
+		}
+	}
+
+	opt := -1
+	for i, word := range words {
+		if strings.IndexAny(word, "()") >= 0 {
+			if word != "(optional)" {
+				return false
+			}
+			if opt >= 0 {
+				return false
+			}
+			opt = i
+		}
+	}
+	if opt >= 0 && opt != 0 && opt != len(words)-1 {
+		return false
+	}
+
+	return true
+}
+
 // Var returns the name and description variable i in d.
 func (d *Docs) Var(i int) (name string) {
 	name, _ = splitNamed(d.Vars[i])
@@ -161,6 +235,15 @@ func (d *Docs) Var(i int) (name string) {
 // VarDesc returns the description of variable i in d.
 func (d *Docs) VarDesc(i int) (desc string) {
 	_, rest := splitNamed(d.Vars[i])
+	typ := d.VarType(i)
+	if typ != "" {
+		head := strings.SplitN(rest, "\n", 2)
+		if len(head) > 1 {
+			rest = head[1]
+		} else {
+			rest = ""
+		}
+	}
 	return rest
 }
 
@@ -170,7 +253,21 @@ func (d *Docs) VarDesc(i int) (desc string) {
 // BUG:
 // VarType is not implemented.  No convention has been settled on.
 func (d *Docs) VarType(i int) (typ string) {
-	return ""
+	_, rest := splitNamed(d.Vars[i])
+	if rest == "" {
+		return
+	}
+
+	head := strings.SplitN(rest, "\n", 2)
+	line := strings.TrimSpace(head[0])
+	if line == "" {
+		return ""
+	}
+	if !isTypeString(line) {
+		return ""
+	}
+
+	return line
 }
 
 // NumParam returns the number of parameters declared for d.
@@ -187,6 +284,15 @@ func (d *Docs) Param(i int) (name string) {
 // ParamDesc returns the description of parameter i in d.
 func (d *Docs) ParamDesc(i int) (desc string) {
 	_, rest := splitNamed(d.Params[i])
+	typ := d.ParamType(i)
+	if typ != "" {
+		head := strings.SplitN(rest, "\n", 2)
+		if len(head) > 1 {
+			rest = head[1]
+		} else {
+			rest = ""
+		}
+	}
 	return rest
 }
 
@@ -196,7 +302,21 @@ func (d *Docs) ParamDesc(i int) (desc string) {
 // BUG:
 // ParamType is not implemented.  No convention has been settled on.
 func (d *Docs) ParamType(i int) (typ string) {
-	return ""
+	_, rest := splitNamed(d.Params[i])
+	if rest == "" {
+		return
+	}
+
+	head := strings.SplitN(rest, "\n", 2)
+	line := strings.TrimSpace(head[0])
+	if line == "" {
+		return ""
+	}
+	if !isTypeString(line) {
+		return ""
+	}
+
+	return line
 }
 
 // Funcs returns function subtopics of d.
