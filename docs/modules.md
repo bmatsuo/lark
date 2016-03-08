@@ -41,7 +41,7 @@ return hello
 ```
 local hello = require('hello')
 
-lark.task{'hello', function()
+hello = lark.task .. function()
     hello.greet()
-end}
+end
 ```

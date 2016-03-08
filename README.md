@@ -33,6 +33,8 @@ developer machines (if any).  The interpreter used by Lark can be ensured to be
 consistent without interferring with normal project development.
 
 ```lua
+local task = require('lark.task')
+
 -- global variables that can be used during project tasks
 name = 'foobaz'
 objects = {
@@ -42,20 +44,20 @@ objects = {
 
 -- define the "build" project task.
 -- build can be executed on the command line with `lark run build`.
-build = lark.newtask .. function()
+build = lark.task .. function()
     -- compile each object.
     for _, o in pairs(objects) do lark.run(o) end
 
     -- compile the application.
-    lark.exec('gcc', '-o', name, objects)
+    lark.exec{'gcc', '-o', name, objects}
 end
 
 -- regular expressions can match sets of task names.
-build_object = lark.newpattern[[%.o$]] .. function(ctx)
+build_object = lark.pattern[[%.o$]] .. function(ctx)
     -- get the object name, construct the source path, and compile the object.
-    local o = lark.newtask.get_name(ctx)
+    local o = task.get_name(ctx)
     local c = string.gsub(o, '%.o$', '.c')
-    lark.exec('gcc', '-c', c)
+    lark.exec{'gcc', '-c', c}
 end
 ```
 

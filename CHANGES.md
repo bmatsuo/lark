@@ -2,6 +2,10 @@
 
 ##v0.5.0-dev
 
+- Replace implementation of lark.task with task.create.  This is a backwards
+  incompatible change.  See #24 for more information if you stil need to
+  migrate to the new task API.
+
 - Test coverage throughout the repository has increased.
 
 - Simple benchmarks added to track changes in `lark` startup time.
