@@ -2,13 +2,16 @@ package doc
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"sort"
 	"strings"
 	"unicode"
 
 	"github.com/bmatsuo/lark/gluamodule"
 	"github.com/bmatsuo/lark/internal/lx"
+	"github.com/bmatsuo/lark/internal/textutil"
 	"github.com/bmatsuo/lark/lib/decorator/_intern"
-	"github.com/bmatsuo/lark/lib/doc/internal/textutil"
 	"github.com/yuin/gopher-lua"
 )
 
@@ -18,7 +21,7 @@ var Module = gluamodule.New("doc", docLoader,
 )
 
 // Get loads documentation about lv from l.
-func Get(l *lua.LState, lv lua.LValue) (*Docs, error) {
+func Get(l *lua.LState, lv lua.LValue, name string) (*Docs, error) {
 	l.Push(l.GetGlobal("require"))
 	l.Push(lua.LString(Module.Name()))
 	err := l.PCall(1, 1, nil)
@@ -40,67 +43,28 @@ func Get(l *lua.LState, lv lua.LValue) (*Docs, error) {
 	ld := l.Get(-1)
 	l.Pop(1)
 
-	if ld == lua.LNil {
-		return nil, nil
-	}
-
-	var ok bool
-	d := &Docs{}
-	lvsig := l.GetField(ld, "sig")
-	lsig, ok := lvsig.(lua.LString)
-	d.Sig = string(lsig)
-	if !ok && lvsig != lua.LNil {
-		return nil, fmt.Errorf("invalid sig: %s", lvsig.Type())
-	}
-	lvdesc := l.GetField(ld, "desc")
-	ldesc, ok := lvdesc.(lua.LString)
-	d.Desc = string(ldesc)
-	if !ok && lvdesc != lua.LNil {
-		return nil, fmt.Errorf("invalid desc: %s", lvdesc.Type())
-	}
-	lvparams := l.GetField(ld, "params")
-	lparams, ok := lvparams.(*lua.LTable)
-	if !ok && lvparams != lua.LNil {
-		return nil, fmt.Errorf("invalid prams: %s", lvparams.Type())
-	}
-	if lparams != nil {
-		l.ForEach(lparams, func(k, v lua.LValue) {
-			s, ok := v.(lua.LString)
-			if !ok {
-				return
-			}
-			d.Params = append(d.Params, string(s))
-		})
-	}
-	lvvars := l.GetField(ld, "vars")
-	lvars, ok := lvvars.(*lua.LTable)
-	if !ok && lvvars != lua.LNil {
-		return nil, fmt.Errorf("invalid variables: %s", lvvars.Type())
-	}
-	if lvars != nil {
-		l.ForEach(lvars, func(k, v lua.LValue) {
-			s, ok := v.(lua.LString)
-			if !ok {
-				return
-			}
-			d.Vars = append(d.Vars, string(s))
-		})
-	}
-
-	return d, nil
+	return decodeDocs(l, ld, name)
 }
 
 func decodeDocs(l *lua.LState, lv lua.LValue, name string) (*Docs, error) {
 	if lv == lua.LNil {
 		return nil, nil
 	}
+	if lv.Type() != lua.LTTable {
+		return nil, fmt.Errorf("not a table: %s", lv.Type())
+	}
+
 	ldocs := &lx.NamedValue{
 		Name:  fmt.Sprintf("%s docs", name),
 		Value: lv,
 	}
+	if name == "" {
+		ldocs.Name = name
+	}
 
 	d := &Docs{}
 
+	d.Usage = lx.OptStringField(l, ldocs, "usage", "")
 	d.Sig = lx.OptStringField(l, ldocs, "sig", "")
 	d.Desc = lx.OptStringField(l, ldocs, "desc", "")
 	lparams := lx.OptTableField(l, ldocs, "params", nil)
@@ -159,17 +123,222 @@ func decodeDocs(l *lua.LState, lv lua.LValue, name string) (*Docs, error) {
 		if suberr != nil {
 			return nil, suberr
 		}
+		sort.Sort(byTypeAndName(d.Subs))
 	}
 	return d, nil
 }
 
 // Docs represents documentation for a Lua object.
 type Docs struct {
+	Usage  string
 	Sig    string
 	Desc   string
 	Params []string
 	Vars   []string
 	Subs   []*Sub
+}
+
+// NumVar returns the number of variables declared for d.
+func (d *Docs) NumVar() int {
+	return len(d.Vars)
+}
+
+func splitNamed(named string) (name, rest string) {
+	text := strings.TrimSpace(named)
+	index := strings.IndexFunc(text, unicode.IsSpace)
+	if index < 0 {
+		return text, ""
+	}
+	return text[:index], text[index:]
+}
+
+func isTypeWord(c rune) bool {
+	return c == '(' || c == ')' || unicode.IsLetter(c)
+
+}
+
+func isTypeSep(c rune) bool {
+	return c == ',' || c == '|' || unicode.IsSpace(c)
+}
+
+func isTypeString(s string) bool {
+	var words []string
+	rem := s
+	for len(rem) > 0 {
+		sepIndex := strings.IndexFunc(rem, isTypeSep)
+		nonLIndex := strings.IndexFunc(rem, func(c rune) bool { return !isTypeWord(c) })
+		if sepIndex != nonLIndex {
+			return false
+		}
+		if sepIndex < 0 {
+			words = append(words, rem)
+			break
+		}
+		words = append(words, rem[:sepIndex])
+		rem = rem[sepIndex:]
+
+		nonSepIndex := strings.IndexFunc(rem, func(c rune) bool { return !isTypeSep(c) })
+		lIndex := strings.IndexFunc(rem, isTypeWord)
+		if nonSepIndex != lIndex {
+			return false
+		}
+		rem = rem[lIndex:]
+	}
+
+	if len(words) == 0 {
+		return false
+	}
+	if words[0] == "" {
+		return false
+	}
+	if words[0] == "or" {
+		return false
+	}
+
+	disj := false
+	for _, word := range words {
+		if word == "or" {
+			if disj {
+				return false
+			}
+			disj = true
+		} else {
+			disj = false
+		}
+	}
+
+	opt := -1
+	for i, word := range words {
+		if strings.IndexAny(word, "()") >= 0 {
+			if word != "(optional)" {
+				return false
+			}
+			if opt >= 0 {
+				return false
+			}
+			opt = i
+		}
+	}
+	if opt >= 0 && opt != 0 && opt != len(words)-1 {
+		return false
+	}
+
+	return true
+}
+
+// Var returns the name and description variable i in d.
+func (d *Docs) Var(i int) (name string) {
+	name, _ = splitNamed(d.Vars[i])
+	return name
+}
+
+// VarDesc returns the description of variable i in d.
+func (d *Docs) VarDesc(i int) (desc string) {
+	_, rest := splitNamed(d.Vars[i])
+	typ := d.VarType(i)
+	if typ != "" {
+		head := strings.SplitN(rest, "\n", 2)
+		if len(head) > 1 {
+			rest = head[1]
+		} else {
+			rest = ""
+		}
+	}
+	return rest
+}
+
+// VarType returns the type of variable i in d if it can be inferred from the
+// documentation.
+//
+// BUG:
+// VarType is not implemented.  No convention has been settled on.
+func (d *Docs) VarType(i int) (typ string) {
+	_, rest := splitNamed(d.Vars[i])
+	if rest == "" {
+		return
+	}
+
+	head := strings.SplitN(rest, "\n", 2)
+	line := strings.TrimSpace(head[0])
+	if line == "" {
+		return ""
+	}
+	if !isTypeString(line) {
+		return ""
+	}
+
+	return line
+}
+
+// NumParam returns the number of parameters declared for d.
+func (d *Docs) NumParam() int {
+	return len(d.Params)
+}
+
+// Param returns the name and description parameter i in d.
+func (d *Docs) Param(i int) (name string) {
+	name, _ = splitNamed(d.Params[i])
+	return name
+}
+
+// ParamDesc returns the description of parameter i in d.
+func (d *Docs) ParamDesc(i int) (desc string) {
+	_, rest := splitNamed(d.Params[i])
+	typ := d.ParamType(i)
+	if typ != "" {
+		head := strings.SplitN(rest, "\n", 2)
+		if len(head) > 1 {
+			rest = head[1]
+		} else {
+			rest = ""
+		}
+	}
+	return rest
+}
+
+// ParamType returns the type of parameter i in d if it can be inferred from the
+// documentation.
+//
+// BUG:
+// ParamType is not implemented.  No convention has been settled on.
+func (d *Docs) ParamType(i int) (typ string) {
+	_, rest := splitNamed(d.Params[i])
+	if rest == "" {
+		return
+	}
+
+	head := strings.SplitN(rest, "\n", 2)
+	line := strings.TrimSpace(head[0])
+	if line == "" {
+		return ""
+	}
+	if !isTypeString(line) {
+		return ""
+	}
+
+	return line
+}
+
+// Funcs returns function subtopics of d.
+func (d *Docs) Funcs() []*Sub {
+	var sub []*Sub
+	for _, s := range d.Subs {
+		if s.Type == "function" {
+			sub = append(sub, s)
+		}
+	}
+	return sub
+}
+
+// Others returns non-function subtopics of d.
+func (d *Docs) Others() []*Sub {
+	var sub []*Sub
+	for _, s := range d.Subs {
+		if s.Type != "function" {
+			sub = append(sub, s)
+		}
+	}
+	return sub
 }
 
 // Sub is subtopic documentation for a Lua object.
@@ -179,7 +348,25 @@ type Sub struct {
 	*Docs
 }
 
-// Go sets the description for obj to desc.
+type byTypeAndName []*Sub
+
+func (s byTypeAndName) Len() int {
+	return len(s)
+}
+
+func (s byTypeAndName) Less(i, j int) bool {
+	if s[i].Type == s[j].Type {
+		return s[i].Name < s[j].Name
+	}
+	return s[i].Type < s[i].Type
+}
+
+func (s byTypeAndName) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+// Go sets the description for obj to desc.  Go ignores doc.Subs, functions and
+// documented variables must have their documentation declared separately.
 func Go(l *lua.LState, obj lua.LValue, doc *Docs) {
 	require := l.GetGlobal("require")
 	l.Push(require)
@@ -189,9 +376,17 @@ func Go(l *lua.LState, obj lua.LValue, doc *Docs) {
 	l.Pop(1)
 
 	ndec := 0
+	if doc.Usage != "" {
+		l.Push(l.GetField(mod, "usage"))
+		l.Push(lua.LString(doc.Usage))
+		err := l.PCall(1, 1, nil)
+		if err != nil {
+			l.RaiseError("%s", err)
+		}
+		ndec++
+	}
 	if doc.Sig != "" {
-		sig := l.GetField(mod, "sig")
-		l.Push(sig)
+		l.Push(l.GetField(mod, "sig"))
 		l.Push(lua.LString(doc.Sig))
 		err := l.PCall(1, 1, nil)
 		if err != nil {
@@ -200,8 +395,7 @@ func Go(l *lua.LState, obj lua.LValue, doc *Docs) {
 		ndec++
 	}
 	if doc.Desc != "" {
-		sig := l.GetField(mod, "desc")
-		l.Push(sig)
+		l.Push(l.GetField(mod, "desc"))
 		l.Push(lua.LString(doc.Desc))
 		err := l.PCall(1, 1, nil)
 		if err != nil {
@@ -249,6 +443,7 @@ func docLoader(l *lua.LState) int {
 	if !ok {
 		l.RaiseError("unexpected type for setmetatable")
 	}
+	usages := weakTable(l, setmt, "kv")
 	signatures := weakTable(l, setmt, "kv")
 	descriptions := weakTable(l, setmt, "kv")
 	parameters := weakTable(l, setmt, "k")
@@ -270,55 +465,95 @@ func docLoader(l *lua.LState) int {
 		return val
 	}
 
+	usage := newAnnotator(usages, false)
 	sig := newAnnotator(signatures, false)
 	desc := newAnnotator(descriptions, false)
 	param := newAnnotator(parameters, true)
 	_var := newAnnotator(variables, true)
 
-	dodoc := func(obj lua.LValue, s, d string, ps ...string) {
-		l.Push(sig)
-		l.Push(lua.LString(s))
-		l.Call(1, 1)
-		l.Push(desc)
-		l.Push(lua.LString(d))
-		l.Call(1, 1)
+	dodoc := func(obj lua.LValue, u, s, d string, ps ...string) {
+		ncall := 3 + len(ps)
+		if u != "" {
+			l.Push(usage)
+			l.Push(lua.LString(u))
+			l.Call(1, 1)
+		} else {
+			ncall--
+		}
+		if s != "" {
+			l.Push(sig)
+			l.Push(lua.LString(s))
+			l.Call(1, 1)
+		} else {
+			ncall--
+		}
+		if d != "" {
+			l.Push(desc)
+			l.Push(lua.LString(d))
+			l.Call(1, 1)
+		} else {
+			ncall--
+		}
 		for _, p := range ps {
 			l.Push(param)
 			l.Push(lua.LString(p))
 			l.Call(1, 1)
 		}
 		l.Push(obj)
-		for i := 0; i < 2+len(ps); i++ {
+		for i := 0; i < ncall; i++ {
 			l.Call(1, 1)
 		}
 	}
 
+	dodoc(mod,
+		"local doc = require('doc')",
+		"",
+		`
+		The doc module contains utilities for documenting Lua objects using
+		decorators.  Sections of documentation are declared separately using
+		small idiomatically named decorators.  Decorators are defined for
+		documenting (module) table descriptions, variables, and functions.  For
+		function decorators are defined to document signatures and parameter
+		values.
+		`,
+	)
+	dodoc(usage,
+		"",
+		"s => fn => fn",
+		"A decorator that documents the usage of an object.",
+		`s  string -- Text describing usage.`,
+	)
 	dodoc(sig,
+		"",
 		"s => fn => fn",
 		"A decorator that documents a function's signature.",
 		`s  string -- The function signature.`,
 	)
 	dodoc(desc,
+		"",
 		"s => fn => fn",
 		"A decorator that describes an object.",
 		`s  string -- The object description.`,
 	)
 	dodoc(param,
+		"",
 		"s => fn => fn",
 		"A decorator that describes a function parameter.",
 		`s  string -- The parameter name and description separated by white space.`,
 	)
 	dodoc(_var,
+		"",
 		"s => fn => fn",
 		"A decorator that describes module variable (table field).",
 		`s  string -- The variable name and description separated by white space.`,
 	)
 
 	get := l.NewClosure(
-		luaGet(signatures, descriptions, parameters, variables),
-		signatures, descriptions, parameters, variables,
+		luaGet(usages, signatures, descriptions, parameters, variables),
+		usages, signatures, descriptions, parameters, variables,
 	)
 	dodoc(get,
+		"",
 		"obj => table",
 		"Retrieve a table containing documentation for obj.",
 		`obj   table, function, or userdata -- The object to retrieve documentation for.`,
@@ -329,17 +564,23 @@ func docLoader(l *lua.LState) int {
 		mod, get,
 	)
 	dodoc(help,
+		"",
 		"obj => ()",
 		"Print the documentation for obj.",
 		`obj   table, function, or userdata -- The object to retrieve documentation for.`,
 	)
 
-	l.SetField(mod, "get", get)
+	// decorators
+	l.SetField(mod, "usage", usage)
 	l.SetField(mod, "sig", sig)
 	l.SetField(mod, "desc", desc)
 	l.SetField(mod, "var", _var)
 	l.SetField(mod, "param", param)
+
+	// accessors
+	l.SetField(mod, "get", get)
 	l.SetField(mod, "help", help)
+
 	l.Push(mod)
 	return 1
 }
@@ -369,202 +610,52 @@ func luaHelp(mod lua.LValue, get lua.LValue) lua.LGFunction {
 		l.Push(get)
 		l.Push(val)
 		l.Call(1, 1)
-		docs := l.Get(1)
-		if docs != lua.LNil {
-			desc := l.GetField(docs, "desc")
-			if desc != lua.LNil {
-				l.Push(print)
-				l.Push(lua.LString(""))
-				l.Call(1, 0)
 
-				lstr, ok := l.ToStringMeta(desc).(lua.LString)
-				if !ok {
-					l.RaiseError("description is not a string")
-				}
-				str := textutil.Unindent(string(lstr))
-				str = textutil.Wrap(str, 72)
-				str = strings.TrimSpace(str)
-				l.Push(print)
-				l.Push(lua.LString(str))
-				l.Call(1, 0)
-			}
-			vars := l.GetField(docs, "vars")
-			if vars != lua.LNil {
+		docs := l.Get(-1)
+		l.SetTop(0)
 
-				vtab, ok := vars.(*lua.LTable)
-				if !ok {
-					l.RaiseError("variables are not a table")
-				}
-				if vtab.Len() > 0 {
-					l.Push(print)
-					l.Call(0, 0)
-
-					l.Push(print)
-					l.Push(lua.LString("Variables"))
-					l.Call(1, 0)
-				}
-				l.ForEach(vtab, func(i, v lua.LValue) {
-					v = l.ToStringMeta(v)
-					s, ok := v.(lua.LString)
-					if !ok {
-						l.RaiseError("variable description is not a string")
-					}
-					name, desc := splitParam(string(s))
-					if name == "" {
-						return
-					}
-
-					l.Push(print)
-					l.Call(0, 0)
-
-					ln := fmt.Sprintf("  %s", name)
-					l.Push(print)
-					l.Push(lua.LString(ln))
-					l.Call(1, 0)
-
-					desc = textutil.Unindent(desc)
-					desc = strings.TrimSpace(desc)
-					desc = textutil.Wrap(desc, 72)
-					desc = textutil.Indent(desc, "      ")
-					l.Push(print)
-					l.Push(lua.LString(desc))
-					l.Call(1, 0)
-				})
-			}
-			sig := l.GetField(docs, "sig")
-			if sig != lua.LNil {
-				l.Push(print)
-				l.Call(0, 0)
-
-				l.Push(print)
-				l.Push(sig)
-				l.Call(1, 0)
-			}
-			params := l.GetField(docs, "params")
-			if params != lua.LNil {
-
-				ptab, ok := params.(*lua.LTable)
-				if !ok {
-					l.RaiseError("parameters are not a table")
-				}
-				if ptab.Len() > 0 {
-					l.Push(print)
-					l.Call(0, 0)
-
-					l.Push(print)
-					l.Push(lua.LString("Parameters"))
-					l.Call(1, 0)
-				}
-				l.ForEach(ptab, func(i, v lua.LValue) {
-					v = l.ToStringMeta(v)
-					s, ok := v.(lua.LString)
-					if !ok {
-						l.RaiseError("parameter description is not a string")
-					}
-					name, desc := splitParam(string(s))
-					if name == "" {
-						return
-					}
-
-					l.Push(print)
-					l.Call(0, 0)
-
-					ln := fmt.Sprintf("  %s", name)
-					l.Push(print)
-					l.Push(lua.LString(ln))
-					l.Call(1, 0)
-
-					desc = textutil.Unindent(desc)
-					desc = strings.TrimSpace(desc)
-					desc = textutil.Wrap(desc, 72)
-					desc = textutil.Indent(desc, "      ")
-					l.Push(print)
-					l.Push(lua.LString(desc))
-					l.Call(1, 0)
-				})
-			}
+		godocs, err := decodeDocs(l, docs, "")
+		if err != nil {
+			l.RaiseError("%s", err)
 		}
-
-		subs, ok := l.GetField(docs, "sub").(*lua.LTable)
-		if ok {
-			type Topic struct{ k, desc lua.LString }
-			var topics []*Topic
-			l.ForEach(subs, func(k, v lua.LValue) {
-				_k, ok := k.(lua.LString)
-				if !ok {
-					return
-				}
-				subDocs := l.GetField(v, "docs")
-
-				t := &Topic{k: _k, desc: ""}
-				if subDocs != lua.LNil {
-					desc := l.GetField(subDocs, "desc")
-					t.desc, ok = desc.(lua.LString)
-					if !ok {
-						t.desc, ok = l.ToStringMeta(desc).(lua.LString)
-						if !ok {
-							l.RaiseError("cannot convert description to string")
-						}
-					}
-				}
-
-				topics = append(topics, t)
-			})
-
-			if len(topics) > 0 {
-				l.Push(print)
-				l.Call(0, 0)
-
-				l.Push(print)
-				l.Push(lua.LString("Functions"))
-				l.Call(1, 0)
-			}
-			for _, t := range topics {
-				l.Push(print)
-				l.Call(0, 0)
-
-				l.Push(print)
-				l.Push(lua.LString(fmt.Sprintf("  %s", t.k)))
-				l.Call(1, 0)
-
-				if t.desc != lua.LNil {
-					syn := textutil.Synopsis(string(t.desc))
-					syn = textutil.Wrap(syn, 66)
-					syn = textutil.Indent(syn, "      ")
-					l.Push(print)
-					l.Push(lua.LString(syn))
-					l.Call(1, 0)
-				}
-			}
+		text, err := NewFormatter().Format(nil, godocs, "")
+		if err != nil {
+			l.RaiseError("%s", err)
 		}
-
+		_, err = io.Copy(os.Stderr, strings.NewReader(text))
+		if err != nil {
+			l.RaiseError("%s", err)
+		}
 		return 0
 	}
 }
 
-func luaGet(signatures, descriptions, parameters, variables lua.LValue) lua.LGFunction {
+func luaGet(usages, signatures, descriptions, parameters, variables lua.LValue) lua.LGFunction {
 	var rec lua.LGFunction
 	rec = func(l *lua.LState) int {
 		val := l.Get(1)
 		depth := l.OptInt(2, 1)
 
 		l.SetTop(0)
+		usage := l.GetTable(usages, val)
 		sig := l.GetTable(signatures, val)
 		desc := l.GetTable(descriptions, val)
 		params := l.GetTable(parameters, val)
 		vars := l.GetTable(variables, val)
-		if sig == lua.LNil && desc == lua.LNil && params == lua.LNil && vars == lua.LNil {
+		tab, ok := val.(*lua.LTable)
+		if sig == lua.LNil && desc == lua.LNil && params == lua.LNil && vars == lua.LNil && !ok {
 			l.Push(lua.LNil)
 			return 1
 		}
+
 		t := l.NewTable()
+		l.SetField(t, "usage", usage)
 		l.SetField(t, "sig", sig)
 		l.SetField(t, "desc", desc)
 		l.SetField(t, "params", params)
 		l.SetField(t, "vars", vars)
 
-		tab, ok := val.(*lua.LTable)
-		if ok {
+		if tab != nil {
 			topics := l.NewTable()
 
 			l.ForEach(tab, func(k, v lua.LValue) {
@@ -599,7 +690,9 @@ func luaGet(signatures, descriptions, parameters, variables lua.LValue) lua.LGFu
 				topics.Append(subTopic)
 			})
 
-			l.SetField(t, "sub", topics)
+			if topics.Len() > 0 {
+				l.SetField(t, "sub", topics)
+			}
 		}
 
 		l.Push(t)

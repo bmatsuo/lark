@@ -16,7 +16,7 @@ func Loader(l *lua.LState) int {
 	metatable := l.NewClosure(luaMetatable(alias), alias)
 
 	l.Push(metatable)
-	l.Push(l.NewClosure(luaCall))
+	l.Push(lua.LNil)
 	l.Call(1, 1)
 	mt := l.Get(-1).(*lua.LTable)
 	l.Pop(0)
@@ -32,12 +32,14 @@ func Loader(l *lua.LState) int {
 
 func luaMetatable(alias *lua.LFunction) lua.LGFunction {
 	return func(l *lua.LState) int {
-		fn := l.CheckFunction(1)
+		fn := l.OptFunction(1, nil)
 		l.SetTop(0)
 
 		mt := l.NewTable()
 		l.SetField(mt, "__concat", alias)
-		l.SetField(mt, "__call", fn)
+		if fn != nil {
+			l.SetField(mt, "__call", fn)
+		}
 		l.Push(mt)
 		return 1
 	}
@@ -51,27 +53,12 @@ func luaCallAlias(l *lua.LState) int {
 	return l.GetTop()
 }
 
-func luaCall(l *lua.LState) int {
-	l.Replace(1, l.GetField(l.Get(1), "fn"))
-	narg := l.GetTop() - 1
-	l.Call(narg, lua.MultRet)
-	return l.GetTop()
-}
-
-func metatable(l *lua.LState) *lua.LTable {
-	mt := l.NewTable()
-	l.SetField(mt, "__concat", l.NewFunction(luaConcatMeta))
-	l.SetField(mt, "__call", l.NewFunction(luaCallMeta))
-	return mt
-}
-
 func luaCreate(mt *lua.LTable) lua.LGFunction {
 	return func(l *lua.LState) int {
 		fn := l.CheckFunction(1)
-		dec := l.NewTable()
-		l.SetField(dec, "fn", fn)
+		l.SetTop(0)
 		l.Push(l.GetGlobal("setmetatable"))
-		l.Push(dec)
+		l.Push(fn)
 		l.Push(mt)
 		l.Call(2, 1)
 		return 1
@@ -95,29 +82,6 @@ func luaAnnotator(create *lua.LFunction) lua.LGFunction {
 		l.Call(1, 1)
 		return 1
 	}
-}
-
-func luaConcatMeta(l *lua.LState) int {
-	dec := l.Get(1)
-	if l.GetTop() < 2 {
-		l.RaiseError("nothing to concatenate")
-	}
-	l.SetTop(2)
-	fn := l.GetField(dec, "fn")
-	l.Replace(1, fn)
-	l.Call(1, 1)
-	return 1
-}
-
-func luaCallMeta(l *lua.LState) int {
-	dec := l.Get(1)
-	if l.GetTop() < 1 {
-		l.RaiseError("nothing to call")
-	}
-	l.Replace(1, l.GetField(dec, "fn"))
-	narg := l.GetTop() - 1
-	l.Call(narg, 1)
-	return 1
 }
 
 func setter(create *lua.LFunction, table lua.LValue) lua.LGFunction {

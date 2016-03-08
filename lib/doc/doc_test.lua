@@ -53,6 +53,7 @@ function test_doc()
 
     local module =
         doc.desc[[a module]] ..
+        doc.usage[[local module = require('module')]] ..
         {
             fn =
                 doc.desc[[a function]] ..
@@ -63,6 +64,7 @@ function test_doc()
         }
     docs = doc.get(module)
     assert(docs)
+    assert(docs.usage == 'local module = require(\'module\')')
     assert(docs.desc == 'a module')
     assert(docs.sub)
     assert(docs.sub[1])
