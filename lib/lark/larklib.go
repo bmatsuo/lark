@@ -55,38 +55,7 @@ local lark =
     }
 
 lark.pattern = task.pattern
-lark.newpattern = task.pattern
-lark.newtask = task
-
-lark.task =
-    doc.sig[[(name, fn) => ()]] ..
-    doc.desc[[Define a new task.]] ..
-    doc.param[[name  string -- the name of the task]] ..
-    doc.param[[fn    string -- the function that performs the task]] ..
-    function (name, fn)
-        local msg = deprecation("lark.task", "name() or create", 'lark.task')
-        lark.log{msg, color='yellow'}
-
-        local pattern = nil
-        local t = name
-        if type(t) == 'table' then
-            pattern = t.pattern
-            if type(t[1]) == "string" then
-                name = t[1]
-            end
-            fn = t[table.getn(t)]
-        end
-
-        if not lark.default_task then
-            lark.default_task = name
-        end
-
-        if pattern then
-            task.pattern(pattern)(fn)
-        else
-            task.name(name)(fn)
-        end
-    end
+lark.task = task.create
 
 lark.run =
     doc.desc[[An alias for run() in module lark.task]] ..
@@ -110,6 +79,23 @@ local function deprecated_alias(fn, old, new, mod)
         return fn(unpack(arg))
     end
 end
+
+lark.newpattern =
+    doc.desc[[This function has been deprecated. Use the pattern() function in
+              module 'lark.task' instead.
+
+              Returns a decorator that declares a pattern matching task.  The
+              pattern and the matched string are accessible through the context
+              argument of the decorated task function.
+              ]] ..
+    deprecated_alias(task.pattern, 'lark.newpattern()', 'pattern()', 'lark.task')
+lark.newtask =
+    doc.desc[[This function has been deprecated. Use lark.task instead.
+
+              A decorator that declares a task.  Assign the result to a global
+              variable to run the task by name.
+              ]] ..
+    deprecated_alias(task.create, 'lark.newtask', 'create', 'lark.task')
 
 lark.get_name =
     doc.sig[[ctx => string]] ..

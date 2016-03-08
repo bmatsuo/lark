@@ -35,12 +35,12 @@ named "lark" is accessible and allows users to define tasks.
 
 **lark.lua**
 ```lua
-build = lark.newtask .. function()
+build = lark.task .. function()
     lark.run('generate')
     lark.exec{'go', 'build', './cmd/...'}
 end
 
-generate = lark.newtask .. function()
+generate = lark.task .. function()
     lark.exec{'go', 'generate', './...'}
 end
 ```
@@ -48,11 +48,6 @@ end
 The above `lark.lua` file defines a task called 'generate' that runs code
 generation and a task called 'build', that depends on code generation, that
 builds executables.  Tasks can be run using the `lark run` command.
-
-**Note:** The `lark.newtask` and `lark.newpattern()` decorator functions are
-temporary transitional functions and will deprecated in v0.5.0. After v0.5.0
-`lark.task` and `lark.pattern` will be the recommended decorator functions.  In
-v0.4.0 `lark.task` contains deprecated incompatible semantics.
 
 ```sh
 lark run generate
@@ -65,7 +60,7 @@ defined.  The default task can also be set explicitly in the `lark.lua` file if
 desired.
 
 ```lua
-task = require('lark.task')
+local task = require('lark.task')
 task.default = 'build'
 ```
 
@@ -114,7 +109,7 @@ y = 2
 
 **lark_tasks/mytask.lua**
 ```lua
-mytask = lark.newtask .. function()
+mytask = lark.task .. function()
     print(x)
     print(y)
 end
