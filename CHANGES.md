@@ -2,6 +2,9 @@
 
 ##v0.5.0-dev
 
+- The `lark.exec()` function now accepts a more traditional variadic call style
+  using parenthesis "()" instead of curl braces "{}".
+
 - Lua reference documentation is back and available at
   [docs/lua.md](docs/lua.md)!  Documentation is generated from annotations also
   available through the help() function in `lark lua`.
