@@ -21,8 +21,8 @@ clean = task .. function()
 end
 
 gen = task .. function ()
-    lark.run('gen_docs')
     go.gen()
+    lark.run('gen_docs')
 end
 
 gen_docs = task .. function ()

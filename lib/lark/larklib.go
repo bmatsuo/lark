@@ -20,7 +20,7 @@ end
 local function flatten(...)
     local flat = {}
     for i, v in pairs(arg) do
-        if i == 'n' then
+        if type(i) == 'string' then
             -- noop
         elseif type(v) == 'table' then
             for j, v_inner in pairs(flatten(unpack(v))) do
@@ -167,21 +167,60 @@ lark.log =
     core.log
 
 lark.exec =
-    doc.sig[[cmd => output]] ..
-    doc.desc[[Execute a command]] ..
-    doc.param[[cmd         array -- the command to run (e.g. {'gcc', '-c', 'foo.c'}]] ..
-    doc.param[[cmd.dir     string (optional) -- the directory cmd should execute in]] ..
-    doc.param[[cmd.input   string (optional) -- data written to the standard input stream]] ..
-    doc.param[[cmd.stdin   string (optional) -- A source filename to redirect into the standard input stream]] ..
-    doc.param[[cmd.stdout  string (optional) -- A destination filename to receive output redirected from the standard output stream]] ..
-    doc.param[[cmd.stderr  string (optional) -- A destination filename to receive output redirected from the standard error stream]] ..
-    doc.param[[cmd.ignore  boolean (optional) -- Do not terminate execution if cmd exits with an error]] ..
-    function (args)
-        local cmd_str = shell_quote(args)
+    doc.sig[[(args, ..., opt) => output]] ..
+    doc.desc[[
+            Execute a command using the arguments given.  If opt named values
+            are found in the last argument they are used with the following
+            semantics.
 
-        args._str = shell_quote(args)
-        local result = core.exec(args)
+                > lark.exec('echo', 'hello')
+                echo hello
+                hello
+                > lark.exec('grep', 'xyz', path.glob('*.txt'), { ignore = true })
+                grep xyz a.txt b.txt c.txt
+                grep: exit status 1 (ignored)
+                > lark.exec{'which', 'gcc', stdout = '/dev/null'}
+                which gcc
+                >
+            ]] ..
+    doc.param[[
+             args        array or string
+             The command to run (e.g. {'gcc', '-c', 'foo.c'}).  Any nested
+             arrays will be flattened to form a final array of string
+             arguments.
+             ]] ..
+    doc.param[[
+             opt         table
+             Execution options interpreted by lark.  Options control logging,
+             process initialization, redirection of standard I/O streams, and
+             error handling.
 
+             The opt table can contain command arguments as well for
+             convenience.  So lark.exec() can be called using a single table
+             argument, potentially using the special call syntax lark.exec{}.
+             ]] ..
+    doc.param[[opt.dir     string (optional) -- the directory cmd should execute in]] ..
+    doc.param[[opt.input   string (optional) -- data written to the standard input stream]] ..
+    doc.param[[opt.stdin   string (optional) -- A source filename to redirect into the standard input stream]] ..
+    doc.param[[opt.stdout  string (optional) -- A destination filename to receive output redirected from the standard output stream]] ..
+    doc.param[[opt.stderr  string (optional) -- A destination filename to receive output redirected from the standard error stream]] ..
+    doc.param[[opt.ignore  boolean (optional) -- Do not terminate execution if cmd exits with an error]] ..
+    function (args, ...)
+        local opt = args
+        if #arg > 0 then
+            opt = arg[-1]
+        end
+        local cmd = flatten(args, unpack(arg))
+        if type(opt) == 'table' then
+            for k, v in pairs(opt) do
+                if type(k) == 'string' then
+                    cmd[k] = v
+                end
+            end
+        end
+
+        cmd._str = shell_quote(cmd)
+        local result = core.exec(cmd)
         local output = result.output
         local err = result.error
         if err then
@@ -190,6 +229,8 @@ lark.exec =
                     local msg = string.format('%s (ignored)', err)
                     lark.log{msg, color='yellow'}
                 end
+            elseif #cmd > 0 then
+                error(string.format("%s: %s", cmd[1], err))
             else
                 error(err)
             end
