@@ -24,10 +24,10 @@ the lark subcommand "run".  When given no arguments, run will execute the first
 named task that was defined, or a task specified by setting the "default"
 variable in the "lark.task" lua module.
 
-	local task = require('lark.task')
-	task1 = task .. function() print('task1') end
-	task2 = task .. function() print('task2') end
+	task1 = lark.task .. function() print('task1') end
+	task2 = lark.task .. function() print('task2') end
 	lark.run()
+	local task = require('lark.task')
 	task.default = 'task2'
 	lark.run()
 	lark.run('task1')
