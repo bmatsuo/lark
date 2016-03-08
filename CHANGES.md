@@ -2,6 +2,10 @@
 
 ##v0.5.0-dev
 
+- Lua reference documentation is back and available at
+  [docs/lua.md](docs/lua.md)!  Documentation is generated from annotations also
+  available through the help() function in `lark lua`.
+
 - Replace implementation of lark.task with task.create.  This is a backwards
   incompatible change.  See #24 for more information if you stil need to
   migrate to the new task API.
