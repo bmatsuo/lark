@@ -6,31 +6,31 @@ The path module provides utilities for working with filesystem paths.
 
 ##Functions
 
-**base**
+**[base](#function-base)**
 
 Returns the basename of the given path.
 
-**dir**
+**[dir](#function-dir)**
 
 Returns the directory containing the given path.
 
-**exists**
+**[exists](#function-exists)**
 
 Returns true if and only if path exists
 
-**ext**
+**[ext](#function-ext)**
 
 Returns the file extension of the given path.
 
-**glob**
+**[glob](#function-glob)**
 
 Returns an array of paths that match the given pattern.
 
-**is_dir**
+**[is_dir](#function-is_dir)**
 
 Returns true if and only if path exists and is a directory
 
-**join**
+**[join](#function-join)**
 
 Joins the given paths using the filesystem path separator and returns
 the result.

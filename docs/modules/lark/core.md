@@ -2,21 +2,21 @@
 
 ##Functions
 
-**environ**
+**[environ](#function-environ)**
 
 Return a copy of the process environment as a table.
 
-**exec**
+**[exec](#function-exec)**
 
-**log**
+**[log](#function-log)**
 
 Log a message to the standard error stream.
 
-**make_group**
+**[make_group](#function-make_group)**
 
-**start**
+**[start](#function-start)**
 
-**wait**
+**[wait](#function-wait)**
 
 ##Function lark.core.environ
 

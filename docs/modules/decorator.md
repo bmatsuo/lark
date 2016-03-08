@@ -2,16 +2,16 @@
 
 ##Functions
 
-**annotator**
+**[annotator](#function-annotator)**
 
 Return a copy/concat decorator that
 
-**create**
+**[create](#function-create)**
 
 Return a simple copy/concat decorator using the given decorating
 function.
 
-**metatable**
+**[metatable](#function-metatable)**
 
 Create a new metatable for a basic decorator with concat/call syntax.
 

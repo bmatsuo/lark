@@ -19,60 +19,60 @@ boolean -- Log more information then normal if this variable is true.
 
 ##Functions
 
-**environ**
+**[environ](#function-environ)**
 
 Return a copy of the process environment as a table.
 
-**exec**
+**[exec](#function-exec)**
 
 Execute a command
 
-**get_name**
+**[get_name](#function-get_name)**
 
 Return the name of the task corresponding to the given context.
 
-**get_param**
+**[get_param](#function-get_param)**
 
 Return the value for the name parameter given to the task corresponding
 to ctx.
 
-**get_pattern**
+**[get_pattern](#function-get_pattern)**
 
 Return the regular expression that matched the executing task.
 
-**group**
+**[group](#function-group)**
 
 Create a group with optional dependencies.
 
-**log**
+**[log](#function-log)**
 
 Log a message to the standard error stream.
 
-**newpattern**
+**[newpattern](#function-newpattern)**
 
 This function has been deprecated.
 
-**newtask**
+**[newtask](#function-newtask)**
 
 This function has been deprecated.
 
-**pattern**
+**[pattern](#function-pattern)**
 
 Returns a decorator that associates the given patten with a function.
 
-**run**
+**[run](#function-run)**
 
 An alias for run() in module lark.
 
-**start**
+**[start](#function-start)**
 
 Start asynchronous execution of cmd.
 
-**task**
+**[task](#function-task)**
 
 A decorator that creates an anonymous task from a function.
 
-**wait**
+**[wait](#function-wait)**
 
 Suspend execution until all processes in the specified groups have
 terminated.
