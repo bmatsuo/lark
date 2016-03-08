@@ -25,7 +25,7 @@ Return a copy of the process environment as a table.
 
 **[exec](#function-larkexec)**
 
-Execute a command
+Execute a command using the arguments given.
 
 **[get_name](#function-larkget_name)**
 
@@ -91,39 +91,63 @@ Return a copy of the process environment as a table.
 
 ###Signature
 
-cmd => output
+(args, ..., opt) => output
 
 ###Description
 
-Execute a command
+Execute a command using the arguments given.  If opt named values
+are found in the last argument they are used with the following
+semantics.
+
+    > lark.exec('echo', 'hello')
+    echo hello
+    hello
+    > lark.exec('grep', 'xyz', path.glob('*.txt'), { ignore = true })
+    grep xyz a.txt b.txt c.txt
+    grep: exit status 1 (ignored)
+    > lark.exec{'which', 'gcc', stdout = '/dev/null'}
+    which gcc
+    >
 
 ###Parameters
 
-**cmd**
+**args** _array or string_
 
-array -- the command to run (e.g. {'gcc', '-c', 'foo.c'}
+The command to run (e.g. {'gcc', '-c', 'foo.c'}).  Any nested
+arrays will be flattened to form a final array of string
+arguments.
 
-**cmd.dir**
+**opt** _table_
+
+Execution options interpreted by lark.  Options control logging,
+process initialization, redirection of standard I/O streams, and
+error handling.
+
+The opt table can contain command arguments as well for
+convenience.  So lark.exec() can be called using a single table
+argument, potentially using the special call syntax lark.exec{}.
+
+**opt.dir**
 
 string (optional) -- the directory cmd should execute in
 
-**cmd.input**
+**opt.input**
 
 string (optional) -- data written to the standard input stream
 
-**cmd.stdin**
+**opt.stdin**
 
 string (optional) -- A source filename to redirect into the standard input stream
 
-**cmd.stdout**
+**opt.stdout**
 
 string (optional) -- A destination filename to receive output redirected from the standard output stream
 
-**cmd.stderr**
+**opt.stderr**
 
 string (optional) -- A destination filename to receive output redirected from the standard error stream
 
-**cmd.ignore**
+**opt.ignore**
 
 boolean (optional) -- Do not terminate execution if cmd exits with an error
 

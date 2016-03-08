@@ -13,21 +13,21 @@ local function collect(...)
 end
 
 init = task .. function()
-    lark.exec{'glide', 'install'}
+    lark.exec('glide', 'install')
 end
 
 clean = task .. function()
-    lark.exec{'rm', '-f', 'lark', 'docgen'}
+    lark.exec('rm', '-f', 'lark', 'docgen')
 end
 
 gen = task .. function ()
-    lark.run('gen_docs')
     go.gen()
+    lark.run('gen_docs')
 end
 
 gen_docs = task .. function ()
     lark.run('./cmd/docgen')
-    lark.exec{'./docgen'}
+    lark.exec('./docgen')
 end
 
 build = task .. function ()
