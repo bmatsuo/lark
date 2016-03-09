@@ -185,8 +185,8 @@ lark.exec =
             ]] ..
     doc.param[[
              args        array or string
-             The command to run (e.g. {'gcc', '-c', 'foo.c'}).  Any nested
-             arrays will be flattened to form a final array of string
+             The command to run (e.g. ('gcc', GCC_OPT, '-c', 'foo.c')).  Any
+             nested arrays will be flattened to form a final array of string
              arguments.
              ]] ..
     doc.param[[
