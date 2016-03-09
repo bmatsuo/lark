@@ -1,5 +1,18 @@
 #Module fun
 
+##Description
+
+The fun module provides a simple API for basic functional
+programming.  The module uses a naming convension to distinguish
+multiple flavors of the same function.  The map() and sel()
+functions operate on table keys and values while the vmap() and
+vsel() functions keep the same table keys and only transform table
+values.
+
+Most functions operate either on array data or tabular name-value
+data unless their documentation explicitly states otherwise (e.g.
+the flatten() function).
+
 ##Functions
 
 **[flatten](#function-funflatten)**
