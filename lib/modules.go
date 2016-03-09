@@ -8,6 +8,7 @@ import (
 	"github.com/bmatsuo/lark/lib/decorator"
 	"github.com/bmatsuo/lark/lib/decorator/_intern"
 	"github.com/bmatsuo/lark/lib/doc"
+	"github.com/bmatsuo/lark/lib/fun"
 	"github.com/bmatsuo/lark/lib/lark"
 	"github.com/bmatsuo/lark/lib/lark/core"
 	"github.com/bmatsuo/lark/lib/lark/task"
@@ -19,6 +20,7 @@ var Modules = []gluamodule.Module{
 	decorator.Module,
 	intern.Module,
 	doc.Module,
+	fun.Module,
 	lark.Module,
 	core.Module,
 	task.Module,

@@ -7,6 +7,8 @@
 The doc module contains utilities for documenting Lua objects using
 decorators.
 
+##[fun](modules/fun.md)
+
 ##[lark](modules/lark.md)
 
 The lark module provides the primary Lua interface to the lark system.
