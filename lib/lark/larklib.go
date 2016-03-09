@@ -7,6 +7,7 @@ require 'os'
 
 local core = require('lark.core')
 local task = require('lark.task')
+local fun = require('fun')
 local doc = require('doc')
 
 local function deprecation(old, new, mod)
@@ -15,22 +16,6 @@ local function deprecation(old, new, mod)
     else
         return string.format("deprecation warning: use %s instead of %s", new, old)
     end
-end
-
-local function flatten(...)
-    local flat = {}
-    for i, v in pairs(arg) do
-        if type(i) == 'string' then
-            -- noop
-        elseif type(v) == 'table' then
-            for j, v_inner in pairs(flatten(unpack(v))) do
-                table.insert(flat, v_inner)
-            end
-        else
-            table.insert(flat, v)
-        end
-    end
-    return flat
 end
 
 local lark =
@@ -210,7 +195,7 @@ lark.exec =
         if #arg > 0 then
             opt = arg[-1]
         end
-        local cmd = flatten(args, unpack(arg))
+        local cmd = fun.flatten({args, arg})
         if type(opt) == 'table' then
             for k, v in pairs(opt) do
                 if type(k) == 'string' then
@@ -277,7 +262,7 @@ lark.wait =
         if type(args) ~= 'table' then
             args = {arg}
         end
-        local result = core.wait(unpack(flatten(args)))
+        local result = core.wait(unpack(fun.flatten(args)))
         if result.error then
             error(result.error)
         end
