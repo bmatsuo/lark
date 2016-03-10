@@ -365,6 +365,119 @@ func (s byTypeAndName) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
+// Documentor documents Lua objects in Go
+type Documentor struct {
+	l   *lua.LState
+	mod *lua.LTable
+}
+
+// Must is the same as new but will raise an error when unsuccessful.
+func Must(l *lua.LState) *Documentor {
+	d, err := New(l)
+	if err != nil {
+		l.RaiseError("%s", err)
+	}
+	return d
+}
+
+// New returns a new Documentor for l.
+func New(l *lua.LState) (*Documentor, error) {
+	l.Push(l.GetGlobal("require"))
+	l.Push(lua.LString(Module.Name()))
+	err := l.PCall(1, 1, nil)
+	if err != nil {
+		return nil, err
+	}
+	lvmod := l.Get(-1)
+	l.Pop(1)
+	mod, ok := lvmod.(*lua.LTable)
+	if !ok {
+		return nil, fmt.Errorf("doc module is not a table")
+	}
+
+	d := &Documentor{
+		l:   l,
+		mod: mod,
+	}
+
+	return d, nil
+}
+
+func (d *Documentor) pushStringDecorator(name, val string) error {
+	d.l.Push(d.l.GetField(d.mod, name))
+	d.l.Push(lua.LString(val))
+	return d.l.PCall(1, 1, nil)
+}
+
+// MustDoc is the same as doc but raises an error if unsuccessful.
+func (d *Documentor) MustDoc(obj lua.LValue, doc *Docs) {
+	err := d.Doc(obj, doc)
+	if err != nil {
+		d.l.RaiseError("%s", err)
+	}
+}
+
+// Doc documents obj with d.
+func (d *Documentor) Doc(obj lua.LValue, doc *Docs) error {
+	if doc == nil {
+		return nil
+	}
+
+	ndec := 0
+	if doc.Usage != "" {
+		err := d.pushStringDecorator("usage", doc.Usage)
+		if err != nil {
+			d.l.Pop(ndec)
+			return err
+		}
+		ndec++
+	}
+	if doc.Sig != "" {
+		err := d.pushStringDecorator("sig", doc.Sig)
+		if err != nil {
+			d.l.Pop(ndec)
+			return err
+		}
+		ndec++
+	}
+	if doc.Desc != "" {
+		err := d.pushStringDecorator("desc", doc.Desc)
+		if err != nil {
+			d.l.Pop(ndec)
+			return err
+		}
+		ndec++
+	}
+	if len(doc.Vars) > 0 {
+		for _, v := range doc.Vars {
+			err := d.pushStringDecorator("var", v)
+			if err != nil {
+				d.l.Pop(ndec)
+				return err
+			}
+			ndec++
+		}
+	}
+	if len(doc.Params) > 0 {
+		for _, p := range doc.Params {
+			err := d.pushStringDecorator("param", p)
+			if err != nil {
+				d.l.Pop(ndec)
+				return err
+			}
+			ndec++
+		}
+	}
+	d.l.Push(obj)
+	for i := 0; i < ndec; i++ {
+		err := d.l.PCall(1, 1, nil)
+		if err != nil {
+			d.l.RaiseError("%s", err)
+		}
+	}
+	return nil
+}
+
 // Go sets the description for obj to desc.  Go ignores doc.Subs, functions and
 // documented variables must have their documentation declared separately.
 func Go(l *lua.LState, obj lua.LValue, doc *Docs) {
