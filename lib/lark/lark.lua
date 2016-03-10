@@ -187,18 +187,18 @@ lark.exec =
     doc.param[[opt.stdout  string (optional) -- A destination filename to receive output redirected from the standard output stream]] ..
     doc.param[[opt.stderr  string (optional) -- A destination filename to receive output redirected from the standard error stream]] ..
     doc.param[[opt.ignore  boolean (optional) -- Do not terminate execution if cmd exits with an error]] ..
-    function (args, ...)
-        local opt = args
-        if #arg > 0 then
-            opt = arg[-1]
-        end
-        local cmd = fun.flatten({args, arg})
+    function (...)
+        local args = {...}
+        local opt = args[#args]
+        local cmd = fun.flatten(args)
         if type(opt) == 'table' then
             for k, v in pairs(opt) do
                 if type(k) == 'string' then
                     cmd[k] = v
                 end
             end
+        else
+            opt = nil
         end
 
         cmd._str = shell_quote(cmd)
@@ -206,7 +206,7 @@ lark.exec =
         local output = result.output
         local err = result.error
         if err then
-            if args.ignore then
+            if opt and opt.ignore then
                 if lark.verbose then
                     local msg = string.format('%s (ignored)', err)
                     lark.log{msg, color='yellow'}

@@ -16,6 +16,10 @@ function test_exec()
 	assert(not out)
 	assert(err)
 
+    out, err = lark.exec('false', {ignore = true})
+	assert(not out)
+	assert(err)
+
 
 	ok, out, err = pcall(lark. exec, {'echo', 'test output', stdout = '$', ignore = true})
 	assert(ok)
