@@ -28,8 +28,9 @@ func Command(fn func(lark *Context, cmd *cli.Command)) cli.Command {
 // Context is a context for a lark command.
 type Context struct {
 	*cli.Context
-	Lua     *lua.LState
-	verbose *bool
+	Lua         *lua.LState
+	verbose     *bool
+	disableDocs bool
 }
 
 // Verbose returns true if verbose output has been enabled.

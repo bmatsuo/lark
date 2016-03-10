@@ -29,6 +29,10 @@ Print the documentation for obj.
 
 A decorator that describes a function parameter.
 
+**[purge](#function-docpurge)**
+
+Remove all declared documentation data.
+
 **[sig](#function-docsig)**
 
 A decorator that documents a function's signature.
@@ -104,6 +108,20 @@ A decorator that describes a function parameter.
 **s**
 
 string -- The parameter name and description separated by white space.
+
+##Function doc.purge
+
+###Signature
+
+() => ()
+
+###Description
+
+Remove all declared documentation data.
+
+###Parameters
+
+****
 
 ##Function doc.sig
 

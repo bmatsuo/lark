@@ -66,10 +66,29 @@ func InitLark(c *Context, files []string) error {
 	}
 
 	trace := c.Lua.NewFunction(errTraceback)
+	require := c.Lua.GetGlobal("require")
 
-	c.Lua.Push(c.Lua.GetGlobal("require"))
-	c.Lua.Push(lua.LString("lark"))
+	c.Lua.Push(require)
+	c.Lua.Push(lua.LString("doc"))
 	err := c.Lua.PCall(1, 1, trace)
+	if err != nil {
+		return err
+	}
+	var doc lua.LValue
+	if c.disableDocs {
+		doc = c.Lua.Get(-1)
+		c.Lua.Pop(1)
+		c.Lua.SetField(doc, "disabled", lua.LBool(true))
+		c.Lua.Push(c.Lua.GetField(doc, "purge"))
+		err = c.Lua.PCall(0, 0, trace)
+		if err != nil {
+			return err
+		}
+	}
+
+	c.Lua.Push(require)
+	c.Lua.Push(lua.LString("lark"))
+	err = c.Lua.PCall(1, 1, trace)
 	if err != nil {
 		return err
 	}
@@ -77,6 +96,17 @@ func InitLark(c *Context, files []string) error {
 	c.Lua.Pop(1)
 	c.Lua.SetGlobal("lark", lark)
 
+	if c.disableDocs {
+		c.Lua.SetField(doc, "disabled", c.Lua.NewClosure(func(l *lua.LState) int {
+			msg := l.NewTable()
+			msg.Append(lua.LString("documentation is disabled"))
+			msg.RawSetString("color", lua.LString("yellow"))
+			l.Push(l.GetField(lark, "log"))
+			l.Push(msg)
+			l.Call(1, 0)
+			return 0
+		}, lark))
+	}
 	c.Lua.SetField(lark, "verbose", lua.LBool(c.Verbose()))
 
 	// Load files after lark has been loaded with require().
