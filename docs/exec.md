@@ -9,8 +9,8 @@ users coming from a scripting or dynamic language background expect.  The goals
 of lark are that commands are executed as safely as possible to ensure that
 build scripts utilizing it are reliable.  And the default execution semantics
 of typical scripting languages (bash included) are prone to subtle user error
-which reduces their reliability and effectiveness providing a critical piece of
-the development process, the build pipeline.
+which reduces their reliability and effectiveness in providing a critical piece
+of the development process, the build pipeline.
 
 ##Command Basics
 
@@ -20,9 +20,9 @@ argument.
 
     > lark.exec('cp', 'a.txt', 'b.txt')
 
-The above example executes the "cp" command with a two arguments, the string
-"a.txt" and the string "b.txt".  The lark.exec() will not accept the command as
-a single string like the os.system() function requires.
+The above example executes the "cp" command with two arguments, the string
+"a.txt" and the string "b.txt".  The lark.exec() function will not accept the
+command as a single string like the os.system() function requires.
 
     > os.system('cp a.txt b.txt')
 
@@ -30,27 +30,29 @@ The os.system() function is convenient but is also prone to errors especially
 as commands get more complex.  But before that, consider the above command a
 little longer.  When there is no file named "a.txt" cp will exit with a
 non-zero status code (failure).  If the user forgets to check that the returned
-value is 0 then a critical piece of the build may be missing.  The lark.exec()
-function will raise an exception for any command that terminates
-unsuccessfully.  If command failure is known to be benign then the user must
-explicitly declare this by using the pcall() function to call lark.exec() or by
-passing an option table with the lark.exec() call.
+value is 0 then a critical piece of the build may be missing.  Bash has similar
+default semantics but does provide a facility to achieve larks behavior, `set
+-e`.  The lark.exec() function will raise an exception for any command that
+terminates unsuccessfully.  If command failure is known to be benign then the
+user must explicitly declare this by using the pcall() function to call
+lark.exec() or by passing an option table with the lark.exec() function call.
 
     > _, err = lark.exec('cp', 'a.txt', 'b.txt', {ignore = true})
 
 When told to **ignore** errors the lark.exec() returns any error that occurred
 as the second return value.  The first return value is used for output captured
 from the program.  But in the above case the first return value will be nil
-because lark.exec() was not asked to capture output.  To read the output of a
-command into a string another option is passed to the lark.exec() function.
+because lark.exec() was not asked to capture any output streams.  To read the
+output of a command into a string another option is passed to the lark.exec()
+function.
 
 
     > out = lark.exec('cat', 'b.txt', {stdout='$'})
 
-The **stdout** redirection option can put the command's output in a specified
+The **stdout** redirection option can place the command's output in a specified
 file, but here it uses the special sigil '$' to tell lark.exec to return the
-bytes from 'cat' program's stdout stream as a string for the processing by the
-script.
+bytes from the 'cat' program's stdout stream as a string for the processing by
+the script.
 
 ##Command Construction
 
