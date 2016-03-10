@@ -12,6 +12,10 @@ of typical scripting languages (bash included) are prone to subtle user error
 which reduces their reliability and effectiveness in providing a critical piece
 of the development process, the build pipeline.
 
+The examples in this tutorial are given assuming the user is following along
+running commands in the provided interactive interpreter, `lark lua`, but they
+will work equivalently in a project's `lark.lua` script file.
+
 ##Command Basics
 
 Lark provides one primary method of executing a command, `lark.exec()`. Lark
