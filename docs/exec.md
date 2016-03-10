@@ -58,6 +58,7 @@ file, but here it uses the special sigil '$' to tell lark.exec to return the
 bytes from the 'cat' program's stdout stream as a string for the processing by
 the script.
 
+
 ##Command Construction
 
 Sometimes commands need to be constructed piecemeal, or parameters may need to
@@ -121,3 +122,80 @@ shell() function from above to allow for safely quoting substitutions.
     > shell('cat b.txt | grep "$0"', 'hello pipes')
 
 See the -c option in the `man sh` for more information.
+
+## Asynchronous Commands
+
+Some build tasks will require many independent commands to complete before they
+may procede.  In these tasks lark scripts can use the lark.start() start
+function to begin each asynchronously and finally issue a lark.wait() to
+synchronize with their termination before continuing.
+
+    > for _, name in pairs(SOURCES) do lark.start('gcc', '-c', name .. '.c') end
+    > objects = {}
+    > for _, name in pairs(SOURCES) do table.insert(objects, name .. '.o') end
+    > lark.wait()
+    > lark.exec('gcc', '-o', BIN, objects)
+
+The above example starts compiling all of a project's C source files into
+object files.  While `gcc` is compiling object files the script continues
+processing and constructs the list of object filenames needed in the final
+compilation step.  But, before the final binary can be compiled the lark.wait()
+function which will return after all objects have been compiled successfully or
+otherwise raise an error if a process terminated due to an error.  Finally the
+binary is compiled.
+
+The lark command will always call the lark.wait() function after all tasks have
+terminated to clean up any asynchronous processes still running.  So it doesn't
+matter if final binary in the example above is compiled using the lark.start()
+function.
+
+By default the lark command limits the number of parallel asynchronous commands
+at any time to avoid overwhelming the OS/CPU with processes and dying in
+context switch hell.  The default limit is equal to the number of CPU cores the
+lark command can detect.  The limit can be adjusted by passing the -j option to
+the `lark run` command.
+
+Another way to provide limits with finer granularity is through the use of
+_execution groups_.  An execution group is a label for commands passed to
+lark.start() which makes lark schedule their execution differently.
+
+    > lark.group{'bin', limit=2}
+    > lark.start('go', 'build', './cmd/foo', {group = 'bin'})
+    > lark.start('go', 'build', './cmd/bar', {group = 'bin'})
+    > lark.start('go', 'build', './cmd/baz', {group = 'bin'})
+    > lark.start('./compile_docs.sh')
+    > lark.wait('bin')
+    > lark.exec('mv', 'foo', 'bar', 'baz', 'release/bin')
+    > lark.wait()
+    > lark.exec('tar', '-C', 'release', '-cvzf, 'foo.tar.gz', '.')
+
+In the above example no more than two `go build` commands will execute
+simultaneously while the script `./compile_docs.sh` is free to execute in
+parallel with any of them, because it has no execution group other than the
+global group.  Furthermore, the first call to lark.wait() will only wait for
+the `go build` commands to finish.  And the resulting binaries may be relocated
+before `./compile_docs.sh` has completed.  The second call to wait will not
+return until all outstanding asynchronous commands have finished, regardless of
+their group.
+
+Execution groups can also declare other groups as their dependencies and delay
+their commands from executing until all processes in those groups have
+completed.
+
+    > lark.group{'bin', limit=2}
+    > lark.start('go', 'build', './cmd/foo', {group = 'bin'})
+    > lark.start('go', 'build', './cmd/bar', {group = 'bin'})
+    > lark.start('go', 'build', './cmd/baz', {group = 'bin'})
+    > lark.start('./compile_docs.sh', {group = 'docs'})
+    > lark.group{'bin_reloc', follows = 'bin'}
+    > lark.start('mv', 'foo', 'bar', 'baz', 'release/bin', {group = 'bin_reloc'})
+    > lark.group{'archive', follows = {'docs', 'bin_reloc'}}
+    > lark.start('tar', '-C', 'release', '-cvzf, 'foo.tar.gz', '.', {group = 'archive'})
+    > lark.wait('archive')
+
+The above somewhat pathological example assigns everything to a group and
+starts all commands asynchronously.  This ensures that all commands execute as
+soon as safely possible.  This is often not necessary or completely recommended
+as developement with this style of programming can become confusing.  But
+productivity gains from reduced build times may justify the introduction of
+parallel command execution for some projects.
