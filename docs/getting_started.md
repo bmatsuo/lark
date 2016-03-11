@@ -37,11 +37,11 @@ named "lark" is accessible and allows users to define tasks.
 ```lua
 build = lark.task .. function()
     lark.run('generate')
-    lark.exec{'go', 'build', './cmd/...'}
+    lark.exec('go', 'build', './cmd/...')
 end
 
 generate = lark.task .. function()
-    lark.exec{'go', 'generate', './...'}
+    lark.exec('go', 'generate', './...')
 end
 ```
 
