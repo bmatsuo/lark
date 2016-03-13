@@ -37,17 +37,18 @@ named "lark" is accessible and allows users to define tasks.
 ```lua
 build = lark.task .. function()
     lark.run('generate')
-    lark.exec{'go', 'build', './cmd/...'}
+    lark.exec('go', 'build', './cmd/...')
 end
 
 generate = lark.task .. function()
-    lark.exec{'go', 'generate', './...'}
+    lark.exec('go', 'generate', './...')
 end
 ```
 
-The above `lark.lua` file defines a task called 'generate' that runs code
-generation and a task called 'build', that depends on code generation, that
-builds executables.  Tasks can be run using the `lark run` command.
+The above `lark.lua` file defines a task called 'generate' that runs executes
+the code generation tool `go generate ./...` and a task called 'build', that
+builds executables with `go build ./cmd/...` after code generation has
+completed successfully.  Tasks can be run using the `lark run` command.
 
 ```sh
 lark run generate
@@ -76,6 +77,12 @@ $ lark list
 The '=' each lines first field indicates that the task matches the exact string
 ("build" or "generate").  The default task is indicated by the optional third
 field.
+
+##Executing commands
+
+The `lark.lua` file above shows two examples of executing commands.  For a more
+in depth look at how commands are executed see the [tutorial](exec.md) on the
+lark.exec() function.
 
 ##Learning more about Lua
 

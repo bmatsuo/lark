@@ -27,8 +27,8 @@ local lark =
     the module variable `default_task`.
     ]] ..
     doc.var[[
-    verbose
-    boolean -- Log more information then normal if this variable is true.
+    verbose boolean
+    Log more information then normal if this variable is true.
     ]] ..
     {
         default_task = nil,
@@ -82,7 +82,10 @@ lark.newtask =
 lark.get_name =
     doc.sig[[ctx => string]] ..
     doc.desc[[Return the name of the task corresponding to the given context.]] ..
-    doc.param[[ctx  object -- the context argument of an executing task]] ..
+    doc.param[[
+             ctx  object
+             The context argument of an executing task.
+             ]] ..
     deprecated_alias(task.get_name, "lark.get_name()", "get_name()", "lark.task")
 
 lark.get_pattern =
@@ -91,7 +94,10 @@ lark.get_pattern =
         Return the regular expression that matched the executing task.  If the
         task name was not matched against a pattern then nil is returned.
         ]] ..
-    doc.param[[ctx  object -- the context argument of an executing task]] ..
+    doc.param[[
+             ctx  object
+             The context argument of an executing task.
+             ]] ..
     deprecated_alias(task.get_pattern, "lark.get_pattern()", "get_pattern()", "lark.task")
 
 lark.get_param =
@@ -101,9 +107,18 @@ lark.get_param =
         to ctx.  If the task context has no name parameter then default is
         returned.
         ]] ..
-    doc.param[[ctx      object -- the context argument of an executing task]] ..
-    doc.param[[name     string -- the name of the task parameter]] ..
-    doc.param[[default  any -- returned when the task has no value for the parameter]] ..
+    doc.param[[
+             ctx      object
+             The context argument of an executing task.
+             ]] ..
+    doc.param[[
+             name     string
+             The name of the task parameter.
+             ]] ..
+    doc.param[[
+             default  any
+             Returned when the task has no value for the parameter.
+             ]] ..
     deprecated_alias(task.get_param, "lark.get_param()", "get_param()", "lark.task")
 
 local function shell_quote(args)
@@ -144,8 +159,13 @@ lark.environ =
 lark.log =
     doc.sig[[{msg, [color = string]} => result]] ..
     doc.desc[[Log a message to the standard error stream.]] ..
-    doc.param[[msg    string -- The message to display]] ..
-    doc.param[[color  string -- The color to display the message as (red, blue, ...)]] ..
+    doc.param[[
+             msg    string
+             The message to display.
+             ]] ..
+    doc.param[[
+             color  string -- The color to display the message as (red, blue, ...).
+             ]] ..
     core.log
 
 lark.exec =
@@ -172,7 +192,7 @@ lark.exec =
              arguments.
              ]] ..
     doc.param[[
-             opt         table
+             opt         (optional) table
              Execution options interpreted by lark.  Options control logging,
              process initialization, redirection of standard I/O streams, and
              error handling.
@@ -181,24 +201,42 @@ lark.exec =
              convenience.  So lark.exec() can be called using a single table
              argument, potentially using the special call syntax lark.exec{}.
              ]] ..
-    doc.param[[opt.dir     string (optional) -- the directory cmd should execute in]] ..
-    doc.param[[opt.input   string (optional) -- data written to the standard input stream]] ..
-    doc.param[[opt.stdin   string (optional) -- A source filename to redirect into the standard input stream]] ..
-    doc.param[[opt.stdout  string (optional) -- A destination filename to receive output redirected from the standard output stream]] ..
-    doc.param[[opt.stderr  string (optional) -- A destination filename to receive output redirected from the standard error stream]] ..
-    doc.param[[opt.ignore  boolean (optional) -- Do not terminate execution if cmd exits with an error]] ..
-    function (args, ...)
-        local opt = args
-        if #arg > 0 then
-            opt = arg[-1]
-        end
-        local cmd = fun.flatten({args, arg})
+    doc.param[[
+             opt.dir     string
+             The directory cmd should execute in.
+             ]] ..
+    doc.param[[
+             opt.input   string
+             Data written to the standard input stream.
+             ]] ..
+    doc.param[[
+             opt.stdin   string
+             A source filename to redirect into the standard input stream.
+             ]] ..
+    doc.param[[
+             opt.stdout  string
+             A destination filename to receive output redirected from the standard output stream
+             ]] ..
+    doc.param[[
+             opt.stderr  string
+             A destination filename to receive output redirected from the standard error stream
+             ]] ..
+    doc.param[[
+             opt.ignore  boolean
+             Do not terminate execution if cmd exits with an error.
+             ]] ..
+    function (...)
+        local args = {...}
+        local opt = args[#args]
+        local cmd = fun.flatten(args)
         if type(opt) == 'table' then
             for k, v in pairs(opt) do
                 if type(k) == 'string' then
                     cmd[k] = v
                 end
             end
+        else
+            opt = nil
         end
 
         cmd._str = shell_quote(cmd)
@@ -206,7 +244,7 @@ lark.exec =
         local output = result.output
         local err = result.error
         if err then
-            if args.ignore then
+            if opt and opt.ignore then
                 if lark.verbose then
                     local msg = string.format('%s (ignored)', err)
                     lark.log{msg, color='yellow'}
@@ -221,45 +259,89 @@ lark.exec =
     end
 
 lark.start =
-    doc.sig[[cmd => ()]] ..
-    doc.desc[[Start asynchronous execution of cmd.  Except where noted the cmd argument is identical to the argument of lark.exec()]] ..
-    doc.param[[cmd.group  string (optional) -- the group that cmd should execute under]] ..
-    function(args)
-        args._str = shell_quote(args) .. ' &'
-
-        core.start(args)
+    doc.sig[[(args, ..., opt) => output]] ..
+    doc.desc[[
+            Start asynchronous execution of cmd.  Except where noted the cmd
+            argument is identical to the argument of lark.exec()
+            ]] ..
+    doc.param[[
+             opt.group  string (optional)
+             The group that cmd should execute under.
+             ]] ..
+    function(...)
+        local args = {...}
+        local opt = args[#args]
+        local cmd = fun.flatten(args)
+        if type(opt) == 'table' then
+            for k, v in pairs(opt) do
+                if type(k) == 'string' then
+                    cmd[k] = v
+                end
+            end
+        else
+            opt = nil
+        end
+        cmd._str = shell_quote(cmd) .. ' &'
+        core.start(cmd)
     end
 
 lark.group =
-    doc.sig[[g => string]] ..
-    doc.desc[[Create a group with optional dependencies.]] ..
-    doc.param[[g.name     string -- name of the group]] ..
-    doc.param[[g.follows  array (optional) -- wait for the specified groups before executing any group processes]] ..
-    doc.param[[g.limit    number (optional) -- limit parallel procceses among the group (in addition to global limits)]] ..
-    function (args)
-        if type(args) == 'string' then
-            return args
+    doc.sig[[(name, opt) => name]] ..
+    doc.desc[[
+            Create a group with optional dependencies.  The name of the group
+            is returned as if saving it to a variable is convenient for future
+            calls to lark.start() and lark.wait().
+            ]] ..
+    doc.param[[
+             name     string
+             Name of the group.
+             ]] ..
+    doc.param[[
+             opt     (optional) table
+             Scheduling options for the group.  Options must be specified when
+             the group is created.
+             ]] ..
+    doc.param[[
+             opt.follows  array (optional)
+             Wait for the specified groups before executing any group processes.
+             ]] ..
+    doc.param[[
+             opt.limit    number (optional)
+             Limit parallel procceses among the group (in addition to global
+             limits).  The only exception to this is if the opt.limit is less
+             then zero which tells lark to ignore the global limit and run an
+             unlimited number of parallel processes in the group.
+             ]] ..
+    function (name, opt)
+        if type(name) == 'table' then
+            opt = name
+            name = opt[1] or opt.name
         end
-        if table.getn(args) == 1 then
-            args.name = args[1]
+        if not name then
+            error('no name given to group')
         end
-        if table.getn(args) > 1 then
-            error('too many positional arguments given')
+        if not opt then
+            opt = {}
         end
-        core.make_group(args)
-        return args[1]
+        opt.name = name
+        core.make_group(opt)
+        return name
     end
 
 lark.wait =
-    doc.sig[[[group] => nil]] ..
-    doc.desc[[Suspend execution until all processes in the specified groups have terminated.]] ..
-    doc.param[[group  the name of a group to wait for]] ..
+    doc.sig[[(group, ...) => nil]] ..
+    doc.desc[[
+            Suspend execution until all processes in the specified groups have terminated.
+            ]] ..
+    doc.param[[
+             group  string
+             The name of a group to wait for.  An array of strings may be given
+             instead of a single string the array and any nested arrays will be
+             flattened instead a sequence of group names.
+             ]] ..
     function (...)
-        local args = arg
-        if type(args) ~= 'table' then
-            args = {arg}
-        end
-        local result = core.wait(unpack(fun.flatten(args)))
+        local args = fun.flatten({...})
+        local result = core.wait(unpack(args))
         if result.error then
             error(result.error)
         end

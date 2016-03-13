@@ -251,8 +251,11 @@ func (c *core) LuaWait(state *lua.LState) int {
 	for _, name := range names {
 		group := c.groups[name]
 		if group != nil {
-			err = group.Wait()
-			break
+			if err == nil {
+				err = group.Wait()
+			} else {
+				group.Wait()
+			}
 		}
 	}
 

@@ -42,13 +42,13 @@ Log a message to the standard error stream.
 
 ###Parameters
 
-**msg**
+**msg** _string_
 
-string -- The message to display
+The message to display.
 
 **color**
 
-string -- The color to display the message as (red, blue, ...)
+string -- The color to display the message as (red, blue, ...).
 
 ##Function lark.core.make_group
 

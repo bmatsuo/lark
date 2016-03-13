@@ -13,9 +13,9 @@ the module variable `default_task`.
 
 ##Variables
 
-**verbose**
+**verbose** _boolean_
 
-boolean -- Log more information then normal if this variable is true.
+Log more information then normal if this variable is true.
 
 ##Functions
 
@@ -117,7 +117,7 @@ The command to run (e.g. ('gcc', GCC_OPT, '-c', 'foo.c')).  Any
 nested arrays will be flattened to form a final array of string
 arguments.
 
-**opt** _table_
+**opt** _(optional) table_
 
 Execution options interpreted by lark.  Options control logging,
 process initialization, redirection of standard I/O streams, and
@@ -127,29 +127,29 @@ The opt table can contain command arguments as well for
 convenience.  So lark.exec() can be called using a single table
 argument, potentially using the special call syntax lark.exec{}.
 
-**opt.dir**
+**opt.dir** _string_
 
-string (optional) -- the directory cmd should execute in
+The directory cmd should execute in.
 
-**opt.input**
+**opt.input** _string_
 
-string (optional) -- data written to the standard input stream
+Data written to the standard input stream.
 
-**opt.stdin**
+**opt.stdin** _string_
 
-string (optional) -- A source filename to redirect into the standard input stream
+A source filename to redirect into the standard input stream.
 
-**opt.stdout**
+**opt.stdout** _string_
 
-string (optional) -- A destination filename to receive output redirected from the standard output stream
+A destination filename to receive output redirected from the standard output stream
 
-**opt.stderr**
+**opt.stderr** _string_
 
-string (optional) -- A destination filename to receive output redirected from the standard error stream
+A destination filename to receive output redirected from the standard error stream
 
-**opt.ignore**
+**opt.ignore** _boolean_
 
-boolean (optional) -- Do not terminate execution if cmd exits with an error
+Do not terminate execution if cmd exits with an error.
 
 ##Function lark.get_name
 
@@ -163,9 +163,9 @@ Return the name of the task corresponding to the given context.
 
 ###Parameters
 
-**ctx**
+**ctx** _object_
 
-object -- the context argument of an executing task
+The context argument of an executing task.
 
 ##Function lark.get_param
 
@@ -181,17 +181,17 @@ returned.
 
 ###Parameters
 
-**ctx**
+**ctx** _object_
 
-object -- the context argument of an executing task
+The context argument of an executing task.
 
-**name**
+**name** _string_
 
-string -- the name of the task parameter
+The name of the task parameter.
 
-**default**
+**default** _any_
 
-any -- returned when the task has no value for the parameter
+Returned when the task has no value for the parameter.
 
 ##Function lark.get_pattern
 
@@ -206,33 +206,43 @@ task name was not matched against a pattern then nil is returned.
 
 ###Parameters
 
-**ctx**
+**ctx** _object_
 
-object -- the context argument of an executing task
+The context argument of an executing task.
 
 ##Function lark.group
 
 ###Signature
 
-g => string
+(name, opt) => name
 
 ###Description
 
-Create a group with optional dependencies.
+Create a group with optional dependencies.  The name of the group
+is returned as if saving it to a variable is convenient for future
+calls to lark.start() and lark.wait().
 
 ###Parameters
 
-**g.name**
+**name** _string_
 
-string -- name of the group
+Name of the group.
 
-**g.follows**
+**opt** _(optional) table_
 
-array (optional) -- wait for the specified groups before executing any group processes
+Scheduling options for the group.  Options must be specified when
+the group is created.
 
-**g.limit**
+**opt.follows** _array (optional)_
 
-number (optional) -- limit parallel procceses among the group (in addition to global limits)
+Wait for the specified groups before executing any group processes.
+
+**opt.limit** _number (optional)_
+
+Limit parallel procceses among the group (in addition to global
+limits).  The only exception to this is if the opt.limit is less
+then zero which tells lark to ignore the global limit and run an
+unlimited number of parallel processes in the group.
 
 ##Function lark.log
 
@@ -246,13 +256,13 @@ Log a message to the standard error stream.
 
 ###Parameters
 
-**msg**
+**msg** _string_
 
-string -- The message to display
+The message to display.
 
 **color**
 
-string -- The color to display the message as (red, blue, ...)
+string -- The color to display the message as (red, blue, ...).
 
 ##Function lark.newpattern
 
@@ -304,17 +314,18 @@ An alias for run() in module lark.task
 
 ###Signature
 
-cmd => ()
+(args, ..., opt) => output
 
 ###Description
 
-Start asynchronous execution of cmd.  Except where noted the cmd argument is identical to the argument of lark.exec()
+Start asynchronous execution of cmd.  Except where noted the cmd
+argument is identical to the argument of lark.exec()
 
 ###Parameters
 
-**cmd.group**
+**opt.group** _string (optional)_
 
-string (optional) -- the group that cmd should execute under
+The group that cmd should execute under.
 
 ##Function lark.task
 
@@ -344,7 +355,7 @@ function -- A task function
 
 ###Signature
 
-[group] => nil
+(group, ...) => nil
 
 ###Description
 
@@ -352,5 +363,9 @@ Suspend execution until all processes in the specified groups have terminated.
 
 ###Parameters
 
-**group** _the name of a group to wait for_
+**group** _string_
+
+The name of a group to wait for.  An array of strings may be given
+instead of a single string the array and any nested arrays will be
+flattened instead a sequence of group names.
 
