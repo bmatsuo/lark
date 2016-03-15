@@ -14,3 +14,8 @@ var luaFunTest = &gluatest.File{
 func TestFun(t *testing.T) {
 	luaFunTest.Test(t)
 }
+
+func BenchmarkRequireModule(b *testing.B) {
+	file := &gluatest.File{Module: Module}
+	file.BenchmarkRequireModule(b)
+}

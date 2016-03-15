@@ -30,8 +30,17 @@ func BenchmarkRequireModule(b *testing.B) {
 	testRequireAll.BenchmarkRequireModule(b)
 }
 
+func BenchmarkRequireModule_nodoc(b *testing.B) {
+	testRequireAllNoDoc.BenchmarkRequireModule(b)
+}
+
 var testRequireAll = &gluatest.File{
 	Module: gluamodule.New("requireall", loaderRequireAll, Modules...),
+}
+
+var testRequireAllNoDoc = &gluatest.File{
+	Module: gluamodule.New("requireall", loaderRequireAll, Modules...),
+	Path:   "nodoc_test.lua",
 }
 
 func loaderRequireAll(l *lua.LState) int {

@@ -17,5 +17,6 @@ func TestModule(t *testing.T) {
 }
 
 func BenchmarkRequireModule(b *testing.B) {
-	luaCoreTest.BenchmarkRequireModule(b)
+	file := &gluatest.File{Module: gluamodule.New("lark.core", Loader)}
+	file.BenchmarkRequireModule(b)
 }
