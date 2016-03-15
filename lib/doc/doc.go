@@ -21,6 +21,30 @@ var Module = gluamodule.New("doc", docLoader,
 	intern.Module,
 )
 
+// Disable disables and purges all documentation in l.
+func Disable(l *lua.LState, fn *lua.LFunction) error {
+	l.Push(l.GetGlobal("require"))
+	l.Push(lua.LString("doc"))
+	err := l.PCall(1, 1, nil)
+	if err != nil {
+		return err
+	}
+	defer l.Pop(1)
+
+	if fn != nil {
+		l.SetField(l.Get(-1), "disabled", fn)
+	} else {
+		l.SetField(l.Get(-1), "disabled", lua.LBool(true))
+	}
+	l.Push(l.GetField(l.Get(-1), "purge"))
+	err = l.PCall(0, 0, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Get loads documentation about lv from l.
 func Get(l *lua.LState, lv lua.LValue, name string) (*Docs, error) {
 	l.Push(l.GetGlobal("require"))

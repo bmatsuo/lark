@@ -5,6 +5,7 @@ import (
 
 	"github.com/bmatsuo/lark/gluamodule"
 	"github.com/bmatsuo/lark/lib"
+	"github.com/bmatsuo/lark/lib/doc"
 	"github.com/bmatsuo/lark/project"
 	"github.com/yuin/gopher-lua"
 )
@@ -68,19 +69,8 @@ func InitLark(c *Context, files []string) error {
 	trace := c.Lua.NewFunction(errTraceback)
 	require := c.Lua.GetGlobal("require")
 
-	c.Lua.Push(require)
-	c.Lua.Push(lua.LString("doc"))
-	err := c.Lua.PCall(1, 1, trace)
-	if err != nil {
-		return err
-	}
-	var doc lua.LValue
 	if c.disableDocs {
-		doc = c.Lua.Get(-1)
-		c.Lua.Pop(1)
-		c.Lua.SetField(doc, "disabled", lua.LBool(true))
-		c.Lua.Push(c.Lua.GetField(doc, "purge"))
-		err = c.Lua.PCall(0, 0, trace)
+		err := doc.Disable(c.Lua, nil)
 		if err != nil {
 			return err
 		}
@@ -88,7 +78,7 @@ func InitLark(c *Context, files []string) error {
 
 	c.Lua.Push(require)
 	c.Lua.Push(lua.LString("lark"))
-	err = c.Lua.PCall(1, 1, trace)
+	err := c.Lua.PCall(1, 1, trace)
 	if err != nil {
 		return err
 	}
@@ -97,7 +87,7 @@ func InitLark(c *Context, files []string) error {
 	c.Lua.SetGlobal("lark", lark)
 
 	if c.disableDocs {
-		c.Lua.SetField(doc, "disabled", c.Lua.NewClosure(func(l *lua.LState) int {
+		doc.Disable(c.Lua, c.Lua.NewClosure(func(l *lua.LState) int {
 			msg := l.NewTable()
 			msg.Append(lua.LString("documentation is disabled"))
 			msg.RawSetString("color", lua.LString("yellow"))
