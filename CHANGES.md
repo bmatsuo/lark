@@ -38,6 +38,10 @@ lark lua  # identical to command `lark repl`
   `lark_modules/`).  This serves as an example of how to document objects in
   lua code.
 
+- Documentation is disabled during normal execution of `lark run`.
+  Documentation is available in the `lark lua` REPL or through generated
+  documentation in the docs/ directory.  (#81).
+
 ##v0.4.0
 
 - Fix bug where errors encountered by `lark.exec()` were ignored. See #62.
