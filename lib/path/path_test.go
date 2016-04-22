@@ -16,5 +16,6 @@ func TestModule(t *testing.T) {
 }
 
 func BenchmarkRequireModule(b *testing.B) {
-	luaPathTest.BenchmarkRequireModule(b)
+	file := &gluatest.File{Module: Module}
+	file.BenchmarkRequireModule(b)
 }

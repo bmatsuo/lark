@@ -5,6 +5,7 @@ import (
 
 	"github.com/bmatsuo/lark/gluamodule"
 	"github.com/bmatsuo/lark/lib"
+	"github.com/bmatsuo/lark/lib/doc"
 	"github.com/bmatsuo/lark/project"
 	"github.com/yuin/gopher-lua"
 )
@@ -66,8 +67,16 @@ func InitLark(c *Context, files []string) error {
 	}
 
 	trace := c.Lua.NewFunction(errTraceback)
+	require := c.Lua.GetGlobal("require")
 
-	c.Lua.Push(c.Lua.GetGlobal("require"))
+	if c.disableDocs {
+		err := doc.Disable(c.Lua, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	c.Lua.Push(require)
 	c.Lua.Push(lua.LString("lark"))
 	err := c.Lua.PCall(1, 1, trace)
 	if err != nil {
@@ -77,6 +86,17 @@ func InitLark(c *Context, files []string) error {
 	c.Lua.Pop(1)
 	c.Lua.SetGlobal("lark", lark)
 
+	if c.disableDocs {
+		doc.Disable(c.Lua, c.Lua.NewClosure(func(l *lua.LState) int {
+			msg := l.NewTable()
+			msg.Append(lua.LString("documentation is disabled"))
+			msg.RawSetString("color", lua.LString("yellow"))
+			l.Push(l.GetField(lark, "log"))
+			l.Push(msg)
+			l.Call(1, 0)
+			return 0
+		}, lark))
+	}
 	c.Lua.SetField(lark, "verbose", lua.LBool(c.Verbose()))
 
 	// Load files after lark has been loaded with require().

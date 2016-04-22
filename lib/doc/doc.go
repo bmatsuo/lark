@@ -3,6 +3,7 @@ package doc
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"sort"
 	"strings"
@@ -19,6 +20,30 @@ import (
 var Module = gluamodule.New("doc", docLoader,
 	intern.Module,
 )
+
+// Disable disables and purges all documentation in l.
+func Disable(l *lua.LState, fn *lua.LFunction) error {
+	l.Push(l.GetGlobal("require"))
+	l.Push(lua.LString("doc"))
+	err := l.PCall(1, 1, nil)
+	if err != nil {
+		return err
+	}
+	defer l.Pop(1)
+
+	if fn != nil {
+		l.SetField(l.Get(-1), "disabled", fn)
+	} else {
+		l.SetField(l.Get(-1), "disabled", lua.LBool(true))
+	}
+	l.Push(l.GetField(l.Get(-1), "purge"))
+	err = l.PCall(0, 0, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // Get loads documentation about lv from l.
 func Get(l *lua.LState, lv lua.LValue, name string) (*Docs, error) {
@@ -565,17 +590,38 @@ func docLoader(l *lua.LState) int {
 	l.Push(l.GetGlobal("require"))
 	l.Push(lua.LString("decorator.intern"))
 	l.Call(1, 1)
+	decorator := l.GetField(l.Get(-1), "create")
 	annotator := l.GetField(l.Get(-1), "annotator")
 	l.Pop(1)
+
+	identity := l.NewFunction(func(l *lua.LState) int { return l.GetTop() })
 
 	newAnnotator := func(t lua.LValue, prepend bool) lua.LValue {
 		l.Push(annotator)
 		l.Push(t)
 		l.Push(lua.LBool(prepend))
 		l.Call(2, 1)
-		val := l.Get(-1)
+		anno := l.Get(-1)
 		l.Pop(1)
-		return val
+		l.Push(decorator)
+		l.Push(l.NewClosure(func(l *lua.LState) int {
+			top := l.GetTop()
+			disabled, _ := moduleIsDisabled(l, mod)
+			if disabled {
+				l.Push(identity)
+				return 1
+			}
+			l.Push(anno)
+			for i := 1; i <= top; i++ {
+				l.Push(l.Get(i))
+			}
+			l.Call(top, lua.MultRet)
+			return l.GetTop() - top
+		}, mod, anno))
+		l.Call(1, 1)
+		guarded := l.Get(-1)
+		l.Pop(1)
+		return guarded
 	}
 
 	usage := newAnnotator(usages, false)
@@ -661,9 +707,20 @@ func docLoader(l *lua.LState) int {
 		`s  string -- The variable name and description separated by white space.`,
 	)
 
+	purge := l.NewClosure(
+		luaPurge(mod, usages, signatures, descriptions, parameters, variables),
+		mod, usages, signatures, descriptions, parameters, variables,
+	)
+	dodoc(purge,
+		"",
+		"() => ()",
+		"Remove all declared documentation data.",
+		``,
+	)
+
 	get := l.NewClosure(
-		luaGet(usages, signatures, descriptions, parameters, variables),
-		usages, signatures, descriptions, parameters, variables,
+		luaGet(mod, usages, signatures, descriptions, parameters, variables),
+		mod, usages, signatures, descriptions, parameters, variables,
 	)
 	dodoc(get,
 		"",
@@ -694,12 +751,35 @@ func docLoader(l *lua.LState) int {
 	l.SetField(mod, "get", get)
 	l.SetField(mod, "help", help)
 
+	// utility
+	l.SetField(mod, "purge", purge)
+
 	l.Push(mod)
 	return 1
 }
 
+func moduleIsDisabled(l *lua.LState, mod lua.LValue) (bool, *lua.LFunction) {
+	disabled := l.GetField(mod, "disabled")
+	if lua.LVIsFalse(disabled) {
+		return false, nil
+	}
+	fn, _ := disabled.(*lua.LFunction)
+	return true, fn
+}
+
 func luaHelp(mod lua.LValue, get lua.LValue) lua.LGFunction {
 	return func(l *lua.LState) int {
+		disabled, dfn := moduleIsDisabled(l, mod)
+		if disabled {
+			if dfn != nil {
+				l.Push(dfn)
+				l.Call(0, 0)
+			} else {
+				log.Printf("documentation has been disabled")
+			}
+			return 0
+		}
+
 		print := l.GetGlobal("print")
 		if l.GetTop() == 0 {
 			def := l.GetField(mod, "default")
@@ -743,9 +823,46 @@ func luaHelp(mod lua.LValue, get lua.LValue) lua.LGFunction {
 	}
 }
 
-func luaGet(usages, signatures, descriptions, parameters, variables lua.LValue) lua.LGFunction {
+func luaPurge(mod, usages, signatures, descriptions, parameters, variables lua.LValue) lua.LGFunction {
+	return func(l *lua.LState) int {
+		purge(l, usages)
+		purge(l, signatures)
+		purge(l, descriptions)
+		purge(l, parameters)
+		purge(l, variables)
+		return 0
+	}
+}
+
+func purge(l *lua.LState, t lua.LValue) {
+	var keys []lua.LValue
+	if t, ok := t.(*lua.LTable); ok {
+		l.ForEach(t, func(k, v lua.LValue) {
+			keys = append(keys, k)
+		})
+		for _, k := range keys {
+			l.SetTable(t, k, lua.LNil)
+		}
+		for i := range keys {
+			keys[i] = nil
+		}
+		keys = keys[:0]
+	}
+}
+
+func luaGet(mod, usages, signatures, descriptions, parameters, variables lua.LValue) lua.LGFunction {
 	var rec lua.LGFunction
 	rec = func(l *lua.LState) int {
+		disabled, dfn := moduleIsDisabled(l, mod)
+		if disabled {
+			if dfn != nil {
+				l.Push(dfn)
+				l.Call(0, 0)
+			} else {
+				log.Printf("documentation has been disabled")
+			}
+			return 0
+		}
 		val := l.Get(1)
 		depth := l.OptInt(2, 1)
 

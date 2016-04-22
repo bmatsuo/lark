@@ -56,6 +56,15 @@ func (m *File) BenchmarkRequireModule(b *testing.B) {
 	for i := 0; i <= b.N; i++ {
 		l := lua.NewState()
 		gluamodule.Preload(l, gluamodule.Resolve(m.Module)...)
+
+		if m.Path != "" {
+			err := l.DoFile(m.Path)
+			if err != nil {
+				l.Close()
+				b.Fatal(err)
+			}
+		}
+
 		l.Push(l.GetGlobal("require"))
 		l.Push(lua.LString(m.Module.Name()))
 		b.StartTimer()

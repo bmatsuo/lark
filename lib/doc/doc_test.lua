@@ -73,3 +73,21 @@ function test_doc()
     assert(docs.sub[1].docs.desc == 'a function')
     assert(docs.sub[1].docs.sig == '() => ()')
 end
+
+function test_disabled()
+    local doc = require('doc')
+    local x = function(p) return p .. '.xyz' end
+    local docs = {}
+
+	local disabled_called = false
+	doc.disabled = function() disabled_called = true end
+
+    local sig_string = 'p => string'
+    local sig = doc.sig(sig_string)
+	assert(sig)
+	print(sig)
+    sig(x)
+    docs = doc.get(x)
+	assert(not docs)
+	assert(disabled_called)
+end
