@@ -287,12 +287,10 @@ func luaDecorator(l *lua.LState) int {
 
 func luaFind(anonTasks, namedTasks, patterns, mod *lua.LTable) lua.LGFunction {
 	return func(l *lua.LState) int {
-		var noname bool
 		var name string
 		if l.GetTop() > 0 {
 			name = l.CheckString(1)
 		} else {
-			noname = true
 			var lname lua.LString
 			var ok bool
 			def := l.GetField(mod, "default")
@@ -329,10 +327,6 @@ func luaFind(anonTasks, namedTasks, patterns, mod *lua.LTable) lua.LGFunction {
 				l.Push(lua.LString(name))
 				return 2
 			}
-		}
-
-		if noname {
-			return 0
 		}
 
 		allPatterns := l.NewTable()
