@@ -46,7 +46,7 @@ build_patt = task.pattern[[^./cmd/.*]] .. function (ctx)
 end
 
 install = task .. function ()
-    go.install()
+    go.install{'./cmd/lark'}
 end
 
 test = task .. function(ctx)
