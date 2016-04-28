@@ -4,8 +4,9 @@
 unstable.  As features are developed and practical experience is gained the Lua
 module APIs will change to better suit the needs of developers.  Any
 incompatible change will be preceded by a deprecation warning and migration
-plan (if necessary).  The list of open [issues](/issues) contains all planned
-upcoming incompatabilities (breaking changes).**
+plan (if necessary).  The list of open
+[issues](https://github.com/bmatsuo/lark/issues) contains all planned upcoming
+incompatabilities (breaking changes).**
 
 **BREAKING CHANGE: In lark v0.5.0 the task API was altered.  The new API is
 described in the documentation for [Getting Started](docs/getting_started.md).
