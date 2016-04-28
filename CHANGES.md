@@ -42,6 +42,8 @@ lark lua  # identical to command `lark repl`
   Documentation is available in the `lark lua` REPL or through generated
   documentation in the docs/ directory.  (#81).
 
+- The default task can be an instance of a pattern task (#87).
+
 ##v0.4.0
 
 - Fix bug where errors encountered by `lark.exec()` were ignored. See #62.
